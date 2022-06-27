@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  TrinhsGroupApp
+//  TrinhsGroup
 //
-//  Created by long on 21/06/2022.
+//  Created by long on 27/06/2022.
 //
 
 import SwiftUI
