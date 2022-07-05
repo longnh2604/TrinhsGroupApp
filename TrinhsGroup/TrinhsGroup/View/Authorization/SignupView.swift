@@ -169,7 +169,7 @@ struct SignupView: View {
                 if authViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
                 }
-                if authViewModel.showError {
+                if !authViewModel.message.isEmpty {
                     CustomAlertView(message: authViewModel.message)
                 }
             }

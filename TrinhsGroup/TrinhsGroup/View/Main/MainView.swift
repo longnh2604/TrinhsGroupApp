@@ -18,51 +18,46 @@ struct MainView: View {
     }
     
     var body: some View {
-        
         ZStack {
-            if mainViewModel.appSetting == nil {
-                LoadingView().ignoresSafeArea()
-            } else {
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
+            Color.init(hex: "f9f9f9")
+                .edgesIgnoringSafeArea(.all)
+            
+            TabView(selection: $selected) {
+                HomeView()
+                    .environmentObject(mainViewModel)
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                        Text("Home")
+                    }.tag(0)
                 
-                TabView(selection: $selected) {
-//                    HomeView()
-//                        .environmentObject(mainViewModel)
-//                        .tabItem {
-//                            Image(systemName: "house.fill")
-//                            Text("Home")
-//                        }.tag(0)
-//                    
-//                    CategoryView()
-//                        .environmentObject(mainViewModel)
-//                        .tabItem {
-//                            Image(systemName: "cart.fill")
-//                            Text("Category")
-//                        }.tag(1)
-//                    
-//                    FavoriteView()
-//                        .environmentObject(mainViewModel)
-//                        .tabItem {
-//                            Image(systemName: "heart.fill")
-//                            Text("Favorite")
-//                        }.tag(2)
-//                    
-//                    ProfileView()
-//                        .environmentObject(authViewModel)
-//                        .environmentObject(historyViewModel)
-//                        .environmentObject(mainViewModel)
-//                        .tabItem {
-//                            Image(systemName: "person.fill")
-//                            Text("Profile")
-//                        }.tag(3)
-//                    
-//                    SettingView()
-//                        .tabItem {
-//                            Image(systemName: "gearshape.fill")
-//                            Text("Setting")
-//                        }.tag(4)
-                }
+                CategoryView()
+                    .environmentObject(mainViewModel)
+                    .tabItem {
+                        Image(systemName: "cart.fill")
+                        Text("Category")
+                    }.tag(1)
+                
+                FavoriteView()
+                    .environmentObject(mainViewModel)
+                    .tabItem {
+                        Image(systemName: "heart.fill")
+                        Text("Favorite")
+                    }.tag(2)
+                
+                ProfileView()
+                    .environmentObject(authViewModel)
+//                    .environmentObject(historyViewModel)
+                    .environmentObject(mainViewModel)
+                    .tabItem {
+                        Image(systemName: "person.fill")
+                        Text("Profile")
+                    }.tag(3)
+                
+                SettingView()
+                    .tabItem {
+                        Image(systemName: "gearshape.fill")
+                        Text("Setting")
+                    }.tag(4)
             }
             
 //            if mainViewModel.showNewSeason {

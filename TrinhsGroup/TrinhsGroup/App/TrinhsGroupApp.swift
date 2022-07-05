@@ -16,7 +16,7 @@ struct TrinhsGroupApp: App {
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @AppStorage("isOnboarding") var isOnboarding: Bool = true
     @ObservedObject var authViewModel = AuthViewModel()
-//    @ObservedObject var mainViewModel = MainViewModel()
+    @ObservedObject var mainViewModel = MainViewModel()
 //    @ObservedObject var historyViewModel = HistoryViewModel()
     
     var body: some Scene {
@@ -24,15 +24,15 @@ struct TrinhsGroupApp: App {
             if isOnboarding && ONBOARD_ENABLED {
                 OnboardingView()
                     .preferredColorScheme(.light)
-            }else{
+            } else {
                 if !authViewModel.isLogin {
                     SignupView()
                         .environmentObject(authViewModel)
                         .preferredColorScheme(.light)
                 } else {
-//                    MainView()
-//                        .environmentObject(authViewModel)
-//                        .environmentObject(mainViewModel)
+                    MainView()
+                        .environmentObject(authViewModel)
+                        .environmentObject(mainViewModel)
 //                        .environmentObject(historyViewModel)
                 }
             }

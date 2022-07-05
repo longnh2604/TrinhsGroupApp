@@ -34,6 +34,16 @@ struct LogInView: View {
             , alignment: .center)
     }
     
+    fileprivate func AppIcon() -> some View {
+        return HStack {
+            Image("logo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 100, height: 100, alignment: .center)
+                .padding(.top, 10)
+        }
+    }
+    
     fileprivate func EmailTextFiels() -> some View {
         return HStack {
             Image(systemName: "envelope.fill")
@@ -76,7 +86,7 @@ struct LogInView: View {
     
     fileprivate func LoginButton() -> some View {
         return Button(action: {
-//            authViewModel.authUser()
+            authViewModel.onAuthUser()
         }) {
             Text("Login")
                 .fontWeight(.bold)
@@ -127,19 +137,26 @@ struct LogInView: View {
                     .edgesIgnoringSafeArea(.all)
                 VStack {
                     NavigationBarView()
+                    AppIcon()
                     EmailTextFiels()
                         .padding(.top, 30)
                     PasswordTextField()
                     LoginButton()
                     ForgetPasswordButton()
                     Spacer()
-//                    Text("Login with social account")
-//                        .foregroundColor(.gray)
-//                        .padding(.bottom, 10)
-//                    HStack {
-//                        GoogleLogInButton()
-//                        FacebookLogInButton()
-//                    }
+                    Text("Login with social account")
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 10)
+                    HStack {
+                        GoogleLogInButton()
+                        FacebookLogInButton()
+                    }
+                }
+                if authViewModel.showLoading {
+                    LoadingView().ignoresSafeArea()
+                }
+                if !authViewModel.message.isEmpty {
+                    CustomAlertView(message: authViewModel.message)
                 }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)

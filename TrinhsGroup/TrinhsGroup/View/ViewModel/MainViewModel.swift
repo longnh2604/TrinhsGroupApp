@@ -12,27 +12,28 @@ class MainViewModel: ObservableObject {
     
     @Published var appSetting: AppSetting?
     @Published var showLoading: Bool = false
+    @Published var showNewSeason = false
+    @Published var showCart = false
+    @Published var sliders = [Slider]()
+    @Published var items = [Product]()
+    @Published var products = [Product]()
     
 //    @Published var activeSheet: ActiveSheet?
 //    @Published var payments = [Payment]()
 //    @Published var zones = [Zone]()
 //    @Published var shipMethods = [ShipMethod]()
-//    @Published var sliders = [Slider]()
 //    @Published var categories = [Category]()
 //    @Published var subcategories = [Category]()
 //    @Published var selectedCategory: Category = Category.default
 //    @Published var selectedSubCategory: Category = Category.default
-//    @Published var products = [Product]()
+
 //    @Published var categoryProducts = [Product]()
-//    @Published var showLoading = false
 //    @Published var showDetail = false
-//    @Published var showNewSeason = false
+
 //    @Published var showDiscount = false
-//    @Published var showCart = false
 //    @Published var showCheckout = false
 //    @Published var showOrderReceived = false
 //    @Published var showCategoryProducts = false
-//    @Published var items = [Product]()
 //    @Published var receivedOrder: Order = Order.default
 //    @Published var coupon: Coupon = Coupon.default
 //    @Published var showDialog: Bool = false
@@ -40,13 +41,13 @@ class MainViewModel: ObservableObject {
 //    @Published var selectedShip = ShipMethod.default
 //    @Published var selectedPayment : Payment = Payment.default
 //    
-//    var numberOfItems: Int {
-//        if items.count > 0 {
-//            return items.reduce(0) { $0 + $1.quantity }
-//        } else {
-//            return 0
-//        }
-//    }
+    var numberOfItems: Int {
+        if items.count > 0 {
+            return items.reduce(0) { $0 + $1.quantity }
+        } else {
+            return 0
+        }
+    }
 //    
 //    var discounts: Double {
 //        if items.count > 0 {

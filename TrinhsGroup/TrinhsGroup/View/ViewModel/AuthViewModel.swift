@@ -12,14 +12,10 @@ import Combine
 class AuthViewModel: ObservableObject {
     
     @AppStorage("isLogin") var isLogin : Bool = false
-    @AppStorage("id") var id : Int = -1
-    @AppStorage("userEmail") var userEmail : String = ""
-    @AppStorage("displayName") var displayName : String = ""
     @Published var user : User = User.default
     @Published var username = ""
     @Published var email = ""
     @Published var password = ""
-    @Published var showError: Bool = false
     @Published var showLoading = false
     @Published var message: String = ""
     
@@ -32,16 +28,26 @@ class AuthViewModel: ObservableObject {
     }
     
     func bindingData() {
-        self.service.loadingPublisher
+        service.loadingPublisher
             .dropFirst()
             .receive(on: RunLoop.main)
             .assign(to: &$showLoading)
         
-        self.service.errorPublisher
+        service.errorPublisher
             .receive(on: RunLoop.main)
             .sink { error in
                 self.message = error
-                self.showError = true
+            }
+            .store(in: &cancellableSet)
+        
+        service.userPublisher
+            .receive(on: RunLoop.main)
+            .assign(to: &$user)
+        
+        service.loginPublisher
+            .receive(on: RunLoop.main)
+            .sink { isLogined in
+                self.isLogin = isLogined
             }
             .store(in: &cancellableSet)
     }
@@ -49,10 +55,20 @@ class AuthViewModel: ObservableObject {
     public func createUser() {
         if username.isEmpty || email.isEmpty || password.isEmpty {
             message = "Please fill all data"
-            showError = true
             return
         }
         service.createUser(username: username, password: password, email: email)
+    }
+    
+    public func onAuthUser() {
+        email = "all4onegiallorossi@gmail.com"
+        password = "Batigol@123"
+        
+        if email.isEmpty || password.isEmpty {
+            message = "Please fill all data"
+            return
+        }
+        service.onAuthUser(email: email, password: password)
     }
     
 }

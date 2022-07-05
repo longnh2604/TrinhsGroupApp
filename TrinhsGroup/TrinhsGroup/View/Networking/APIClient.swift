@@ -9,6 +9,7 @@ import Foundation
 import SwiftyJSON
 
 typealias requestCompletion = (_ success: Bool,_ error: String?) -> Void
+typealias requestDataCompletion = (_ success: Bool,_ data: JSON?, _ error: String?) -> Void
 
 class APIClient {
     static let shared = APIClient()
@@ -23,7 +24,7 @@ class APIClient {
 
 extension APIClient {
     
-    func onCreateUser(username: String, password: String, email: String, completion: @escaping requestCompletion) {
+    func onCreateUser(username: String, password: String, email: String, completion: @escaping requestDataCompletion) {
         let fullNameArr = username.split(separator: " ")
         let firstName: String = String(fullNameArr[0])
         let lastName: String = fullNameArr.count > 1 ? String(fullNameArr[1]) : ""
@@ -51,9 +52,44 @@ extension APIClient {
             
             DispatchQueue.main.async {
                 if json["message"].exists() {
-                    completion(false, json["message"].stringValue.html2AttributedString ?? "")
+                    completion(false, nil, json["message"].stringValue.html2AttributedString ?? "")
                 } else {
-                    completion(true, nil)
+                    completion(true, json, nil)
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    func onAuthUser(email: String, password: String, completion: @escaping requestDataCompletion) {
+        // Prepare URL"
+        let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/jwt-auth/v1/token")
+        guard let requestUrl = url else { fatalError() }
+        // Prepare URL Request Object
+        var request = URLRequest(url: requestUrl)
+        request.httpMethod = "POST"
+        request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
+        
+        // HTTP Request Parameters which will be sent in HTTP Request Body
+        let postString = "username=\(email)&password=\(password)";
+        // Set HTTP Request Body
+        request.httpBody = postString.data(using: String.Encoding.utf8);
+        // Perform HTTP Request
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            
+            // Check for Error
+            if let error = error {
+                print("Error took place \(error)")
+                return
+            }
+            let json = JSON(data!)
+            print(json)
+            
+            DispatchQueue.main.async {
+                if json["message"].exists() {
+                    completion(false, nil, json["message"].stringValue.html2AttributedString ?? "")
+                } else {
+                    completion(true, json, nil)
                 }
             }
         }
