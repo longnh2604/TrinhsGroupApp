@@ -95,7 +95,6 @@ struct MainView: View {
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
         .onAppear(){
-//            mainViewModel.version()
 //            mainViewModel.fetchSliders()
 //            mainViewModel.fetchCategories()
 //            mainViewModel.fetchProducts()

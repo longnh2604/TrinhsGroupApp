@@ -17,6 +17,7 @@ class MainViewModel: ObservableObject {
     @Published var sliders = [Slider]()
     @Published var items = [Product]()
     @Published var products = [Product]()
+    @Published var showDiscount = false
     
 //    @Published var activeSheet: ActiveSheet?
 //    @Published var payments = [Payment]()
@@ -30,7 +31,7 @@ class MainViewModel: ObservableObject {
 //    @Published var categoryProducts = [Product]()
 //    @Published var showDetail = false
 
-//    @Published var showDiscount = false
+
 //    @Published var showCheckout = false
 //    @Published var showOrderReceived = false
 //    @Published var showCategoryProducts = false
@@ -48,31 +49,31 @@ class MainViewModel: ObservableObject {
             return 0
         }
     }
-//    
-//    var discounts: Double {
-//        if items.count > 0 {
-//            return items.reduce(0) { $0 + ((Double($1.regular_price)! - (Double($1.price) ?? 0)) * Double($1.quantity)) }
-//        } else {
-//            return 0
-//        }
-//    }
-//    
-//    var subtotal: Double {
-//        if items.count > 0 {
-//            return items.reduce(0) { $0 + (Double($1.price)! * Double($1.quantity)) }
-//        } else {
-//            return 0
-//        }
-//    }
-//    
-//    var regularPriceTotal: Double {
-//        if items.count > 0 {
-//            return items.reduce(0) { $0 + (Double($1.regular_price)! * Double($1.quantity)) }
-//        } else {
-//            return 0
-//        }
-//    }
-//    
+    
+    var discounts: Double {
+        if items.count > 0 {
+            return items.reduce(0) { $0 + ((Double($1.regular_price)! - (Double($1.price) ?? 0)) * Double($1.quantity)) }
+        } else {
+            return 0
+        }
+    }
+    
+    var subtotal: Double {
+        if items.count > 0 {
+            return items.reduce(0) { $0 + (Double($1.price)! * Double($1.quantity)) }
+        } else {
+            return 0
+        }
+    }
+    
+    var regularPriceTotal: Double {
+        if items.count > 0 {
+            return items.reduce(0) { $0 + (Double($1.regular_price)! * Double($1.quantity)) }
+        } else {
+            return 0
+        }
+    }
+    
 //    var total: Double {
 //        if items.count > 0 {
 //            return subtotal + Double(selectedShip.settings.cost.value)!
@@ -96,36 +97,36 @@ class MainViewModel: ObservableObject {
 //            return 0
 //        }
 //    }
-//    
-//    func getNumberOfInCart(item: Product) -> Int {
-//        var numberOfInCart = 0
-//        if let p = items.filter({ $0.id == item.id}).first  {
-//            numberOfInCart = p.quantity
-//        }
-//        return numberOfInCart
-//    }
-//    
-//    func add(item: Product) {
-//        var fl = false
-//        for index in 0..<items.count {
-//            if items[index].name == item.name {
-//                items[index].quantity += 1
-//                fl = true
-//                break
-//            }
-//        }
-//        
-//        if !fl {
-//            items.append(item)
-//            for index in 0..<items.count {
-//                if items[index].name == item.name {
-//                    items[index].quantity += 1
-//                    break
-//                }
-//            }
-//        }
-//        
-//    }
+    
+    func getNumberOfInCart(item: Product) -> Int {
+        var numberOfInCart = 0
+        if let p = items.filter({ $0.id == item.id}).first  {
+            numberOfInCart = p.quantity
+        }
+        return numberOfInCart
+    }
+    
+    func add(item: Product) {
+        var fl = false
+        for index in 0..<items.count {
+            if items[index].name == item.name {
+                items[index].quantity += 1
+                fl = true
+                break
+            }
+        }
+        
+        if !fl {
+            items.append(item)
+            for index in 0..<items.count {
+                if items[index].name == item.name {
+                    items[index].quantity += 1
+                    break
+                }
+            }
+        }
+        
+    }
 //    
 //    func remove(item: Product) {
 //        var em = true
@@ -166,43 +167,7 @@ class MainViewModel: ObservableObject {
 //        }
 //        items.removeAll()
 //    }
-//    
-//    func version() {
-//        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/woo-tools-app/version?code=\(UIApplication.build)") else {
-//            print("Invalid URL")
-//            return
-//        }
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "GET"
-//        request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
-//        
-//        URLSession.shared.dataTask(with: request) {data, response, error in
-//         
-//            if let data = data {
-//                do {
-//                    let decodedResponse = try JSONDecoder().decode(AppSetting.self, from: data)
-//                    DispatchQueue.main.async {
-//                        print(decodedResponse)
-//                        self.appSetting = decodedResponse
-//                    }
-//                } catch DecodingError.keyNotFound(let key, let context) {
-//                    Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
-//                } catch DecodingError.valueNotFound(let type, let context) {
-//                    Swift.print("could not find type \(type) in JSON: \(context.debugDescription)")
-//                } catch DecodingError.typeMismatch(let type, let context) {
-//                    Swift.print("type mismatch for type \(type) in JSON: \(context.debugDescription)")
-//                } catch DecodingError.dataCorrupted(let context) {
-//                    Swift.print("data found to be corrupted in JSON: \(context.debugDescription)")
-//                } catch let error as NSError {
-//                    NSLog("Error in read(from:ofType:) domain= \(error.domain), description= \(error.localizedDescription)")
-//                }
-//                return
-//            }
-//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-//            
-//        }.resume()
-//    }
-//    
+//
 //    func fetchSliders() {
 //        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/woo-tools-app/post/sticky") else {
 //            print("Invalid URL")
