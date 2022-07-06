@@ -48,9 +48,9 @@ struct ItemCellView: View {
     
     var body: some View {
         ZStack {
-//            NavigationLink(destination: ItemDetailsView(product: product, show: self.$show).environmentObject(mainViewModel), isActive: self.$show) {
-//                Text("")
-//            }
+            NavigationLink(destination: ItemDetailsView(product: product, show: self.$show).environmentObject(mainViewModel), isActive: self.$show) {
+                Text("")
+            }
             VStack(alignment: .leading) {
                 Group{
                     if product.images.count > 0 {
@@ -86,17 +86,17 @@ struct ItemCellView: View {
                 HStack {
                     
                     if product.sale_price != "" {
-                        Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: mainViewModel.appSetting!.currency_symbol.decodingHTMLEntities(), currencyPosition: mainViewModel.appSetting!.currency_position))
+                        Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
-                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: mainViewModel.appSetting!.currency_symbol.decodingHTMLEntities(), currencyPosition: mainViewModel.appSetting!.currency_position))
+                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(.gray) .strikethrough()
                         Text(getDiscountPercentage(regularPrice: product.regular_price, salePrice: product.sale_price))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(Constants.AppColor.secondaryRed)
                     }else{
-                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: mainViewModel.appSetting!.currency_symbol.decodingHTMLEntities(), currencyPosition: mainViewModel.appSetting!.currency_position))
+                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
                     }

@@ -18,6 +18,8 @@ class AuthViewModel: ObservableObject {
     @Published var password = ""
     @Published var showLoading = false
     @Published var message: String = ""
+    @Published var showEditProfile = false
+    @Published var showEditAddress = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
@@ -69,6 +71,68 @@ class AuthViewModel: ObservableObject {
             return
         }
         service.onAuthUser(email: email, password: password)
+    }
+    
+    public func updateUser() {
+        self.showLoading.toggle()
+        // prepare json data
+        let json: [String: Any] = [
+            "email": user.email,
+            "password": password,
+            "billing": [
+                "first_name":user.billing.first_name,
+                "last_name":user.billing.last_name,
+                "company":user.billing.company,
+                "country":user.billing.country,
+                "address_1":user.billing.address_1,
+                "address_2":user.billing.address_2,
+                "city":user.billing.city,
+                "postcode":user.billing.postcode,
+                "state":user.billing.state,
+                "email":user.billing.email,
+                "phone":user.billing.phone
+            ],
+            "shipping": [
+                "first_name":user.shipping.first_name,
+                "last_name":user.shipping.last_name,
+                "company":user.shipping.company,
+                "country":user.shipping.country,
+                "address_1":user.shipping.address_1,
+                "address_2":user.shipping.address_2,
+                "city":user.shipping.city,
+                "postcode":user.shipping.postcode,
+                "state":user.shipping.state
+            ]
+        ]
+        
+        let jsonData = try? JSONSerialization.data(withJSONObject: json)
+        
+        // Prepare URL"
+        let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/customers/\(user.id)?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)")
+        guard let requestUrl = url else { fatalError() }
+        // Prepare URL Request Object
+        var request = URLRequest(url: requestUrl)
+        request.httpMethod = "PUT"
+        
+        //HTTP Headers
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        // Set HTTP Request Body
+        request.httpBody = jsonData//postString.data(using: String.Encoding.utf8);
+        // Perform HTTP Request
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            
+            self.showLoading.toggle()
+            // Check for Error
+            if let error = error {
+                print("Error took place \(error)")
+                return
+            }
+            let json = JSON(data!)
+            print(json)
+        }
+        task.resume()
     }
     
 }

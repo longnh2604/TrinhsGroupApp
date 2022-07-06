@@ -28,8 +28,8 @@ var SECURITY_CODE = "8V06LupAaMBLtQqyqTxmcN42nn27FlejvaoSM3zXXXXXXXXXXXXXXXXXXXX
 ///Settings
 var APP_NAME = "Trinhsgroup App"
 var APP_DESCRIPTION = "Trinhsgroup App is the mobile app order for Trinhsgroup.com.au website"
-var DEVELOPER = "Longnh"
-var COMPABILITY = "iOS 13"
+var DEVELOPER = "Trinhsgroup"
+var COMPABILITY = "iOS 13 or above"
 var WEBSITE_LABEL = "Trinhsgroup"
-var WEBSITE_LINK = "longnh264@gmail.com"
+var WEBSITE_LINK = "https://trinhsgroup.com.au"
 var VERSION = "1.0.0"

@@ -17,7 +17,7 @@ struct TrinhsGroupApp: App {
     @AppStorage("isOnboarding") var isOnboarding: Bool = true
     @ObservedObject var authViewModel = AuthViewModel()
     @ObservedObject var mainViewModel = MainViewModel()
-//    @ObservedObject var historyViewModel = HistoryViewModel()
+    @ObservedObject var historyViewModel = HistoryViewModel()
     
     var body: some Scene {
         WindowGroup {
@@ -33,7 +33,7 @@ struct TrinhsGroupApp: App {
                     MainView()
                         .environmentObject(authViewModel)
                         .environmentObject(mainViewModel)
-//                        .environmentObject(historyViewModel)
+                        .environmentObject(historyViewModel)
                 }
             }
         }

@@ -10,7 +10,7 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
-//    @EnvironmentObject var historyViewModel: HistoryViewModel
+    @EnvironmentObject var historyViewModel: HistoryViewModel
     @State var selected = 0
     
     init() {
@@ -46,7 +46,7 @@ struct MainView: View {
                 
                 ProfileView()
                     .environmentObject(authViewModel)
-//                    .environmentObject(historyViewModel)
+                    .environmentObject(historyViewModel)
                     .environmentObject(mainViewModel)
                     .tabItem {
                         Image(systemName: "person.fill")
@@ -70,16 +70,15 @@ struct MainView: View {
 //                    .environmentObject(mainViewModel)
 //            }
 //            
-//            if mainViewModel.showCart {
-//                BagView()
-//                    .environmentObject(mainViewModel)
-//            }
-//            
-//            if mainViewModel.showCheckout {
-//                CheckOutView()
-//                    .environmentObject(mainViewModel)
-//                    .environmentObject(authViewModel)
-//            }
+            if mainViewModel.showCart {
+                CartView().environmentObject(mainViewModel)
+            }
+            
+            if mainViewModel.showCheckout {
+                CheckOutView()
+                    .environmentObject(mainViewModel)
+                    .environmentObject(authViewModel)
+            }
 //            
 //            if mainViewModel.showOrderReceived {
 //                OrderReceivedView()
@@ -96,7 +95,7 @@ struct MainView: View {
         .navigationBarBackButtonHidden(true)
         .onAppear(){
 //            mainViewModel.fetchSliders()
-//            mainViewModel.fetchCategories()
+            mainViewModel.fetchCategories()
 //            mainViewModel.fetchProducts()
 //            authViewModel.getUser()
 //            historyViewModel.fetchOrders(customerId: authViewModel.id)

@@ -10,7 +10,7 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
-//    @EnvironmentObject var historyViewModel: HistoryViewModel
+    @EnvironmentObject var historyViewModel: HistoryViewModel
     @State var selection: Int? = nil
     @State private var showDialog : Bool = false
     
@@ -55,19 +55,19 @@ struct ProfileView: View {
                     
                     HStack {
                         VStack(alignment: .leading) {
-//                            Text(authViewModel.displayName)
-//                                .font(.headline)
-//                                .bold()
-//                            Text(authViewModel.userEmail)
-//                                .font(.caption)
-//                                .foregroundColor(.secondary)
+                            Text(authViewModel.user.username)
+                                .font(.headline)
+                                .bold()
+                            Text(authViewModel.user.email)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                         
                         Spacer()
                         
                         Button(action: {
                             withAnimation(.spring()){
-//                                authViewModel.showEditProfile.toggle()
+                                authViewModel.showEditProfile.toggle()
                             }
                         }) {
                             Text("Edit")
@@ -85,11 +85,10 @@ struct ProfileView: View {
                     Divider()
                         .padding(.horizontal)
                     
-                    VStack{
-                        
+                    VStack {
                         Button(action: {
                             withAnimation(.spring()){
-//                                historyViewModel.showHistory.toggle()
+                                historyViewModel.showHistory.toggle()
                             }
                         }, label: {
                             HStack {
@@ -98,9 +97,9 @@ struct ProfileView: View {
                                         .foregroundColor(.primary)
                                         .font(.subheadline)
                                         .bold()
-//                                    Text("Already have \(historyViewModel.orders.count) orders")
-//                                        .font(.caption)
-//                                        .foregroundColor(.secondary)
+                                    Text("Already have \(historyViewModel.orders.count) orders")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                 }
                                 
                                 Spacer()
@@ -113,7 +112,7 @@ struct ProfileView: View {
                         
                         Button(action: {
                             withAnimation(.spring()){
-//                                authViewModel.showEditAddress.toggle()
+                                authViewModel.showEditAddress.toggle()
                             }
                         }, label: {
                             HStack {
@@ -122,7 +121,7 @@ struct ProfileView: View {
                                         .foregroundColor(.primary)
                                         .font(.subheadline)
                                         .bold()
-                                    Text("2 address")
+                                    Text("1 address")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -147,30 +146,28 @@ struct ProfileView: View {
                 .navigationBarHidden(true)
                 .navigationBarBackButtonHidden(true)
                 
-//                if authViewModel.showEditProfile {
-//                    EditProfileView()
-//                        .environmentObject(authViewModel)
-//                }
-//                
-//                if authViewModel.showEditAddress {
-//                    EditAddressView()
-//                        .environmentObject(authViewModel)
-//                }
+                if authViewModel.showEditProfile {
+                    EditProfileView()
+                        .environmentObject(authViewModel)
+                }
                 
-//                if historyViewModel.showHistory {
-//                    MyOrdersView()
-//                        .environmentObject(mainViewModel)
-//                        .environmentObject(historyViewModel)
-//                        .environmentObject(authViewModel)
-//                }
+                if authViewModel.showEditAddress {
+                    EditAddressView()
+                        .environmentObject(authViewModel)
+                }
+                
+                if historyViewModel.showHistory {
+                    MyOrdersView()
+                        .environmentObject(mainViewModel)
+                        .environmentObject(historyViewModel)
+                        .environmentObject(authViewModel)
+                }
             }
         }.alert(isPresented: $showDialog, content: {
             Alert(title: Text("Logout"),
                   message: Text("Are you sure want to logout"),
                   primaryButton: .default(Text("Yes")) {
-                    authViewModel.username = ""
-                    authViewModel.email = ""
-                    authViewModel.password = ""
+                    authViewModel.user = User.default
                     authViewModel.isLogin = false
                   },
                   secondaryButton: .cancel()

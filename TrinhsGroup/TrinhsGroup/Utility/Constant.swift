@@ -7,14 +7,25 @@
 
 import SwiftUI
 
+// COLOR
+let colorBackground: Color = Color("ColorBackground")
+let colorGray: Color = Color(UIColor.systemGray4)
+
+// LAYOUT
+let columnSpacing: CGFloat = 10
+let rowSpacing: CGFloat = 10
+var gridLayout: [GridItem] {
+    return Array(repeating: GridItem(.flexible(), spacing: rowSpacing), count: 2)
+}
+
 func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition: String)->String{
     if currencyPosition == "right" {
         return "\(price)\(currency)"
-    }else if currencyPosition == "right_space" {
+    } else if currencyPosition == "right_space" {
         return "\(price) \(currency)"
-    }else if currencyPosition == "left" {
+    } else if currencyPosition == "left" {
         return "\(currency)\(price)"
-    }else{
+    } else {
         return "\(currency) \(price)"
     }
 }

@@ -11,14 +11,14 @@ struct MyOrdersView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
-//    @EnvironmentObject var historyViewModel: HistoryViewModel
-//    @State var selectedOrder: Order = Order.default
+    @EnvironmentObject var historyViewModel: HistoryViewModel
+    @State var selectedOrder: Order = Order.default
     
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
                 withAnimation(.spring()){
-//                    historyViewModel.showHistory.toggle()
+                    historyViewModel.showHistory.toggle()
                 }
             }) {
                 Image(systemName: "arrow.left")
@@ -49,27 +49,27 @@ struct MyOrdersView: View {
                     NavigationBarView()
                     
                     ScrollView(showsIndicators: false){
-//                        ForEach(historyViewModel.orders){ order in
-//                            OrderHistoryItemView(order: order)
-//                                .padding(.horizontal)
-//                                .padding(.bottom)
-//                                .environmentObject(mainViewModel)
-//                                .onTapGesture {
-//                                    withAnimation(.easeOut){
-//                                        selectedOrder = order
-//                                        historyViewModel.showHistoryOrderDetail.toggle()
-//                                    }
-//                                }
-//                        }
+                        ForEach(historyViewModel.orders){ order in
+                            OrderHistoryItemView(order: order)
+                                .padding(.horizontal)
+                                .padding(.bottom)
+                                .environmentObject(mainViewModel)
+                                .onTapGesture {
+                                    withAnimation(.easeOut){
+                                        selectedOrder = order
+                                        historyViewModel.showHistoryOrderDetail.toggle()
+                                    }
+                                }
+                        }
                     }
                     .padding(.top)
                     
                 }
                 
-//                if historyViewModel.showHistoryOrderDetail {
-//                    HistoryOrderDetailView(order: selectedOrder)
-//                        .environmentObject(historyViewModel)
-//                }
+                if historyViewModel.showHistoryOrderDetail {
+                    HistoryOrderDetailView(order: selectedOrder)
+                        .environmentObject(historyViewModel)
+                }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)
             .navigationBarHidden(true)

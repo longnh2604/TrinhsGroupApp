@@ -15,7 +15,7 @@ struct EditAddressView: View {
         return HStack {
             Button(action: {
                 withAnimation(.spring()){
-//                    authViewModel.showEditAddress.toggle()
+                    authViewModel.showEditAddress.toggle()
                 }
             }) {
                 Image(systemName: "arrow.left")
@@ -320,7 +320,7 @@ struct EditAddressView: View {
     
     fileprivate func UpdateButton() -> some View {
         return Button(action: {
-//            authViewModel.updateUser()
+            authViewModel.updateUser()
         }) {
             Text("Update")
                 .fontWeight(.bold)
@@ -371,33 +371,32 @@ struct EditAddressView: View {
           
                         }
                         
-                        VStack(alignment: .leading) {
-                            
-                            Text("Shipping Address")
-                                .font(.custom(Constants.AppFont.boldFont, size: 22))
-                                .foregroundColor(Constants.AppColor.secondaryBlack)
-                                .padding(.horizontal, 20)
-                            
-                            HStack(spacing: 10) {
-                                ShippingNameTextFiels().frame(minWidth: 0,
-                                                      maxWidth: .infinity)
-                                ShippingLastNameTextFiels().frame(minWidth: 0,
-                                                      maxWidth: .infinity)
-                            }
-                            ShippingCompanyTextFiels()
-                            ShippingCountryTextFiels()
-                            ShippingStreetAddressTextFiels()
-                            ShippingApartmentTextFiels()
-                            ShippingStateTextFiels()
-                            HStack(spacing: 10) {
-                                ShippingCityTextFiels().frame(minWidth: 0,
-                                                      maxWidth: .infinity)
-                                ShippingPostcodeNameTextFiels().frame(minWidth: 0,
-                                                      maxWidth: .infinity)
-                            }
-                        }
-                        .padding(.vertical, 20)
-                        
+//                        VStack(alignment: .leading) {
+//
+//                            Text("Shipping Address")
+//                                .font(.custom(Constants.AppFont.boldFont, size: 22))
+//                                .foregroundColor(Constants.AppColor.secondaryBlack)
+//                                .padding(.horizontal, 20)
+//
+//                            HStack(spacing: 10) {
+//                                ShippingNameTextFiels().frame(minWidth: 0,
+//                                                      maxWidth: .infinity)
+//                                ShippingLastNameTextFiels().frame(minWidth: 0,
+//                                                      maxWidth: .infinity)
+//                            }
+//                            ShippingCompanyTextFiels()
+//                            ShippingCountryTextFiels()
+//                            ShippingStreetAddressTextFiels()
+//                            ShippingApartmentTextFiels()
+//                            ShippingStateTextFiels()
+//                            HStack(spacing: 10) {
+//                                ShippingCityTextFiels().frame(minWidth: 0,
+//                                                      maxWidth: .infinity)
+//                                ShippingPostcodeNameTextFiels().frame(minWidth: 0,
+//                                                      maxWidth: .infinity)
+//                            }
+//                        }
+//                        .padding(.vertical, 20)
                     })
                     .padding(.top)
                     
@@ -410,10 +409,6 @@ struct EditAddressView: View {
             .navigationBarHidden(true)
         }
         .navigationBarBackButtonHidden(true)
-        .onAppear(){
-//            authViewModel.username = authViewModel.displayName
-//            authViewModel.email = authViewModel.userEmail
-        }
     }
 }
 

@@ -15,7 +15,7 @@ struct EditProfileView: View {
         return HStack {
             Button(action: {
                 withAnimation(.spring()){
-//                    authViewModel.showEditProfile.toggle()
+                    authViewModel.showEditProfile.toggle()
                 }
             }) {
                 Image(systemName: "arrow.left")
@@ -43,7 +43,7 @@ struct EditProfileView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Name", text: $authViewModel.username)
+            TextField("Name", text: $authViewModel.user.username)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -65,7 +65,7 @@ struct EditProfileView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $authViewModel.email)
+            TextField("Email", text: $authViewModel.user.email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -99,7 +99,7 @@ struct EditProfileView: View {
     
     fileprivate func UpdateButton() -> some View {
         return Button(action: {
-//            authViewModel.updateUser()
+            authViewModel.updateUser()
         }) {
             Text("Update")
                 .fontWeight(.bold)
@@ -136,10 +136,6 @@ struct EditProfileView: View {
             .navigationBarHidden(true)
         }
         .navigationBarBackButtonHidden(true)
-        .onAppear(){
-//            authViewModel.username = authViewModel.displayName
-//            authViewModel.email = authViewModel.userEmail
-        }
     }
 }
 
