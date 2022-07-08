@@ -11,6 +11,7 @@ struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var historyViewModel: HistoryViewModel
+    @EnvironmentObject var firestoreManager: FirestoreManager
     @State var selected = 0
     
     init() {
@@ -25,6 +26,7 @@ struct MainView: View {
             TabView(selection: $selected) {
                 HomeView()
                     .environmentObject(mainViewModel)
+                    .environmentObject(firestoreManager)
                     .tabItem {
                         Image(systemName: "house.fill")
                         Text("Home")
@@ -60,16 +62,16 @@ struct MainView: View {
                     }.tag(4)
             }
             
-//            if mainViewModel.showNewSeason {
-//                SaleProductsView()
-//                    .environmentObject(mainViewModel)
-//            }
+            if mainViewModel.showNewSeason {
+                SaleProductsView()
+                    .environmentObject(mainViewModel)
+            }
             
-//            if mainViewModel.showDiscount {
-//                DiscountProductsView()
-//                    .environmentObject(mainViewModel)
-//            }
-//            
+            if mainViewModel.showDiscount {
+                DiscountProductsView()
+                    .environmentObject(mainViewModel)
+            }
+            
             if mainViewModel.showCart {
                 CartView().environmentObject(mainViewModel)
             }

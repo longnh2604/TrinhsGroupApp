@@ -18,6 +18,7 @@ struct TrinhsGroupApp: App {
     @ObservedObject var authViewModel = AuthViewModel()
     @ObservedObject var mainViewModel = MainViewModel()
     @ObservedObject var historyViewModel = HistoryViewModel()
+    @StateObject var firestoreManager = FirestoreManager()
     
     var body: some Scene {
         WindowGroup {
@@ -34,6 +35,7 @@ struct TrinhsGroupApp: App {
                         .environmentObject(authViewModel)
                         .environmentObject(mainViewModel)
                         .environmentObject(historyViewModel)
+                        .environmentObject(firestoreManager)
                 }
             }
         }
