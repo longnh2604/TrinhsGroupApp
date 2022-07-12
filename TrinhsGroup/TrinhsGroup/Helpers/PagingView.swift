@@ -81,7 +81,7 @@ struct PageControl: View {
             if maxIndex > 0 {
                 ForEach(0...maxIndex, id: \.self) { index in
                     RoundedRectangle(cornerRadius: 1.5)
-                        .fill(index == self.index ? Constants.AppColor.secondaryRed : Color.white)
+                        .fill(index == self.index ? Constants.AppColor.secondaryRed : Color.gray)
                         .frame(width: 10, height: 3)
                 }
             }

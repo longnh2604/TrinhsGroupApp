@@ -21,12 +21,6 @@ struct ImageSliderView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: getRect().width, height: getRect().width / 2)
             }
-//            ForEach(firestoreManager.events) { slider in
-//                KFImage(URL(string:slider.image))
-//                    .resizable()
-//                    .aspectRatio(contentMode: .fill)
-//                    .frame(width: getRect().width, height: getRect().width / 2)
-//            }
         }
         .aspectRatio(contentMode: .fill)
         .frame(width: getRect().width, height: getRect().width / 2)

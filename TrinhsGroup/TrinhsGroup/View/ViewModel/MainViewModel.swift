@@ -193,6 +193,10 @@ class MainViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .assign(to: &$categories)
         
+        service.selectedCategoryProductPublisher
+            .receive(on: RunLoop.main)
+            .assign(to: &$categoryProducts)
+        
         $presentedType
             .dropFirst()
             .receive(on: RunLoop.main)

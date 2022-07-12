@@ -47,8 +47,8 @@ class MainServices: MainServicesProtocol {
         self.isLoading.toggle()
         APIClient.shared.onFetchSelectedCategoryProducts(id: id) { success, data, error in
             if success {
-                if let data = data as? [Category] {
-                    self.categories = data
+                if let data = data as? [Product] {
+                    self.selectedCategoryProducts = data
                 }
             } else {
                 self.error = error ?? ""

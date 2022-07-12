@@ -27,14 +27,13 @@ struct CategoryProductsView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 35)
         .overlay(
-            Text(mainViewModel.selectedSubCategory.name)
+            Text(mainViewModel.selectedCategory.name)
                 .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
                 .foregroundColor(Constants.AppColor.primaryBlack)
                 .padding(.horizontal, 10)
                 .background(Color.clear)
             , alignment: .center)
     }
-    
     
     var body: some View {
         NavigationView {
@@ -43,8 +42,6 @@ struct CategoryProductsView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-//                    NavigationBarView()
-                    
                     ScrollView(.vertical, showsIndicators: false, content: {
                         VStack(alignment: .leading, spacing: 10) {
                             
@@ -55,9 +52,15 @@ struct CategoryProductsView: View {
                             })
                             .padding(15)
                             .padding(.bottom, 15)
-                            
                         }
                     })
+                }
+            }
+            .onAppear {
+                if mainViewModel.selectedCategory.id == Category.default.id {
+                    guard let category = mainViewModel.categories.first else { return }
+                    mainViewModel.selectedCategory = category
+                    mainViewModel.onFetchSelectedCategoryProducts(id: category.id)
                 }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)
