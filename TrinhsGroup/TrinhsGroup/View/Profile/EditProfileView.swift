@@ -99,7 +99,7 @@ struct EditProfileView: View {
     
     fileprivate func UpdateButton() -> some View {
         return Button(action: {
-            authViewModel.updateUser()
+            authViewModel.onUpdateUser(user: authViewModel.user)
         }) {
             Text("Update")
                 .fontWeight(.bold)

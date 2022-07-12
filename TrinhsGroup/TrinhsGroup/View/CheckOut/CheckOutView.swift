@@ -14,12 +14,6 @@ struct CheckOutView: View {
     
     fileprivate func SubmitButton() -> some View {
         Button(action: {
-            if mainViewModel.selectedShip.id == ShipMethod.default.id {
-//                mainViewModel.dialogMessage = "Please select ship method"
-//                mainViewModel.showDialog.toggle()
-                return
-            }
-            
             if mainViewModel.selectedPayment.id == Payment.default.id {
 //                mainViewModel.dialogMessage = "Please select payment method"
 //                mainViewModel.showDialog.toggle()

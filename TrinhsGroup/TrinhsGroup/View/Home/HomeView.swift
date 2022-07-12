@@ -23,9 +23,9 @@ struct HomeView: View {
                         .environmentObject(mainViewModel)
                     ScrollView {
                         VStack {
-                            if mainViewModel.sliders.count != 0 {
+                            if firestoreManager.events.count != 0 {
                                 ImageSliderView()
-                                    .environmentObject(mainViewModel)
+                                    .environmentObject(firestoreManager)
                             }
                             SaleView()
                                 .environmentObject(mainViewModel)

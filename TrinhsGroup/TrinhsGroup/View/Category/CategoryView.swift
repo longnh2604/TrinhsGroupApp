@@ -54,7 +54,7 @@ struct CategoryView: View {
                                     .onTapGesture {
                                         withAnimation(.interactiveSpring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.6)){
                                             mainViewModel.selectedCategory = category
-                                            mainViewModel.fetchSelectedCategoryProducts()
+                                            mainViewModel.onFetchSelectedCategoryProducts(id: category.id)
                                         }
                                     }.frame(minWidth: 0,
                                             maxWidth: .infinity)

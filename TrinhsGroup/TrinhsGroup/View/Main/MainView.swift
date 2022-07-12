@@ -81,11 +81,11 @@ struct MainView: View {
                     .environmentObject(mainViewModel)
                     .environmentObject(authViewModel)
             }
-//            
-//            if mainViewModel.showOrderReceived {
-//                OrderReceivedView()
-//                    .environmentObject(mainViewModel)
-//            }
+            
+            if mainViewModel.showOrderReceived {
+                OrderReceivedView()
+                    .environmentObject(mainViewModel)
+            }
             
             if mainViewModel.showLoading {
                 LoadingView().ignoresSafeArea()
@@ -97,7 +97,7 @@ struct MainView: View {
         .navigationBarBackButtonHidden(true)
         .onAppear(){
 //            mainViewModel.fetchSliders()
-            mainViewModel.fetchCategories()
+            mainViewModel.onFetchCategories()
 //            mainViewModel.fetchProducts()
 //            authViewModel.getUser()
 //            historyViewModel.fetchOrders(customerId: authViewModel.id)

@@ -10,6 +10,8 @@ import FirebaseFirestore
 
 class FirestoreManager: ObservableObject {
     
+    @Published var events = [AppEvent]()
+    
     init() {
         fetchEvents()
     }
@@ -22,8 +24,9 @@ class FirestoreManager: ObservableObject {
             if let error = error {
                 print("Error getting documents: \(error)")
             } else {
+                self.events.removeAll()
                 for document in querySnapshot!.documents {
-                    print("\(document.documentID): \(document.data())")
+                    self.events.append(AppEvent.init(document.data()))
                 }
             }
         }

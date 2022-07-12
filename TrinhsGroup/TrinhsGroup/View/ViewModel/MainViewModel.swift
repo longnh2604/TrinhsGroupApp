@@ -7,6 +7,11 @@
 
 import Foundation
 import SwiftyJSON
+import Combine
+
+enum PresentedType {
+    case checkOut, productDetail, orderReceived, cart, none
+}
 
 class MainViewModel: ObservableObject {
     
@@ -34,10 +39,8 @@ class MainViewModel: ObservableObject {
     @Published var receivedOrder: Order = Order.default
     @Published var payments = [Payment]()
     @Published var zones = [Zone]()
-    
-//    @Published var activeSheet: ActiveSheet?
-//    @Published var showDialog: Bool = false
-//    @Published var dialogMessage: String = ""
+    @Published var presentedType: PresentedType = .none
+    @Published var message: String = ""
     
     var numberOfItems: Int {
         if items.count > 0 {
@@ -164,111 +167,47 @@ class MainViewModel: ObservableObject {
         }
         items.removeAll()
     }
-
-//    func fetchSliders() {
-//        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/woo-tools-app/post/sticky") else {
-//            print("Invalid URL")
-//            return
-//        }
-//        var request = URLRequest(url: url)
-//        
-//        request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
-//        
-//        URLSession.shared.dataTask(with: request) {data, response, error in
-//            if let data = data {
-//                
-//                if let decodedResponse = try? JSONDecoder().decode([Slider].self, from: data) {
-//                    DispatchQueue.main.async {
-//                        self.sliders.append(contentsOf: decodedResponse)
-//                    }
-//                    return
-//                }
-//            }
-//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-//            
-//        }.resume()
-//    }
     
-    func fetchCategories() {
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/products/categories?page=1&per_page=100&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)&parent=0&order=asc") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
+    private var service: MainServices = MainServices()
+    private var cancellableSet: Set<AnyCancellable> = []
+    
+    init(service: MainServices = MainServices()) {
+        self.service = service
+        self.bindingData()
+    }
+    
+    func bindingData() {
+        service.loadingPublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .assign(to: &$showLoading)
         
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            
-            if let data = data {
-                do {
-                    let decodedResponse = try JSONDecoder().decode([Category].self, from: data)
-                    DispatchQueue.main.async {
-                        self.categories.append(contentsOf: decodedResponse)
-                        self.selectedCategory = self.categories.first!
-                        self.fetchSelectedCategoryProducts()
-                    }
-                } catch DecodingError.keyNotFound(let key, let context) {
-                    Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
-                } catch DecodingError.valueNotFound(let type, let context) {
-                    Swift.print("could not find type \(type) in JSON: \(context.debugDescription)")
-                } catch DecodingError.typeMismatch(let type, let context) {
-                    Swift.print("type mismatch for type \(type) in JSON: \(context.debugDescription)")
-                } catch DecodingError.dataCorrupted(let context) {
-                    Swift.print("data found to be corrupted in JSON: \(context.debugDescription)")
-                } catch let error as NSError {
-                    NSLog("Error in read(from:ofType:) domain= \(error.domain), description= \(error.localizedDescription)")
-                }
-                return
+        service.errorPublisher
+            .receive(on: RunLoop.main)
+            .sink { error in
+                self.message = error
             }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-        }.resume()
+            .store(in: &cancellableSet)
+        
+        service.categoryPublisher
+            .receive(on: RunLoop.main)
+            .assign(to: &$categories)
+        
+        $presentedType
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { value in
+
+            }
+            .store(in: &cancellableSet)
     }
     
-    func fetchSelectedCategoryProducts() {
-        self.categoryProducts.removeAll()
-
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/products?page=1&per_page=100&category=\(selectedCategory.id)&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)&order=asc") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-
-                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.categoryProducts.append(contentsOf: decodedResponse)
-                    }
-                    return
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-
-        }.resume()
+    func onFetchCategories() {
+        service.onFetchCategories()
     }
     
-    func fetchSelectedSubCategoryProducts() {
-        self.categoryProducts.removeAll()
-
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/products?page=1&per_page=100&category=\(selectedSubCategory.id)&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-
-                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.categoryProducts.append(contentsOf: decodedResponse)
-                    }
-                    return
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-
-        }.resume()
+    func onFetchSelectedCategoryProducts(id: Int) {
+        service.fetchSelectedCategoryProducts(id: id)
     }
     
     func fetchProducts() {
@@ -321,16 +260,16 @@ class MainViewModel: ObservableObject {
     
     func fetchZones() {
         self.zones.removeAll()
-        
+
         guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/shipping/zones?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
             print("Invalid URL")
             return
         }
         let request = URLRequest(url: url)
-        
+
         URLSession.shared.dataTask(with: request) {data, response, error in
             if let data = data {
-                
+
                 if let decodedResponse = try? JSONDecoder().decode([Zone].self, from: data) {
                     DispatchQueue.main.async {
                         self.zones.append(contentsOf: decodedResponse)
@@ -340,7 +279,7 @@ class MainViewModel: ObservableObject {
                 }
             }
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
+
         }.resume()
     }
     

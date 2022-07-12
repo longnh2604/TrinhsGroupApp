@@ -10,17 +10,23 @@ import Kingfisher
 
 struct ImageSliderView: View {
     
-    @EnvironmentObject var mainViewModel: MainViewModel
+    @EnvironmentObject var firestoreManager: FirestoreManager
     @State var index = 0
     
     var body: some View {
-        PagingView(index: $index.animation(), maxIndex: mainViewModel.sliders.count - 1) {
-            ForEach(mainViewModel.sliders) { slider in
-                KFImage(URL(string:slider.image))
+        PagingView(index: $index.animation(), maxIndex: firestoreManager.events.count - 1) {
+            ForEach(firestoreManager.events) { event in
+                KFImage(URL(string: event.imgURL))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: getRect().width, height: getRect().width / 2)
             }
+//            ForEach(firestoreManager.events) { slider in
+//                KFImage(URL(string:slider.image))
+//                    .resizable()
+//                    .aspectRatio(contentMode: .fill)
+//                    .frame(width: getRect().width, height: getRect().width / 2)
+//            }
         }
         .aspectRatio(contentMode: .fill)
         .frame(width: getRect().width, height: getRect().width / 2)
