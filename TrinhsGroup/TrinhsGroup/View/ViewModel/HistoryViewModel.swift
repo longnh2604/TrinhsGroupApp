@@ -14,7 +14,6 @@ class HistoryViewModel: ObservableObject {
     @Published var showHistoryOrderDetail = false
     
     func fetchOrders(customerId: Int) {
-        
         orders.removeAll()
         
         guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/orders?customer=\(customerId)&page=1&per_page=100&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {

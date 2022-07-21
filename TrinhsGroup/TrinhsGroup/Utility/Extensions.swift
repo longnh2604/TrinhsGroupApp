@@ -48,6 +48,16 @@ private extension UIEdgeInsets {
 
 extension String {
     
+    func getPriceOption(strings: String) -> (name: String,price: String) {
+        if strings.contains(":") {
+            let option = strings.components(separatedBy: ":")
+            let name = option[0]
+            let price = option[1]
+            return (name, price)
+        }
+        return (strings, "")
+    }
+    
     func toDate(withFormat format: String = "yyyy-MM-dd'T'HH:mm:ss") -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = format

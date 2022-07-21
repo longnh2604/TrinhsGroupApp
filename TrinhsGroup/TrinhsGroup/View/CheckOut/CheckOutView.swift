@@ -14,6 +14,8 @@ struct CheckOutView: View {
     
     fileprivate func SubmitButton() -> some View {
         Button(action: {
+            if !authViewModel.checkUserUpdatedBillInfo() { return }
+            
             if mainViewModel.selectedPayment.id == Payment.default.id {
 //                mainViewModel.dialogMessage = "Please select payment method"
 //                mainViewModel.showDialog.toggle()
@@ -26,10 +28,10 @@ struct CheckOutView: View {
                 productOrders.append(ProductOrder(id: 0, product_id: order_item.id, name: order_item.name, quantity: order_item.quantity, subtotal: "", total: "", price: 0))
             }
 
-            var shippingOrders = [ShippingOrder]()
-            shippingOrders.append(ShippingOrder(method_id: mainViewModel.selectedShip.method_id, total: mainViewModel.selectedShip.settings.cost.value))
+//            var shippingOrders = [ShippingOrder]()
+//            shippingOrders.append(ShippingOrder(method_id: mainViewModel.selectedShip.method_id, total: mainViewModel.selectedShip.settings.cost.value))
 
-            mainViewModel.createOrder(user: authViewModel.user, paymentMethod: mainViewModel.selectedPayment.id, paymentMethodTitle: mainViewModel.selectedPayment.title, customerNote: "", status: "on-hold", productOrders: productOrders, shippingOrders: shippingOrders)
+            mainViewModel.onCreateOrder(user: authViewModel.user,productOrders: productOrders)
         }) {
             Text("Submit Order")
                 .fontWeight(.bold)
@@ -46,7 +48,7 @@ struct CheckOutView: View {
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
-                self.mainViewModel.showCheckout.toggle()
+                self.mainViewModel.presentedType = .cart
             }) {
                 Image(systemName: "arrow.left")
                     .foregroundColor(Constants.AppColor.secondaryBlack)
@@ -127,13 +129,13 @@ struct CheckOutView: View {
                                     .bold()
                             }.padding(.top, 30)
                             
-                            HStack {
-                                Text("Delivery Charges:")
-                                    .foregroundColor(.gray)
-                                Spacer()
-                                Text(getPriceAndCurrencySymbol(price: mainViewModel.selectedShip.settings.cost.value, currency: "$", currencyPosition: "right"))
-                                    .bold()
-                            }.padding(.top, 15)
+//                            HStack {
+//                                Text("Delivery Charges:")
+//                                    .foregroundColor(.gray)
+//                                Spacer()
+//                                Text(getPriceAndCurrencySymbol(price: mainViewModel.selectedShip.settings.cost.value, currency: "$", currencyPosition: "right"))
+//                                    .bold()
+//                            }.padding(.top, 15)
                             
                             HStack {
                                 Text("Total:")
@@ -149,6 +151,9 @@ struct CheckOutView: View {
                 }
                 if mainViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
+                }
+                if !authViewModel.message.isEmpty {
+                    CustomAlertView(message: authViewModel.message)
                 }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)

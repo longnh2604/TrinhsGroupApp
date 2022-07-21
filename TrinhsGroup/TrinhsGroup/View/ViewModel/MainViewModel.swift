@@ -10,7 +10,7 @@ import SwiftyJSON
 import Combine
 
 enum PresentedType {
-    case checkOut, productDetail, orderReceived, cart, none
+    case checkOut, productDetail, orderReceived, cart, none, editUserInfo, orderHistory
 }
 
 class MainViewModel: ObservableObject {
@@ -197,6 +197,17 @@ class MainViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .assign(to: &$categoryProducts)
         
+        service.orderReceivedPublisher
+            .receive(on: RunLoop.main)
+            .sink { order in
+                if order.id != Order.default.id {
+                    self.receivedOrder = order
+                    self.presentedType = .orderReceived
+                    self.reset()
+                }
+            }
+            .store(in: &cancellableSet)
+        
         $presentedType
             .dropFirst()
             .receive(on: RunLoop.main)
@@ -212,6 +223,10 @@ class MainViewModel: ObservableObject {
     
     func onFetchSelectedCategoryProducts(id: Int) {
         service.fetchSelectedCategoryProducts(id: id)
+    }
+    
+    func onCreateOrder(user: User, productOrders: [ProductOrder]) {
+        service.onCreateOrder(user: user, paymentMethod: selectedPayment.id, paymentMethodTitle: selectedPayment.title, customerNote: "", status: "on-hold", productOrders: productOrders)
     }
     
     func fetchProducts() {
@@ -347,12 +362,10 @@ class MainViewModel: ObservableObject {
 //                                self.dialogMessage = "Success use coupon"
 //                                self.showDialog.toggle()
                             }
-                        }else{
+                        } else {
 //                            self.dialogMessage = decodedResponse.message!
 //                            self.showDialog.toggle()
                         }
-                        
-                        
                     }
                 } catch DecodingError.keyNotFound(let key, let context) {
                     Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
@@ -370,122 +383,5 @@ class MainViewModel: ObservableObject {
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             
         }.resume()
-    }
-    
-    func createOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], shippingOrders: [ShippingOrder]){
-        
-        self.showLoading.toggle()
-        
-        var lineItems:Array = [Dictionary<String, Any>]()
-        
-        for productOrder in productOrders{
-            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity])
-        }
-        
-        print(lineItems)
-        
-        var shippingLines:Array = [Dictionary<String, Any>]()
-        
-        for shippingOrder in shippingOrders{
-            shippingLines.append(["method_id" : shippingOrder.method_id, "total" : shippingOrder.total])
-        }
-        
-        print(shippingLines)
-        
-        // prepare json data
-        var json: [String: Any] = [
-            "customer_id": user.id,
-            "payment_method": paymentMethod,
-            "payment_method_title": paymentMethodTitle,
-            "customer_note": customerNote,
-            "status": status,
-            "billing": [
-                "first_name":user.billing.first_name,
-                "last_name":user.billing.last_name,
-                "company":user.billing.company,
-                "country":user.billing.country,
-                "address_1":user.billing.address_1,
-                "address_2":user.billing.address_2,
-                "city":user.billing.city,
-                "postcode":user.billing.postcode,
-                "state":user.billing.state,
-                "email":user.billing.email,
-                "phone":user.billing.phone
-            ],
-            "shipping": [
-                "first_name":user.shipping.first_name,
-                "last_name":user.shipping.last_name,
-                "company":user.shipping.company,
-                "country":user.shipping.country,
-                "address_1":user.shipping.address_1,
-                "address_2":user.shipping.address_2,
-                "city":user.shipping.city,
-                "postcode":user.shipping.postcode,
-                "state":user.shipping.state
-            ],
-            "line_items": lineItems,
-            "shipping_lines": shippingLines
-        ]
-        
-        if coupon.id != Coupon.default.id {
-            json["coupon_lines"] = [["code": coupon.code]]
-        }
-        
-        let jsonData = try? JSONSerialization.data(withJSONObject: json)
-        
-        print(String(decoding: jsonData!, as: UTF8.self))
-        
-        // Prepare URL"
-        let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/orders?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)")
-        guard let requestUrl = url else { fatalError() }
-        // Prepare URL Request Object
-        var request = URLRequest(url: requestUrl)
-        request.httpMethod = "POST"
-        
-        //HTTP Headers
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
-        // Set HTTP Request Body
-        request.httpBody = jsonData//postString.data(using: String.Encoding.utf8);
-        // Perform HTTP Request
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            
-            self.showLoading.toggle()
-            // Check for Error
-            if let error = error {
-                print("Error took place \(error)")
-                return
-            }
-            let json = JSON(data!)
-            print(json)
-            
-            if let data = data {
-                do {
-                    let decodedResponse = try JSONDecoder().decode(Order.self, from: data)
-                    DispatchQueue.main.async {
-                        print(decodedResponse)
-                        self.receivedOrder = decodedResponse
-                        self.showOrderReceived.toggle()
-                        self.showCheckout.toggle()
-                        self.showCart.toggle()
-                        self.reset()
-                    }
-                } catch DecodingError.keyNotFound(let key, let context) {
-                    Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
-                } catch DecodingError.valueNotFound(let type, let context) {
-                    Swift.print("could not find type \(type) in JSON: \(context.debugDescription)")
-                } catch DecodingError.typeMismatch(let type, let context) {
-                    Swift.print("type mismatch for type \(type) in JSON: \(context.debugDescription)")
-                } catch DecodingError.dataCorrupted(let context) {
-                    Swift.print("data found to be corrupted in JSON: \(context.debugDescription)")
-                } catch let error as NSError {
-                    NSLog("Error in read(from:ofType:) domain= \(error.domain), description= \(error.localizedDescription)")
-                }
-                return
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-        }
-        task.resume()
     }
 }

@@ -5,7 +5,8 @@
 //  Created by long on 05/07/2022.
 //
 
-import Foundation
+import UIKit
+import SwiftyJSON
 
 struct Attribute: Identifiable, Codable  {
     var id: Int

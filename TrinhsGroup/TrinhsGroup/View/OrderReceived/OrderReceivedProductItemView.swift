@@ -23,7 +23,7 @@ struct OrderReceivedProductItemView: View {
                     Text("\(productOrder.quantity) X ")
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                         +
-                    Text(getPriceAndCurrencySymbol(price: String(productOrder.price), currency: mainViewModel.appSetting!.currency_symbol.decodingHTMLEntities(), currencyPosition: mainViewModel.appSetting!.currency_position))
+                    Text(getPriceAndCurrencySymbol(price: String(productOrder.price), currency: "$", currencyPosition: "right"))
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                         .foregroundColor(Constants.AppColor.primaryBlack)
                 )

@@ -14,7 +14,7 @@ struct OrderReceivedView: View {
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
-                mainViewModel.showOrderReceived = false
+                mainViewModel.presentedType = .none
             }) {
                 Image(systemName: "xmark")
                     .foregroundColor(Constants.AppColor.secondaryBlack)

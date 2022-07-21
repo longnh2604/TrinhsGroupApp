@@ -32,7 +32,7 @@ struct OrderReceivedPricesView: View {
                 
                 Spacer()
                 
-                Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.shipping_lines[0].total, currency: "$", currencyPosition: "right"))
+                Text(getPriceAndCurrencySymbol(price: "0", currency: "$", currencyPosition: "right"))
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .foregroundColor(Constants.AppColor.primaryBlack)
               

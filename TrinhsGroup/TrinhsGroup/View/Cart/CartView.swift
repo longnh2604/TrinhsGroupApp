@@ -22,7 +22,7 @@ struct CartView: View {
     
     fileprivate func CheckOutButton() -> some View {
         Button(action: {
-            mainViewModel.showCheckout.toggle()
+            mainViewModel.presentedType = .checkOut
         }) {
             Text("")
                 .font(.custom(Constants.AppFont.boldFont, size: 15))
@@ -44,7 +44,7 @@ struct CartView: View {
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
-                self.mainViewModel.showCart.toggle()
+                self.mainViewModel.presentedType = .none
             }) {
                 Image(systemName: "arrow.left")
                     .foregroundColor(Constants.AppColor.secondaryBlack)
@@ -139,24 +139,26 @@ struct CartView: View {
                                     .padding(.top, 25)
                                     .padding(.horizontal, 15)
                                     
-                                    HStack {
-                                        Text("Delivery Charges")
-                                            .font(.custom(Constants.AppFont.regularFont, size: 13))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                        Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: String(self.deliveryCharges), currency: "$", currencyPosition: "right"))
-                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    }
-                                    .padding(.top, 10)
-                                    .padding(.horizontal, 15)
+//                                    HStack {
+//                                        Text("Delivery Charges")
+//                                            .font(.custom(Constants.AppFont.regularFont, size: 13))
+//                                            .foregroundColor(Constants.AppColor.secondaryBlack)
+//                                        Spacer()
+//                                        Text(getPriceAndCurrencySymbol(price: String(self.deliveryCharges), currency: "$", currencyPosition: "right"))
+//                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
+//                                            .foregroundColor(Constants.AppColor.secondaryBlack)
+//                                    }
+//                                    .padding(.top, 10)
+//                                    .padding(.horizontal, 15)
                                     
                                     HStack {
                                         Text("Discount")
                                             .font(.custom(Constants.AppFont.regularFont, size: 13))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                         Spacer()
-                                        Text("- \(getPriceAndCurrencySymbol(price: String(mainViewModel.discounts), currency: "$", currencyPosition: "right"))")
+                                        Text("\(mainViewModel.discounts > 0 ? "-" : "")")
+                                        +
+                                        Text("\(getPriceAndCurrencySymbol(price: String(mainViewModel.discounts), currency: "$", currencyPosition: "right"))")
                                             .font(.custom(Constants.AppFont.boldFont, size: 13))
                                             .foregroundColor(Color.init(hex: "036440"))
                                     }

@@ -28,7 +28,7 @@ struct HomeNavigationBarView: View {
             Spacer()
             Button(action: {
                 withAnimation(.spring()){
-                    mainViewModel.showCart.toggle()
+                    mainViewModel.presentedType = .cart
                 }
             }, label: {
                 if mainViewModel.numberOfItems != 0 {

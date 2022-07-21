@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+let ALERT_MESSAGE_DURATION: Double      =   3.0
+
 // COLOR
 let colorBackground: Color = Color("ColorBackground")
 let colorGray: Color = Color(UIColor.systemGray4)
@@ -16,6 +18,24 @@ let columnSpacing: CGFloat = 10
 let rowSpacing: CGFloat = 10
 var gridLayout: [GridItem] {
     return Array(repeating: GridItem(.flexible(), spacing: rowSpacing), count: 2)
+}
+
+func getPrice(value: Double)->String{
+    
+    let format = NumberFormatter()
+    format.numberStyle = .currency
+    format.currencySymbol = ""
+    
+    return format.string(from: NSNumber(value: value)) ?? ""
+}
+
+func getPrice(value: String)->String{
+    
+    let format = NumberFormatter()
+    format.numberStyle = .currency
+    format.currencySymbol = ""
+    
+    return format.string(from: NSNumber(value: Float(value) ?? 0)) ?? ""
 }
 
 func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition: String)->String{

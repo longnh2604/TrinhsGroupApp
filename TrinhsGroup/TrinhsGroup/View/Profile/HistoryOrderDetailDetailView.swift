@@ -1,15 +1,16 @@
 //
-//  OrderReceivedDetailView.swift
+//  HistoryOrderDetailDetailView.swift
 //  TrinhsGroup
 //
-//  Created by long on 11/07/2022.
+//  Created by long on 15/07/2022.
 //
 
 import SwiftUI
 
-struct OrderReceivedDetailView: View {
+struct HistoryOrderDetailDetailView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
+    var order: Order
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -18,9 +19,9 @@ struct OrderReceivedDetailView: View {
                     Text("Order No")
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
-                    Text("#\(mainViewModel.receivedOrder.number)")
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                    Text("#\(order.number)")
                 }
+                .foregroundColor(.black)
                 
                 Spacer()
                 
@@ -28,8 +29,8 @@ struct OrderReceivedDetailView: View {
                     Text("Date")
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
-                    Text(mainViewModel.receivedOrder.date_created.toDate())
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                    Text(order.date_created.toDate())
+                        .foregroundColor(.black)
                 }
                 
                 Spacer()
@@ -39,10 +40,10 @@ struct OrderReceivedDetailView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
                     
-                    Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.total, currency: "$", currencyPosition: "right"))
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                        .foregroundColor(Constants.AppColor.primaryBlack)
-           
+                    Text(order.total)
+                        +
+                        Text("\("$")")
+                        .font(.footnote)
                 }
             }
             
@@ -50,17 +51,15 @@ struct OrderReceivedDetailView: View {
                 Text("Email")
                     .fontWeight(.semibold)
                     .foregroundColor(Color("ColorPrimary"))
-                Text(mainViewModel.receivedOrder.billing.email)
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                Text(order.billing.email)
+                    .foregroundColor(.black)
             }
         }
     }
 }
 
-struct OrderReceivedDetailView_Previews: PreviewProvider {
+struct HistoryOrderDetailDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        OrderReceivedDetailView()
-            .previewLayout(.sizeThatFits)
-            .environmentObject(MainViewModel())
+        HistoryOrderDetailDetailView(order: Order.default)
     }
 }

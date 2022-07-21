@@ -88,7 +88,7 @@ struct ProfileView: View {
                     VStack {
                         Button(action: {
                             withAnimation(.spring()){
-                                historyViewModel.showHistory.toggle()
+                                mainViewModel.presentedType = .orderHistory
                             }
                         }, label: {
                             HStack {
@@ -112,7 +112,7 @@ struct ProfileView: View {
                         
                         Button(action: {
                             withAnimation(.spring()){
-                                authViewModel.showEditAddress.toggle()
+                                mainViewModel.presentedType = .editUserInfo
                             }
                         }, label: {
                             HStack {
@@ -151,12 +151,13 @@ struct ProfileView: View {
                         .environmentObject(authViewModel)
                 }
                 
-                if authViewModel.showEditAddress {
+                if mainViewModel.presentedType == .editUserInfo {
                     EditAddressView()
                         .environmentObject(authViewModel)
+                        .environmentObject(mainViewModel)
                 }
                 
-                if historyViewModel.showHistory {
+                if mainViewModel.presentedType == .orderHistory {
                     MyOrdersView()
                         .environmentObject(mainViewModel)
                         .environmentObject(historyViewModel)

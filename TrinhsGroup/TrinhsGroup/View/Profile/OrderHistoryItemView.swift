@@ -55,10 +55,9 @@ struct OrderHistoryItemView: View {
                 
                 Text("Total")
                 
-                Text(getPriceAndCurrencySymbol(price: order.total, currency: mainViewModel.appSetting!.currency_symbol.decodingHTMLEntities(), currencyPosition: mainViewModel.appSetting!.currency_position))
+                Text(getPriceAndCurrencySymbol(price: order.total, currency: "$", currencyPosition: "right"))
                     .foregroundColor(Constants.AppColor.primaryBlack)
                 
-
             }
             .foregroundColor(.black)
         }
@@ -70,11 +69,11 @@ struct OrderHistoryItemView: View {
     func getStatusColor(status: String) -> Color {
         if status == "on-hold" {
             return Color("ColorPrimary")
-        }else if status == "processing" {
+        } else if status == "processing" {
             return Color("ColorGreen")
-        }else if status == "completed" {
+        } else if status == "completed" {
             return Color("ColorGray")
-        }else{
+        } else {
             return Color("ColorPrimary")
         }
     }

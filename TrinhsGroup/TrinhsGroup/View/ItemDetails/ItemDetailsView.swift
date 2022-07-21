@@ -173,6 +173,20 @@ struct ItemDetailsView: View {
                         }
                         .background(Color.white)
                         .padding(.bottom, 5)
+                        
+                        VStack(alignment: .leading) {
+                            if let options = product.attributes.first?.options {
+                                ForEach(options, id: \.self) { option in
+                                    HStack {
+                                        CheckBoxView(checked: .constant(true))
+                                        Text("\(option.getPriceOption(strings: option).name)") + Text(option.getPriceOption(strings: option).price.isEmpty ? "" : " (\(option.getPriceOption(strings: option).price)$)")
+                                        Spacer()
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.bottom, 5)
+                        .background(Color.white)
 
                         VStack(alignment: .leading) {
                             Text("Product Details")
@@ -191,7 +205,8 @@ struct ItemDetailsView: View {
                         }
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .background(Color.white)
-                        .padding(.top, -3)                    }
+                        .padding(.top, -3)
+                    }
                 }
             }
             AddToCartButton()

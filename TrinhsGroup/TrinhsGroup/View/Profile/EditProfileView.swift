@@ -131,6 +131,12 @@ struct EditProfileView: View {
                     
                     Spacer()
                 }
+                if authViewModel.showLoading {
+                    LoadingView()
+                }
+                if authViewModel.isUpdatedUser {
+                    CustomAlertView(message: "Updated User Successful")
+                }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)
             .navigationBarHidden(true)

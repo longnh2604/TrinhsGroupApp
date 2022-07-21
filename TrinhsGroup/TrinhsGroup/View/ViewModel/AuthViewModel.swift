@@ -20,6 +20,7 @@ class AuthViewModel: ObservableObject {
     @Published var message: String = ""
     @Published var showEditProfile = false
     @Published var showEditAddress = false
+    @Published var isUpdatedUser = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
@@ -52,6 +53,19 @@ class AuthViewModel: ObservableObject {
                 self.isLogin = isLogined
             }
             .store(in: &cancellableSet)
+        
+        service.updatedUserPublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { isUpdated in
+                self.isUpdatedUser = isUpdated
+                if isUpdated {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + ALERT_MESSAGE_DURATION) {
+                        self.isUpdatedUser = false
+                    }
+                }
+            }
+            .store(in: &cancellableSet)
     }
     
     public func createUser() {
@@ -74,6 +88,18 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onUpdateUser(user: User) {
-        service.updateUser(user: user)
+        service.updateUser(user: user, password: password)
+    }
+    
+    public func checkUserUpdatedBillInfo() -> Bool {
+        if !user.billing.checkFilledData() {
+            message = "Please fill your billing info before start to create order, thank you."
+            return false
+        }
+        return true
+    }
+    
+    public func onGetUser() {
+        service.fetchingUserInfo(id: user.id)
     }
 }

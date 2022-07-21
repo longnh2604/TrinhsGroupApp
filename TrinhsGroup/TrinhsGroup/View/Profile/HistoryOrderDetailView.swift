@@ -47,33 +47,33 @@ struct HistoryOrderDetailView: View {
                     
                     ScrollView(showsIndicators: false){
                         
-//                        HistoryOrderDetailDetailView(order: order)
-//                            .padding(.top)
-//
-//                        Divider()
-//                            .padding(.vertical)
-//
-//                        HistoryOrderItemsView(order: order)
-//
-//
-//                        HistoryOrderDetailPaymentView(order: order)
-//
-//
-//                        Divider()
-//                            .padding(.vertical)
-//
-//                        StatusItemsView(order: order)
-//
-//                        Divider()
-//                            .padding(.vertical)
-//
-//                        HistoryOrderNoteView(order: order)
-//
-//                        Divider()
-//                            .padding(.vertical)
-//
-//                        HistoryOrderAddressView(order: order)
-//                            .padding(.bottom, 30)
+                        HistoryOrderDetailDetailView(order: order)
+                            .padding(.top)
+
+                        Divider()
+                            .padding(.vertical)
+
+                        HistoryOrderItemsView(order: order)
+
+
+                        HistoryOrderDetailPaymentView(order: order)
+
+
+                        Divider()
+                            .padding(.vertical)
+
+                        StatusItemsView(order: order)
+
+                        Divider()
+                            .padding(.vertical)
+
+                        HistoryOrderNoteView(order: order)
+
+                        Divider()
+                            .padding(.vertical)
+
+                        HistoryOrderAddressView(order: order)
+                            .padding(.bottom, 30)
                         
                     }
                     .padding(.horizontal)

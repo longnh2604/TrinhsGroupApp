@@ -62,30 +62,26 @@ struct MainView: View {
                     }.tag(4)
             }
             
-            if mainViewModel.showNewSeason {
-                SaleProductsView()
-                    .environmentObject(mainViewModel)
-            }
-            
-            if mainViewModel.showDiscount {
-                DiscountProductsView()
-                    .environmentObject(mainViewModel)
-            }
-            
-            if mainViewModel.showCart {
+            if mainViewModel.presentedType == .cart {
                 CartView().environmentObject(mainViewModel)
-            }
-            
-            if mainViewModel.showCheckout {
+            } else if mainViewModel.presentedType == .checkOut {
                 CheckOutView()
                     .environmentObject(mainViewModel)
                     .environmentObject(authViewModel)
-            }
-            
-            if mainViewModel.showOrderReceived {
+            } else if mainViewModel.presentedType == .orderReceived {
                 OrderReceivedView()
                     .environmentObject(mainViewModel)
             }
+            
+//            if mainViewModel.showNewSeason {
+//                SaleProductsView()
+//                    .environmentObject(mainViewModel)
+//            }
+//
+//            if mainViewModel.showDiscount {
+//                DiscountProductsView()
+//                    .environmentObject(mainViewModel)
+//            }
             
             if mainViewModel.showLoading {
                 LoadingView().ignoresSafeArea()
@@ -99,8 +95,8 @@ struct MainView: View {
 //            mainViewModel.fetchSliders()
             mainViewModel.onFetchCategories()
 //            mainViewModel.fetchProducts()
-//            authViewModel.getUser()
-//            historyViewModel.fetchOrders(customerId: authViewModel.id)
+            authViewModel.onGetUser()
+            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
         }
     }
 }

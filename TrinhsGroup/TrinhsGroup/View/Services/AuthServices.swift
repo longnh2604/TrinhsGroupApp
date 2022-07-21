@@ -17,11 +17,13 @@ protocol BaseServiceProtocol {
 protocol AuthServicesProtocol: BaseServiceProtocol {
     var userPublisher: AnyPublisher<User, Never> { get }
     var loginPublisher: AnyPublisher<Bool, Never> { get }
+    var updatedUserPublisher: AnyPublisher<Bool, Never> { get }
 }
 
 class AuthServices: AuthServicesProtocol {
     public private(set) lazy var userPublisher: AnyPublisher<User, Never> = $user.eraseToAnyPublisher()
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
+    public private(set) lazy var updatedUserPublisher: AnyPublisher<Bool, Never> = $isUpdated.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
 
@@ -40,7 +42,6 @@ class AuthServices: AuthServicesProtocol {
                     self.user.id = data["id"].intValue
                     self.user.email = data["email"].stringValue
                     self.user.username = data["username"].stringValue
-                    self.user.password = password
                 }
             } else {
                 self.error = error ?? ""
@@ -57,7 +58,6 @@ class AuthServices: AuthServicesProtocol {
                     self.user.id = data["id"].intValue
                     self.user.email = data["user_email"].stringValue
                     self.user.username = data["user_display_name"].stringValue
-                    self.user.password = password
                     self.isLoggedIn = true
                 }
             } else {
@@ -66,33 +66,27 @@ class AuthServices: AuthServicesProtocol {
             self.isLoading.toggle()
         }
     }
-    
-//    func getUser() {
-//        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/customers/\(id)?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-//            print("Invalid URL")
-//            return
-//        }
-//        let request = URLRequest(url: url)
-//
-//        URLSession.shared.dataTask(with: request) {data, response, error in
-//            if let data = data {
-//                if let decodedResponse = try? JSONDecoder().decode(User.self, from: data) {
-//                    DispatchQueue.main.async {
-//                        self.user = decodedResponse
-//                    }
-//                    return
-//                }
-//            }
-//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-//        }.resume()
-//    }
 
-    func updateUser(user: User) {
+    func updateUser(user: User, password: String) {
         self.isLoading.toggle()
-        APIClient.shared.onUpdateUser(user: user) { success, data, error in
+        APIClient.shared.onUpdateUser(user: user, password: password) { success, data, error in
             if success {
                 if data != nil {
                     self.isUpdated = true
+                }
+            } else {
+                self.error = error ?? ""
+            }
+            self.isLoading.toggle()
+        }
+    }
+    
+    func fetchingUserInfo(id: Int) {
+        self.isLoading.toggle()
+        APIClient.shared.onFetchUserInfo(id: id) { success, data, error in
+            if success {
+                if let data = data {
+                    self.user = data
                 }
             } else {
                 self.error = error ?? ""
