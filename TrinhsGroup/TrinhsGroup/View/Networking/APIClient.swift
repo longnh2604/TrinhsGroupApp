@@ -343,4 +343,26 @@ extension APIClient {
         }
         task.resume()
     }
+    
+    func onFetchHistoryOrders(id: Int, completion: @escaping requestAnyArrDataCompletion) {
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/orders?customer=\(id)&page=1&per_page=100&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
+            print("Invalid URL")
+            return
+        }
+        let request = URLRequest(url: url)
+        
+        URLSession.shared.dataTask(with: request) {data, response, error in
+            if let data = data {
+                if let decodedResponse = try? JSONDecoder().decode([Order].self, from: data) {
+                    DispatchQueue.main.async {
+                        completion(true, decodedResponse, nil)
+                    }
+                    return
+                }
+            }
+            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
+            completion(false, nil, error?.localizedDescription)
+        }.resume()
+    }
+    
 }

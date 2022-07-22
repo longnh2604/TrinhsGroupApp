@@ -11,4 +11,5 @@ target 'TrinhsGroup' do
   pod 'Firebase/Core'
   pod 'Firebase/Messaging'
   pod 'Firebase/Firestore'
+  pod 'Stripe'
 end

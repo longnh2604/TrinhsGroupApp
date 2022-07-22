@@ -47,39 +47,29 @@ struct MyOrdersView: View {
                 VStack {
                     NavigationBarView()
                     
-                    List(historyViewModel.orders) { order in
-                        OrderHistoryItemView(order: order)
-                            .padding(.horizontal)
-                            .padding(.bottom)
-                            .environmentObject(mainViewModel)
-                            .onTapGesture {
-                                withAnimation(.easeOut){
-                                    selectedOrder = order
-                                    historyViewModel.showHistoryOrderDetail.toggle()
+                    List {
+                        ForEach(historyViewModel.orders) { order in
+                            OrderHistoryItemView(order: order)
+                                .padding(.horizontal)
+                                .padding(.bottom)
+                                .environmentObject(mainViewModel)
+                                .onTapGesture {
+                                    withAnimation(.easeOut){
+                                        selectedOrder = order
+                                        historyViewModel.showHistoryOrderDetail.toggle()
+                                    }
                                 }
-                            }
-                            .refreshable {
-                                print("refresh")
-                            }
+                        }
+                        .listRowInsets(EdgeInsets())
+                    }
+                    .refreshable {
+                        historyViewModel.fetchOrders(customerId: authViewModel.user.id)
                     }
                     .padding(.top)
-                    
-//                    ScrollView(showsIndicators: false){
-//                        ForEach(historyViewModel.orders){ order in
-//                            OrderHistoryItemView(order: order)
-//                                .padding(.horizontal)
-//                                .padding(.bottom)
-//                                .environmentObject(mainViewModel)
-//                                .onTapGesture {
-//                                    withAnimation(.easeOut){
-//                                        selectedOrder = order
-//                                        historyViewModel.showHistoryOrderDetail.toggle()
-//                                    }
-//                                }
-//                        }
-//                    }
-//                    .padding(.top)
-                    
+                }
+                
+                if historyViewModel.showLoading {
+                    LoadingView().ignoresSafeArea()
                 }
                 
                 if historyViewModel.showHistoryOrderDetail {

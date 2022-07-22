@@ -11,6 +11,8 @@ import Kingfisher
 struct ItemCellView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
+    @EnvironmentObject var firestoreManager: FirestoreManager
+    
     var product: Product
     @State var show = false
     @State var isFavorite: Bool = false
@@ -48,7 +50,7 @@ struct ItemCellView: View {
     
     var body: some View {
         ZStack {
-            NavigationLink(destination: ItemDetailsView(product: product, show: self.$show).environmentObject(mainViewModel), isActive: self.$show) {
+            NavigationLink(destination: ItemDetailsView(product: product, show: self.$show).environmentObject(mainViewModel).environmentObject(firestoreManager), isActive: self.$show) {
                 Text("")
             }
             VStack(alignment: .leading) {

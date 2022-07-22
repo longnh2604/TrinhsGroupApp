@@ -11,6 +11,7 @@ import Kingfisher
 struct ItemDetailsView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
+    @EnvironmentObject var firestoreManager: FirestoreManager
     @State var product: Product
     @Binding var show : Bool
     @State var index = 0
@@ -18,7 +19,6 @@ struct ItemDetailsView: View {
     @State private var size: String = ""
     @State private var webViewHeight: CGFloat = .zero
     @State private var showDialog = false
-    
     
     fileprivate func ImageSlider() -> some View {
         return PagingView(index: $index.animation(), maxIndex: product.images.count - 1) {
@@ -175,15 +175,17 @@ struct ItemDetailsView: View {
                         .padding(.bottom, 5)
                         
                         VStack(alignment: .leading) {
-                            if let options = product.attributes.first?.options {
-                                ForEach(options, id: \.self) { option in
-                                    HStack {
-                                        CheckBoxView(checked: .constant(true))
-                                        Text("\(option.getPriceOption(strings: option).name)") + Text(option.getPriceOption(strings: option).price.isEmpty ? "" : " (\(option.getPriceOption(strings: option).price)$)")
-                                        Spacer()
+                            ForEach(firestoreManager.productAddOns.indices) { index in
+                                HStack {
+                                    CheckBoxView(checked: .constant(true))
+                                    Text("\(firestoreManager.productAddOns[index].content)")
+                                    if firestoreManager.productAddOns[index].value > 0 {
+                                        Text(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right"))
                                     }
+                                    Spacer()
                                 }
                             }
+                            
                         }
                         .padding(.bottom, 5)
                         .background(Color.white)
@@ -211,11 +213,16 @@ struct ItemDetailsView: View {
             }
             AddToCartButton()
         }
-            .navigationBarTitle(Text(""), displayMode: .inline)
-            .navigationBarHidden(true)
-            .navigationBarBackButtonHidden(true).alert(isPresented: $showDialog, content: {
-                Alert(title: Text("Size or Color Empty"), message: Text("Select Size and Color please"), dismissButton: .default(Text("OK")))
-            })
+        .onAppear {
+            if let id = product.categories.first?.id {
+                firestoreManager.fetchProductAddOns(categoryId: id)
+            }
+        }
+        .navigationBarTitle(Text(""), displayMode: .inline)
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true).alert(isPresented: $showDialog, content: {
+            Alert(title: Text("Size or Color Empty"), message: Text("Select Size and Color please"), dismissButton: .default(Text("OK")))
+        })
     }
 }
 

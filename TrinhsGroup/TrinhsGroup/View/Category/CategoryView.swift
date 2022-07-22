@@ -11,6 +11,7 @@ import Kingfisher
 struct CategoryView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
+    @EnvironmentObject var firestoreManager: FirestoreManager
     
     fileprivate func NavigationBarView() -> some View {
         return HStack {
@@ -66,6 +67,7 @@ struct CategoryView: View {
                     })
                     
                     CategoryProductsView()
+                        .environmentObject(firestoreManager)
                         .environmentObject(mainViewModel)
                 }
             }

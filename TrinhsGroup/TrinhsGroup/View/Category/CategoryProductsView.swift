@@ -10,6 +10,7 @@ import SwiftUI
 struct CategoryProductsView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
+    @EnvironmentObject var firestoreManager: FirestoreManager
     
     fileprivate func NavigationBarView() -> some View {
         return HStack {
@@ -47,7 +48,9 @@ struct CategoryProductsView: View {
                             
                             LazyVGrid(columns: gridLayout, spacing:15,  content: {
                                 ForEach(mainViewModel.categoryProducts){ product in
-                                    ItemCellView(product: product).environmentObject(mainViewModel)
+                                    ItemCellView(product: product)
+                                        .environmentObject(mainViewModel)
+                                        .environmentObject(firestoreManager)
                                 }
                             })
                             .padding(15)

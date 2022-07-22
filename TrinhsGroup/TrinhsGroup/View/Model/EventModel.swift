@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct AppEvent: Identifiable, Codable {
+struct AppEvent: Identifiable {
     var id: Int
     var content: String
     var type: String

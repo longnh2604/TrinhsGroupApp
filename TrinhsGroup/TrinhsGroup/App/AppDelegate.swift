@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftyJSON
 import CoreData
 import Firebase
+import Stripe
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     
@@ -17,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     let gcmMessageIDKey = "gcm.message_id"
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        StripeAPI.defaultPublishableKey = "pk_live_51KY9yTFxroI2z58cos6LBBuBu2jCrYNbLvaRx0C4JF3yjxFnPAYIWu8PEpFH9td9r7kM4ul41fy84PY1zLS3vpbX00dqy98QcG"
         FirebaseApp.configure()
         Messaging.messaging().delegate = self
         if #available(iOS 10.0, *) {

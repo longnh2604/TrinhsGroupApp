@@ -34,6 +34,7 @@ struct MainView: View {
                 
                 CategoryView()
                     .environmentObject(mainViewModel)
+                    .environmentObject(firestoreManager)
                     .tabItem {
                         Image(systemName: "cart.fill")
                         Text("Category")
