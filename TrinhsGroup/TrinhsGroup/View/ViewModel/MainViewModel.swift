@@ -226,7 +226,7 @@ class MainViewModel: ObservableObject {
     }
     
     func onOpenURL() {
-        if let url = URL(string: "fb-messenger://user-thread/trinhskitchenmelton") {
+        if let url = URL(string: "fb-messenger://user-thread/108416778461623") {
             UIApplication.shared.open(url)
         }
     }
