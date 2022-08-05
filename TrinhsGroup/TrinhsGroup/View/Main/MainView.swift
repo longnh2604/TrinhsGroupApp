@@ -88,6 +88,9 @@ struct MainView: View {
                 LoadingView().ignoresSafeArea()
             }
         }
+        .floatingActionButton(color: .white, image: Image("chatSupport"), action: {
+            mainViewModel.onOpenURL()
+        })
         .accentColor(Color("ColorPrimary"))
         .navigationBarTitle("")
         .navigationBarHidden(true)

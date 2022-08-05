@@ -10,7 +10,7 @@ import SwiftUI
 struct FloatingActionButton<ImageView: View>: ViewModifier {
   let color: Color // background color of the FAB
   let image: ImageView // image shown in the FAB
-//  let action: () -> Void
+  let action: () -> Void
 
   private let size: CGFloat = 60 // size of the FAB circle
   private let margin: CGFloat = 15 // distance from screen edges
@@ -32,28 +32,28 @@ struct FloatingActionButton<ImageView: View>: ViewModifier {
           .frame(width: size, height: size)
           .background(Circle().fill(color))
           .shadow(color: .gray, radius: 2, x: 1, y: 1)
-//          .onTapGesture(perform: action)
+          .onTapGesture(perform: action)
           .offset(x: (geo.size.width - size) / 2 - margin,
                   y: (geo.size.height - size) / 2 - margin - 50)
-    }
-}
-
-extension View {
-    func floatingActionButton<ImageView: View>(
-        color: Color,
-        image: ImageView) -> some View {
-        self.modifier(FloatingActionButton(color: color,
-                                           image: image))
     }
 }
 
 //extension View {
 //    func floatingActionButton<ImageView: View>(
 //        color: Color,
-//        image: ImageView,
-//        action: @escaping () -> Void) -> some View {
+//        image: ImageView) -> some View {
 //        self.modifier(FloatingActionButton(color: color,
-//                                           image: image,
-//                                           action: action))
+//                                           image: image))
 //    }
 //}
+
+extension View {
+    func floatingActionButton<ImageView: View>(
+        color: Color,
+        image: ImageView,
+        action: @escaping () -> Void) -> some View {
+        self.modifier(FloatingActionButton(color: color,
+                                           image: image,
+                                           action: action))
+    }
+}

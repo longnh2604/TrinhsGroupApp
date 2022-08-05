@@ -225,6 +225,12 @@ class MainViewModel: ObservableObject {
             .store(in: &cancellableSet)
     }
     
+    func onOpenURL() {
+        if let url = URL(string: "fb-messenger://user-thread/trinhskitchenmelton") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
     func onFetchCategories() {
         service.onFetchCategories()
     }
