@@ -15,8 +15,9 @@ struct ProductOrder: Identifiable, Codable {
     var subtotal: String
     var total: String
     var price: Double
+    var meta_data = [ProductMetaData]()
     
     static var `default` : ProductOrder {
-        ProductOrder(id: 0, product_id: 0, name: "", quantity: 0, subtotal: "0", total: "0", price: 0)
+        ProductOrder(id: 0, product_id: 0, name: "", quantity: 0, subtotal: "0", total: "0", price: 0, meta_data: [])
     }
 }

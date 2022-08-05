@@ -33,7 +33,7 @@ struct LoadingWrapView: UIViewRepresentable {
 }
 
 class CustomLoadingView: UIView {
-    private var tint: UIColor = UIColor(red: 5.0/255.0, green: 118.0/255.0, blue: 35.0/255.0, alpha: 1.0)
+    private var tint: UIColor = UIColor(red: 222.0/255.0, green: 4.0/255.0, blue: 4.0/255.0, alpha: 1.0)
     
     private var firstInit: Bool = false
     

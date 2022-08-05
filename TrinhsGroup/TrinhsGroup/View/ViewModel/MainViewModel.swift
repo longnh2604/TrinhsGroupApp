@@ -13,6 +13,14 @@ enum PresentedType {
     case checkOut, productDetail, orderReceived, cart, none, editUserInfo, orderHistory
 }
 
+extension Array where Element: Hashable {
+    func difference(from other: [Element]) -> [Element] {
+        let thisSet = Set(self)
+        let otherSet = Set(other)
+        return Array(thisSet.symmetricDifference(otherSet))
+    }
+}
+
 class MainViewModel: ObservableObject {
     
     @Published var appSetting: AppSetting?
@@ -109,7 +117,7 @@ class MainViewModel: ObservableObject {
     func add(item: Product) {
         var fl = false
         for index in 0..<items.count {
-            if items[index].name == item.name {
+            if items[index].name == item.name && items[index].meta_data == item.meta_data {
                 items[index].quantity += 1
                 fl = true
                 break
@@ -119,7 +127,7 @@ class MainViewModel: ObservableObject {
         if !fl {
             items.append(item)
             for index in 0..<items.count {
-                if items[index].name == item.name {
+                if items[index].name == item.name && items[index].meta_data == item.meta_data {
                     items[index].quantity += 1
                     break
                 }
@@ -131,7 +139,7 @@ class MainViewModel: ObservableObject {
     func remove(item: Product) {
         var em = true
         for index in 0..<items.count {
-            if items[index].name == item.name {
+            if items[index].name == item.name && items[index].meta_data == item.meta_data {
                 if items[index].quantity == 1 {
                     items.remove(at: index)
                     em = false
@@ -212,7 +220,7 @@ class MainViewModel: ObservableObject {
             .dropFirst()
             .receive(on: RunLoop.main)
             .sink { value in
-
+                self.presentedType = value
             }
             .store(in: &cancellableSet)
     }

@@ -13,7 +13,7 @@ struct StatusItemsView: View {
     
     var body: some View {
         VStack(alignment: .leading){
-            Text("Status")
+            Text("Order Status")
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             

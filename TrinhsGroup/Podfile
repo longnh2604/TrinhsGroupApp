@@ -12,4 +12,5 @@ target 'TrinhsGroup' do
   pod 'Firebase/Messaging'
   pod 'Firebase/Firestore'
   pod 'Stripe'
+  pod 'lottie-ios'
 end

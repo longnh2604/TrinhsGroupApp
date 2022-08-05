@@ -103,6 +103,16 @@ struct ItemDetailsView: View {
     fileprivate func AddToCartButton() -> some View {
         Button(action: {
             withAnimation(.spring()){
+                var newPrice = Float(product.price) ?? 0
+                firestoreManager.productAddOns.forEach { addon in
+                    if addon.checked {
+                        product.meta_data.append(ProductMetaData(id: addon.id, key: addon.content, value: .string(String(addon.value))))
+                        newPrice += Float(addon.value)
+                    }
+                }
+                product.price = String(newPrice)
+                product.regular_price = String(newPrice)
+                product.meta_data = product.meta_data.filter({ return !$0.key.contains("_") })
                 mainViewModel.add(item: product)
                 show.toggle()
             }
@@ -175,12 +185,12 @@ struct ItemDetailsView: View {
                         .padding(.bottom, 5)
                         
                         VStack(alignment: .leading) {
-                            ForEach(firestoreManager.productAddOns.indices) { index in
+                            ForEach(firestoreManager.productAddOns.indices, id:\.self) { index in
                                 HStack {
-                                    CheckBoxView(checked: .constant(true))
+                                    CheckBoxView(checked: $firestoreManager.productAddOns[index].checked)
                                     Text("\(firestoreManager.productAddOns[index].content)")
                                     if firestoreManager.productAddOns[index].value > 0 {
-                                        Text(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right"))
+                                        Text("(+\(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right")))")
                                     }
                                     Spacer()
                                 }

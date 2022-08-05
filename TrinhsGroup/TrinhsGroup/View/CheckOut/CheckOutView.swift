@@ -6,26 +6,34 @@
 //
 
 import SwiftUI
+import Stripe
 
 struct CheckOutView: View {
     
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
+    let config = STPPaymentConfiguration.shared
+    @State private var paymentContext: STPPaymentContext!
+    @StateObject var stripeManager = StripeManager()
     
     fileprivate func SubmitButton() -> some View {
         Button(action: {
             if !authViewModel.checkUserUpdatedBillInfo() { return }
             
             if mainViewModel.selectedPayment.id == Payment.default.id {
-//                mainViewModel.dialogMessage = "Please select payment method"
-//                mainViewModel.showDialog.toggle()
+                mainViewModel.message = "Please select a payment method"
+                return
+            }
+            
+            if mainViewModel.selectedPayment.id == "stripe" {
+                stripeManager.preparePaymentSheet()
                 return
             }
             
             var productOrders = [ProductOrder]()
 
             for order_item in mainViewModel.items {
-                productOrders.append(ProductOrder(id: 0, product_id: order_item.id, name: order_item.name, quantity: order_item.quantity, subtotal: "", total: "", price: 0))
+                productOrders.append(ProductOrder(id: 0, product_id: order_item.id, name: order_item.name, quantity: order_item.quantity, subtotal: "", total: order_item.regular_price, price: Double(order_item.regular_price) ?? 0, meta_data: order_item.meta_data))
             }
 
 //            var shippingOrders = [ShippingOrder]()
@@ -40,6 +48,9 @@ struct CheckOutView: View {
                 .frame(minWidth: 0, maxWidth: .infinity)
                 .background(Color("ColorPrimary"))
                 .cornerRadius(25)
+        }
+        .onAppear {
+            paymentContextConfiguration()
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
@@ -129,14 +140,6 @@ struct CheckOutView: View {
                                     .bold()
                             }.padding(.top, 30)
                             
-//                            HStack {
-//                                Text("Delivery Charges:")
-//                                    .foregroundColor(.gray)
-//                                Spacer()
-//                                Text(getPriceAndCurrencySymbol(price: mainViewModel.selectedShip.settings.cost.value, currency: "$", currencyPosition: "right"))
-//                                    .bold()
-//                            }.padding(.top, 15)
-                            
                             HStack {
                                 Text("Total:")
                                     .foregroundColor(.gray)
@@ -155,6 +158,9 @@ struct CheckOutView: View {
                 if !authViewModel.message.isEmpty {
                     CustomAlertView(message: authViewModel.message)
                 }
+                if !mainViewModel.message.isEmpty {
+                    CustomAlertView(message: mainViewModel.message)
+                }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)
             .navigationBarHidden(true)
@@ -164,6 +170,32 @@ struct CheckOutView: View {
                 mainViewModel.fetchZones()
             }
         }
+    }
+    
+    // Configuration stripe payment
+    func paymentContextConfiguration() {
+        let customerContext = STPCustomerContext(keyProvider: MyAPIClient())
+        self.config.shippingType = .shipping
+        self.config.requiredBillingAddressFields = .full
+        
+        self.config.requiredShippingAddressFields = [.postalAddress, .emailAddress]
+        
+        self.config.companyName = "Testing"
+        
+        self.paymentContext = STPPaymentContext(customerContext: customerContext, configuration: self.config, theme: .defaultTheme)
+        
+//        self.paymentContext.delegate = self.paymentContextDelegate
+        
+        let keyWindow = UIApplication.shared.connectedScenes
+                        .filter({$0.activationState == .foregroundActive})
+                        .map({$0 as? UIWindowScene})
+                        .compactMap({$0})
+                        .first?.windows
+            .filter({$0.isKeyWindow}).first
+        
+        self.paymentContext.hostViewController = keyWindow?.rootViewController
+        self.paymentContext.paymentAmount = 20
+        
     }
 }
 

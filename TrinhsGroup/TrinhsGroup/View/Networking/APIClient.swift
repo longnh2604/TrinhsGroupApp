@@ -220,36 +220,47 @@ extension APIClient {
         let request = URLRequest(url: url)
 
         URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-
-                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-                    DispatchQueue.main.async {
-                        completion(true, decodedResponse, nil)
-                    }
-                    return
-                }
+            guard let data = data, error == nil else {
+                completion(false, nil, error?.localizedDescription)
+                return
             }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            completion(false, nil, error?.localizedDescription)
+            
+            do {
+                let informations = try JSONDecoder().decode([Product].self, from: data)
+                completion(true, informations, "")
+            } catch {
+                print(String(data: data, encoding: .utf8) as Any)
+                print(error)
+                completion(false, nil, "")
+            }
+            
+//            if let data = data {
+//
+//                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
+//                    DispatchQueue.main.async {
+//                        completion(true, decodedResponse, nil)
+//                    }
+//                    return
+//                }
+//            }
+//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
+//            completion(false, nil, error?.localizedDescription)
         }.resume()
     }
     
     func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], completion: @escaping requestAnyDataCompletion) {
         var lineItems:Array = [Dictionary<String, Any>]()
         
-        for productOrder in productOrders{
-            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity])
+        for productOrder in productOrders {
+            var meta_data: Array = [Dictionary<String, Any>]()
+            for meta in productOrder.meta_data {
+                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
+            }
+            
+            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
         }
         
         print(lineItems)
-        
-//        var shippingLines:Array = [Dictionary<String, Any>]()
-//
-//        for shippingOrder in shippingOrders {
-//            shippingLines.append(["method_id" : shippingOrder.method_id, "total" : shippingOrder.total])
-//        }
-        
-//        print(shippingLines)
         
         // prepare json data
         var json: [String: Any] = [
@@ -269,19 +280,7 @@ extension APIClient {
                 "email":user.billing.email,
                 "phone":user.billing.phone
             ],
-//            "shipping": [
-//                "first_name":user.shipping.first_name,
-//                "last_name":user.shipping.last_name,
-//                "company":user.shipping.company,
-//                "country":user.shipping.country,
-//                "address_1":user.shipping.address_1,
-//                "address_2":user.shipping.address_2,
-//                "city":user.shipping.city,
-//                "postcode":user.shipping.postcode,
-//                "state":user.shipping.state
-//            ],
-            "line_items": lineItems,
-//            "shipping_lines": shippingLines
+            "line_items": lineItems
         ]
         
 //        if coupon.id != Coupon.default.id {

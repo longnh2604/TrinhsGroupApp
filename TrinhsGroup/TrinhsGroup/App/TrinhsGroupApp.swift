@@ -26,16 +26,21 @@ struct TrinhsGroupApp: App {
                 OnboardingView()
                     .preferredColorScheme(.light)
             } else {
-                if !authViewModel.isLogin {
-                    SignupView()
-                        .environmentObject(authViewModel)
-                        .preferredColorScheme(.light)
-                } else {
-                    MainView()
-                        .environmentObject(authViewModel)
-                        .environmentObject(mainViewModel)
-                        .environmentObject(historyViewModel)
-                        .environmentObject(firestoreManager)
+                ZStack {
+                    if authViewModel.showLoading {
+                        LoadingView()
+                    }
+                    if !authViewModel.isLogin {
+                        SignupView()
+                            .environmentObject(authViewModel)
+                            .preferredColorScheme(.light)
+                    } else {
+                        MainView()
+                            .environmentObject(authViewModel)
+                            .environmentObject(mainViewModel)
+                            .environmentObject(historyViewModel)
+                            .environmentObject(firestoreManager)
+                    }
                 }
             }
         }

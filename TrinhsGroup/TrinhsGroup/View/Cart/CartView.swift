@@ -44,7 +44,7 @@ struct CartView: View {
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
-                self.mainViewModel.presentedType = .none
+                mainViewModel.presentedType = .none
             }) {
                 Image(systemName: "arrow.left")
                     .foregroundColor(Constants.AppColor.secondaryBlack)
@@ -113,16 +113,18 @@ struct CartView: View {
                     ScrollView {
                         ZStack(alignment: .top) {
                             VStack {
-                                
                                 ScrollView(.vertical, showsIndicators: false, content: {
-                                    
-                                    ForEach(mainViewModel.items) { product in
-                                        ItemCellTypeThree(product: product)
+                                    ForEach(Array(mainViewModel.items.enumerated()), id: \.offset) { index, element in
+                                        ItemCellTypeThree(product: element)
                                             .padding()
                                             .environmentObject(mainViewModel)
-                                            
                                     }
                                     
+//                                    ForEach(mainViewModel.items) { product in
+//                                        ItemCellTypeThree(product: product)
+//                                            .padding()
+//                                            .environmentObject(mainViewModel)
+//                                    }
                                 })
                                     .padding(.bottom, 10)
                                 
@@ -260,9 +262,9 @@ struct ItemCellTypeThree: View {
                 .cornerRadius(1)
                 VStack(alignment: .leading) {
                     HStack(alignment: .top) {
-                        Text(product.short_description.decodingHTMLEntities())
+                        Text(product.name.decodingHTMLEntities())
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                            .foregroundColor(Constants.AppColor.secondaryBlack)
+                            .foregroundColor(Constants.AppColor.primaryBlack)
                             .lineLimit(1)
                         Spacer()
                         Button(action: {
@@ -274,12 +276,24 @@ struct ItemCellTypeThree: View {
                         }
                     }
                     
-                    Text(product.name)
-                        .font(.custom(Constants.AppFont.regularFont, size: 11))
-                        .foregroundColor(Constants.AppColor.secondaryBlack)
-                        .padding(.top, -5)
+                    if product.meta_data.count > 0 {
+                        Text ("Addition:")
+                            .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
+                            .foregroundColor(Constants.AppColor.secondaryBlack)
+                            .padding(.bottom, 4)
+                        
+                        ForEach(product.meta_data, id:\.key) { meta in
+                            HStack {
+                                Text(meta.key)
+                                if let value = Int(meta.value.stringValue), value > 0 {
+                                    Text("(+\(getPriceAndCurrencySymbol(price: String(value), currency: "$", currencyPosition: "right")))")
+                                }
+                            }
+                            .font(.custom(Constants.AppFont.regularFont, size: 11))
+                            .foregroundColor(Constants.AppColor.secondaryBlack)
+                        }
+                    }
                     
-                    Spacer()
                     HStack {
                         HStack {
                             minusButton()

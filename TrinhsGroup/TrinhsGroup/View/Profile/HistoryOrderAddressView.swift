@@ -29,23 +29,6 @@ struct HistoryOrderAddressView: View {
                 .font(.system(.body, design: .rounded))
                 .foregroundColor(.gray)
                 .padding(.top, 5)
-                
-                Text("Status")
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color("ColorPrimary"))
-                    .padding(.top, 10)
-                
-                VStack(alignment: .leading) {
-                    Text("\(order.shipping.first_name)")
-                    Text("\(order.shipping.last_name)")
-                    Text("\(order.shipping.address_1)")
-                    Text("\(order.shipping.city), \(order.shipping.state)")
-                    Text("\(order.shipping.postcode)")
-                }
-                .font(.system(.body, design: .rounded))
-                .foregroundColor(.gray)
-                .padding(.top, 5)
-                
             }
             Spacer()
         }

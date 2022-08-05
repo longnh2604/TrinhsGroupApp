@@ -45,6 +45,7 @@ class FirestoreManager: ObservableObject {
                 for document in querySnapshot!.documents {
                     self.productAddOns.append(ProductAddOns.init(document.data()))
                 }
+                self.productAddOns = self.productAddOns.sorted(by: { $0.content < $1.content })
             }
         }
     }

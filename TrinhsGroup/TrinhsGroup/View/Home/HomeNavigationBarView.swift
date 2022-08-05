@@ -27,9 +27,7 @@ struct HomeNavigationBarView: View {
             
             Spacer()
             Button(action: {
-                withAnimation(.spring()){
-                    mainViewModel.presentedType = .cart
-                }
+                mainViewModel.presentedType = .cart
             }, label: {
                 if mainViewModel.numberOfItems != 0 {
                     Image(systemName: "bag")
