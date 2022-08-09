@@ -42,6 +42,7 @@ class MainViewModel: ObservableObject {
     @Published var selectedShip = ShipMethod.default
     @Published var shipMethods = [ShipMethod]()
     @Published var coupon: Coupon = Coupon.default
+    @Published var coupons = [Coupon]()
     @Published var selectedPayment : Payment = Payment.default
     @Published var showOrderReceived = false
     @Published var receivedOrder: Order = Order.default
@@ -58,13 +59,13 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    var discounts: Double {
-        if items.count > 0 {
-            return items.reduce(0) { $0 + ((Double($1.regular_price)! - (Double($1.price) ?? 0)) * Double($1.quantity)) }
-        } else {
-            return 0
-        }
-    }
+//    var discounts: Double {
+//        if items.count > 0 {
+//            return items.reduce(0) { $0 + ((Double($1.regular_price)! - (Double($1.price) ?? 0)) * Double($1.quantity)) }
+//        } else {
+//            return 0
+//        }
+//    }
     
     var subtotal: Double {
         if items.count > 0 {
@@ -76,7 +77,8 @@ class MainViewModel: ObservableObject {
     
     var regularPriceTotal: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + (Double($1.regular_price)! * Double($1.quantity)) }
+            let results = items.reduce(0) { $0 + (Double($1.regular_price)! * Double($1.quantity)) }
+            return results.round(to: 2)
         } else {
             return 0
         }
@@ -84,9 +86,9 @@ class MainViewModel: ObservableObject {
     
     var total: Double {
         if items.count > 0 {
-            return subtotal + Double(selectedShip.settings.cost.value)!
+            return (subtotal - discounts)
         } else {
-            return 0 + Double(selectedShip.settings.cost.value)!
+            return 0
         }
     }
     
@@ -100,7 +102,16 @@ class MainViewModel: ObservableObject {
     
     var percentDiscount: Double {
         if coupon.id != Coupon.default.id {
-            return (total * ( Double(coupon.amount!)! / 100))
+            return (subtotal * ( Double(coupon.amount!)! / 100))
+        } else {
+            return 0
+        }
+    }
+    
+    var discounts: Double {
+        if items.count > 0 && coupon.id != Coupon.default.id {
+            let discount = coupon.discount_type == "percent" ? percentDiscount : fixedDiscount
+            return discount
         } else {
             return 0
         }
@@ -216,6 +227,10 @@ class MainViewModel: ObservableObject {
             }
             .store(in: &cancellableSet)
         
+        service.couponsPublisher
+            .receive(on: RunLoop.main)
+            .assign(to: &$coupons)
+        
         $presentedType
             .dropFirst()
             .receive(on: RunLoop.main)
@@ -240,7 +255,11 @@ class MainViewModel: ObservableObject {
     }
     
     func onCreateOrder(user: User, productOrders: [ProductOrder]) {
-        service.onCreateOrder(user: user, paymentMethod: selectedPayment.id, paymentMethodTitle: selectedPayment.title, customerNote: "", status: "on-hold", productOrders: productOrders)
+        service.onCreateOrder(user: user, paymentMethod: selectedPayment.id, paymentMethodTitle: selectedPayment.title, customerNote: "", status: "on-hold", productOrders: productOrders, coupon: coupon)
+    }
+    
+    func onListCoupons(id: Int) {
+        service.onListCoupons(id: id)
     }
     
     func fetchProducts() {
@@ -337,62 +356,6 @@ class MainViewModel: ObservableObject {
                     self.shipMethods.append(ShipMethod.default)
                     return
                 }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
-    }
-    
-    func checkCouponCode(code: String) {
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/woo-tools-app/coupon?code=\(code)") else {
-            print("Invalid URL")
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
-        
-        URLSession.shared.dataTask(with: request) {data, response, error in
-         
-            if let data = data {
-                do {
-                    let decodedResponse = try JSONDecoder().decode(Coupon.self, from: data)
-                    DispatchQueue.main.async {
-                        print(decodedResponse)
-                        
-                        if decodedResponse.code! != "not_found" {
-                            let minimumAmount = Double(String(describing:decodedResponse.minimum_amount!))!
-                            let maximumAmount = Double(String(describing:decodedResponse.maximum_amount!))!
-                            print(minimumAmount)
-                            
-                            if self.total < minimumAmount {
-//                                self.dialogMessage = "Not meet min amount : \(decodedResponse.minimum_amount!)"
-//                                self.showDialog.toggle()
-                            }else if self.total > maximumAmount {
-//                                self.dialogMessage = "Reached max amount : \(decodedResponse.maximum_amount!)"
-//                                self.showDialog.toggle()
-                            }else{
-                                self.coupon = decodedResponse
-//                                self.dialogMessage = "Success use coupon"
-//                                self.showDialog.toggle()
-                            }
-                        } else {
-//                            self.dialogMessage = decodedResponse.message!
-//                            self.showDialog.toggle()
-                        }
-                    }
-                } catch DecodingError.keyNotFound(let key, let context) {
-                    Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
-                } catch DecodingError.valueNotFound(let type, let context) {
-                    Swift.print("could not find type \(type) in JSON: \(context.debugDescription)")
-                } catch DecodingError.typeMismatch(let type, let context) {
-                    Swift.print("type mismatch for type \(type) in JSON: \(context.debugDescription)")
-                } catch DecodingError.dataCorrupted(let context) {
-                    Swift.print("data found to be corrupted in JSON: \(context.debugDescription)")
-                } catch let error as NSError {
-                    NSLog("Error in read(from:ofType:) domain= \(error.domain), description= \(error.localizedDescription)")
-                }
-                return
             }
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             

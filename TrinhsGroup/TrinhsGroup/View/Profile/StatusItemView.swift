@@ -26,7 +26,7 @@ struct StatusItemView: View {
                         .clipShape(Circle())
                         .frame(width: 15, height: 15)
                         .zIndex(1)
-                }else{
+                } else {
                     colorGray
                         .clipShape(Circle())
                         .frame(width: 15, height: 15)

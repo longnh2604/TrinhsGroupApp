@@ -27,6 +27,10 @@ struct Order: Identifiable, Codable {
     var line_items = [ProductOrder]()
     var shipping_lines = [ShippingOrder]()
     
+    var isCancelled: Bool {
+        return status == "cancelled" ? true : false
+    }
+    
     var subtotal: Double {
         if line_items.count > 0 {
             return line_items.reduce(0) { $0 + (Double($1.subtotal)!) }

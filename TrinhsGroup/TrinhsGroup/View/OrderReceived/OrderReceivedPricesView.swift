@@ -22,20 +22,6 @@ struct OrderReceivedPricesView: View {
                 Text(getPriceAndCurrencySymbol(price: String(mainViewModel.receivedOrder.subtotal), currency: "$", currencyPosition: "right"))
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .foregroundColor(Constants.AppColor.primaryBlack)
-                
-        
-            }
-            
-            HStack {
-                Text("Shipping( Flat Rate )")
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                
-                Spacer()
-                
-                Text(getPriceAndCurrencySymbol(price: "0", currency: "$", currencyPosition: "right"))
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                    .foregroundColor(Constants.AppColor.primaryBlack)
-              
             }
             
             if Double(mainViewModel.receivedOrder.discount_total)! > 0 {
@@ -49,10 +35,8 @@ struct OrderReceivedPricesView: View {
                     Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.discount_total, currency: "$", currencyPosition: "right"))
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                         .foregroundColor(Constants.AppColor.primaryBlack)
-                 
                 }
             }
-            
             
             HStack {
                 Text("Total")

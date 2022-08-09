@@ -12,8 +12,8 @@ struct FloatingActionButton<ImageView: View>: ViewModifier {
   let image: ImageView // image shown in the FAB
   let action: () -> Void
 
-  private let size: CGFloat = 60 // size of the FAB circle
-  private let margin: CGFloat = 15 // distance from screen edges
+  private let size: CGFloat = 40 // size of the FAB circle
+  private let margin: CGFloat = 10 // distance from screen edges
 
   func body(content: Content) -> some View {
       GeometryReader { geo in
@@ -37,15 +37,6 @@ struct FloatingActionButton<ImageView: View>: ViewModifier {
                   y: (geo.size.height - size) / 2 - margin - 50)
     }
 }
-
-//extension View {
-//    func floatingActionButton<ImageView: View>(
-//        color: Color,
-//        image: ImageView) -> some View {
-//        self.modifier(FloatingActionButton(color: color,
-//                                           image: image))
-//    }
-//}
 
 extension View {
     func floatingActionButton<ImageView: View>(

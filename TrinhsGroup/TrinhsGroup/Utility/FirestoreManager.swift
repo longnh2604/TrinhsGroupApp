@@ -36,7 +36,7 @@ class FirestoreManager: ObservableObject {
     func fetchProductAddOns(categoryId: Int) {
         let db = Firestore.firestore()
 
-        let docRef = db.collection("productAddons").whereField("categoryId", isEqualTo: categoryId)
+        let docRef = db.collection("productAddons").whereField("categoryId", arrayContains: categoryId)
         docRef.getDocuments { querySnapshot, error in
             if let error = error {
                 print("Error getting documents: \(error)")
@@ -47,6 +47,12 @@ class FirestoreManager: ObservableObject {
                 }
                 self.productAddOns = self.productAddOns.sorted(by: { $0.content < $1.content })
             }
+        }
+    }
+    
+    func removeProductAddOnsChecked() {
+        for addOn in productAddOns {
+            addOn.checked = false
         }
     }
 }

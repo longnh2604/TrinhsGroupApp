@@ -136,7 +136,7 @@ struct CheckOutView: View {
                                 Text("Order:")
                                     .foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: String(mainViewModel.subtotal), currency: "$", currencyPosition: "right"))
+                                Text(getPriceAndCurrencySymbol(price: String(format: "%.2f", mainViewModel.subtotal), currency: "$", currencyPosition: "right"))
                                     .bold()
                             }.padding(.top, 30)
                             
@@ -144,7 +144,7 @@ struct CheckOutView: View {
                                 Text("Total:")
                                     .foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: String(mainViewModel.total), currency: "$", currencyPosition: "right"))
+                                Text(getPriceAndCurrencySymbol(price: String(format: "%.2f", mainViewModel.total), currency: "$", currencyPosition: "right"))
                                     .bold()
                             }.padding(.top, 15)
                             Spacer()

@@ -64,7 +64,9 @@ struct MainView: View {
             }
             
             if mainViewModel.presentedType == .cart {
-                CartView().environmentObject(mainViewModel)
+                CartView()
+                    .environmentObject(mainViewModel)
+                    .environmentObject(authViewModel)
             } else if mainViewModel.presentedType == .checkOut {
                 CheckOutView()
                     .environmentObject(mainViewModel)

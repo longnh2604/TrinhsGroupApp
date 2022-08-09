@@ -10,6 +10,7 @@ import Kingfisher
 
 struct CartView: View {
     
+    @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
     
     init() {
@@ -27,7 +28,7 @@ struct CartView: View {
             Text("")
                 .font(.custom(Constants.AppFont.boldFont, size: 15))
                 .foregroundColor(.white)
-                .frame(height: 65)
+                .frame(height: 50)
                 .frame(minWidth: 0, maxWidth: .infinity)
                 .background(Color("ColorPrimary"))
                 .cornerRadius(0)
@@ -37,7 +38,7 @@ struct CartView: View {
             Text("Checkout")
                 .font(.custom(Constants.AppFont.boldFont, size: 15))
                 .foregroundColor(.white)
-                .padding(.top, -10)
+                .padding()
         )
     }
     
@@ -72,6 +73,7 @@ struct CartView: View {
     
     fileprivate func ApplyCoupon() -> some View {
         return Button(action: {
+            mainViewModel.onListCoupons(id: authViewModel.user.id)
             self.isShowPromoCodeView.toggle()
         }) {
             HStack {
@@ -82,7 +84,7 @@ struct CartView: View {
                     .padding(.leading, 15)
                     .foregroundColor(Constants.AppColor.primaryBlack)
                 
-                Text("APPLY COUPON")
+                Text(mainViewModel.coupon.id != Coupon.default.id ? mainViewModel.coupon.code ?? "" : "APPLY COUPON")
                     .font(.custom(Constants.AppFont.regularFont, size: 13))
                     .foregroundColor(Constants.AppColor.primaryBlack)
                 
@@ -98,6 +100,9 @@ struct CartView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .background(Color.white)
+            .sheet(isPresented: $isShowPromoCodeView) {
+                CouponView().environmentObject(mainViewModel)
+        }
     }
     
     var body: some View {
@@ -119,14 +124,10 @@ struct CartView: View {
                                             .padding()
                                             .environmentObject(mainViewModel)
                                     }
-                                    
-//                                    ForEach(mainViewModel.items) { product in
-//                                        ItemCellTypeThree(product: product)
-//                                            .padding()
-//                                            .environmentObject(mainViewModel)
-//                                    }
                                 })
                                     .padding(.bottom, 10)
+                                
+                                ApplyCoupon()
                                 
                                 VStack {
                                     HStack {
@@ -134,24 +135,12 @@ struct CartView: View {
                                             .font(.custom(Constants.AppFont.regularFont, size: 13))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                         Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: String(mainViewModel.regularPriceTotal), currency: "$", currencyPosition: "right"))
+                                        Text(getPriceAndCurrencySymbol(price: String(format: "%.2f", mainViewModel.regularPriceTotal), currency: "$", currencyPosition: "right"))
                                             .font(.custom(Constants.AppFont.boldFont, size: 13))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                     }
                                     .padding(.top, 25)
                                     .padding(.horizontal, 15)
-                                    
-//                                    HStack {
-//                                        Text("Delivery Charges")
-//                                            .font(.custom(Constants.AppFont.regularFont, size: 13))
-//                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-//                                        Spacer()
-//                                        Text(getPriceAndCurrencySymbol(price: String(self.deliveryCharges), currency: "$", currencyPosition: "right"))
-//                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
-//                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-//                                    }
-//                                    .padding(.top, 10)
-//                                    .padding(.horizontal, 15)
                                     
                                     HStack {
                                         Text("Discount")
@@ -159,8 +148,10 @@ struct CartView: View {
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                         Spacer()
                                         Text("\(mainViewModel.discounts > 0 ? "-" : "")")
+                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
+                                            .foregroundColor(Color.init(hex: "036440"))
                                         +
-                                        Text("\(getPriceAndCurrencySymbol(price: String(mainViewModel.discounts), currency: "$", currencyPosition: "right"))")
+                                        Text("\(getPriceAndCurrencySymbol(price: String(format: "%.2f", mainViewModel.discounts), currency: "$", currencyPosition: "right"))")
                                             .font(.custom(Constants.AppFont.boldFont, size: 13))
                                             .foregroundColor(Color.init(hex: "036440"))
                                     }
@@ -174,7 +165,7 @@ struct CartView: View {
                                             .font(.custom(Constants.AppFont.boldFont, size: 16))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                         Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: String(mainViewModel.total), currency: "$", currencyPosition: "right"))
+                                        Text(getPriceAndCurrencySymbol(price: String(format: "%.2f", mainViewModel.total), currency: "$", currencyPosition: "right"))
                                             .font(.custom(Constants.AppFont.boldFont, size: 16))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                     }

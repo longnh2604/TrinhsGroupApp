@@ -233,28 +233,16 @@ extension APIClient {
                 print(error)
                 completion(false, nil, "")
             }
-            
-//            if let data = data {
-//
-//                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-//                    DispatchQueue.main.async {
-//                        completion(true, decodedResponse, nil)
-//                    }
-//                    return
-//                }
-//            }
-//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-//            completion(false, nil, error?.localizedDescription)
         }.resume()
     }
     
-    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], completion: @escaping requestAnyDataCompletion) {
+    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], coupon: Coupon, completion: @escaping requestAnyDataCompletion) {
         var lineItems:Array = [Dictionary<String, Any>]()
         
         for productOrder in productOrders {
             var meta_data: Array = [Dictionary<String, Any>]()
             for meta in productOrder.meta_data {
-                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
+                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value.stringValue])
             }
             
             lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
@@ -283,9 +271,9 @@ extension APIClient {
             "line_items": lineItems
         ]
         
-//        if coupon.id != Coupon.default.id {
-//            json["coupon_lines"] = [["code": coupon.code]]
-//        }
+        if coupon.id != Coupon.default.id {
+            json["coupon_lines"] = [["code": coupon.code]]
+        }
         
         let jsonData = try? JSONSerialization.data(withJSONObject: json)
         
@@ -361,6 +349,30 @@ extension APIClient {
             }
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             completion(false, nil, error?.localizedDescription)
+        }.resume()
+    }
+    
+    func onFetchCoupons(id: Int, completion: @escaping requestAnyArrDataCompletion) {
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/coupons?customer=\(id)&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
+            print("Invalid URL")
+            return
+        }
+        let request = URLRequest(url: url)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else {
+                completion(false, nil, error?.localizedDescription)
+                return
+            }
+            
+            do {
+                let informations = try JSONDecoder().decode([Coupon].self, from: data)
+                completion(true, informations, "")
+            } catch {
+                print(String(data: data, encoding: .utf8) as Any)
+                print(error)
+                completion(false, nil, "")
+            }
         }.resume()
     }
     

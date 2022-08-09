@@ -20,8 +20,12 @@ struct StatusItemsView: View {
             VStack(alignment: .leading, spacing: 0) {
                 StatusItemView(current: order.status, status: "pending payment", date: order.date_modified)
                 StatusItemView(current: order.status, status: "on-hold", date: order.date_modified)
-                StatusItemView(current: order.status, status: "processing", date: order.date_modified)
-                StatusItemView(current: order.status, status: "completed", date: order.date_modified)
+                if order.isCancelled {
+                    StatusItemView(current: order.status, status: "cancelled", date: order.date_modified)
+                } else {
+                    StatusItemView(current: order.status, status: "processing", date: order.date_modified)
+                    StatusItemView(current: order.status, status: "completed", date: order.date_modified)
+                }
             }
         }
     }

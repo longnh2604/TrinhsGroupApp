@@ -11,6 +11,7 @@ import Combine
 protocol MainServicesProtocol: BaseServiceProtocol {
     var categoryPublisher: AnyPublisher<[Category], Never> { get }
     var selectedCategoryProductPublisher: AnyPublisher<[Product], Never> { get }
+    var couponsPublisher: AnyPublisher<[Coupon], Never> { get }
     var orderReceivedPublisher: AnyPublisher<Order, Never> { get }
     var loginPublisher: AnyPublisher<Bool, Never> { get }
 }
@@ -19,6 +20,7 @@ class MainServices: MainServicesProtocol {
     public private(set) lazy var categoryPublisher: AnyPublisher<[Category], Never> = $categories.eraseToAnyPublisher()
     public private(set) lazy var selectedCategoryProductPublisher: AnyPublisher<[Product], Never> = $selectedCategoryProducts.eraseToAnyPublisher()
     public private(set) lazy var orderReceivedPublisher: AnyPublisher<Order, Never> = $orderReceived.eraseToAnyPublisher()
+    public private(set) lazy var couponsPublisher: AnyPublisher<[Coupon], Never> = $coupons.eraseToAnyPublisher()
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
@@ -30,6 +32,7 @@ class MainServices: MainServicesProtocol {
     @Published private var error: String = ""
     @Published var categories = [Category]()
     @Published var selectedCategoryProducts = [Product]()
+    @Published var coupons = [Coupon]()
     @Published var orderReceived = Order.default
     
     func onFetchCategories() {
@@ -60,12 +63,26 @@ class MainServices: MainServicesProtocol {
         }
     }
     
-    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder]) {
+    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], coupon: Coupon) {
         self.isLoading.toggle()
-        APIClient.shared.onCreateOrder(user: user, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle, customerNote: customerNote, status: status, productOrders: productOrders) { success, data, error in
+        APIClient.shared.onCreateOrder(user: user, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle, customerNote: customerNote, status: status, productOrders: productOrders, coupon: coupon) { success, data, error in
             if success {
                 if let data = data as? Order {
                     self.orderReceived = data
+                }
+            } else {
+                self.error = error ?? ""
+            }
+            self.isLoading.toggle()
+        }
+    }
+    
+    func onListCoupons(id: Int) {
+        self.isLoading.toggle()
+        APIClient.shared.onFetchCoupons(id: id) { success, data, error in
+            if success {
+                if let data = data as? [Coupon] {
+                    self.coupons = data
                 }
             } else {
                 self.error = error ?? ""

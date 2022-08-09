@@ -40,18 +40,20 @@ struct Product: Identifiable, Codable {
     }
 }
 
-struct ProductAddOns: Identifiable, Codable {
+class ProductAddOns: Identifiable, Codable {
     var id: Int
-    var productId: Int
+    var categoryId: [Int]
     var content: String
     var value: Int
     var checked: Bool
+    var type: String
     
     init(_ dic: [String: Any]) {
-        self.id = dic["categoryId"] as? Int ?? 0
-        self.productId = dic["productId"] as? Int ?? 0
+        self.id = dic["id"] as? Int ?? 0
+        self.categoryId = dic["categoryId"] as? [Int] ?? []
         self.content = dic["content"] as? String ?? ""
         self.value = dic["value"] as? Int ?? 0
+        self.type = dic["type"] as? String ?? ""
         self.checked = false
     }
 }

@@ -27,7 +27,7 @@ struct ItemCellView: View {
             .foregroundColor(.white)
     }
     
-    fileprivate func FevoriteButton() -> some View {
+    fileprivate func FavoriteButton() -> some View {
         return Button(action: {
             if UserDefaultsManager.isFavorite(product.id) {
                 UserDefaultsManager.removeFavorite(product)
@@ -71,7 +71,7 @@ struct ItemCellView: View {
                 .padding(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .cornerRadius(1)
                 .overlay(
-                    FevoriteButton()
+                    FavoriteButton()
                         .padding(5), alignment: .topTrailing)
                 
                 Text(product.short_description.decodingHTMLEntities())

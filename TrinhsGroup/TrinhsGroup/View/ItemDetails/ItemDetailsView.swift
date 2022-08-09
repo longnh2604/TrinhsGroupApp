@@ -187,12 +187,25 @@ struct ItemDetailsView: View {
                         VStack(alignment: .leading) {
                             ForEach(firestoreManager.productAddOns.indices, id:\.self) { index in
                                 HStack {
-                                    CheckBoxView(checked: $firestoreManager.productAddOns[index].checked)
-                                    Text("\(firestoreManager.productAddOns[index].content)")
-                                    if firestoreManager.productAddOns[index].value > 0 {
-                                        Text("(+\(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right")))")
+                                    if firestoreManager.productAddOns.first?.type == "radio" {
+                                        RadioButtonView(checked: $firestoreManager.productAddOns[index].checked) {
+                                            firestoreManager.removeProductAddOnsChecked()
+                                        }
+                                        .padding(.leading, 10)
+                                        Text("\(firestoreManager.productAddOns[index].content)")
+                                        if firestoreManager.productAddOns[index].value > 0 {
+                                            Text("(+\(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right")))")
+                                        }
+                                        Spacer()
+                                    } else {
+                                        CheckBoxView(checked: $firestoreManager.productAddOns[index].checked)
+                                            .padding(.leading, 10)
+                                        Text("\(firestoreManager.productAddOns[index].content)")
+                                        if firestoreManager.productAddOns[index].value > 0 {
+                                            Text("(+\(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right")))")
+                                        }
+                                        Spacer()
                                     }
-                                    Spacer()
                                 }
                             }
                             

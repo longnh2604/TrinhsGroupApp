@@ -38,7 +38,7 @@ func getPrice(value: String)->String{
     return format.string(from: NSNumber(value: Float(value) ?? 0)) ?? ""
 }
 
-func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition: String)->String{
+func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition: String)->String {
     if currencyPosition == "right" {
         return "\(price)\(currency)"
     } else if currencyPosition == "right_space" {
