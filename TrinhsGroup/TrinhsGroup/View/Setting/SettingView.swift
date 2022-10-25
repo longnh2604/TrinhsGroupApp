@@ -18,7 +18,7 @@ struct SettingView: View {
         .frame(width: UIScreen.main.bounds.width, height: 35)
         .overlay(
             Text("Setting")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
+                .font(.custom(Constants.AppFont.boldFont, size: 20))
                 .foregroundColor(Constants.AppColor.primaryBlack)
                 .padding(.horizontal, 10)
             , alignment: .center)

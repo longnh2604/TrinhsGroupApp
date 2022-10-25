@@ -21,7 +21,7 @@ struct ProfileView: View {
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
             Text("Profile")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
+                .font(.custom(Constants.AppFont.boldFont, size: 20))
                 .padding(.horizontal, 10)
                 .background(Color.init(hex: "f9f9f9"))
             , alignment: .center)

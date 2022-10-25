@@ -45,7 +45,10 @@ struct ItemCellView: View {
         }
         .cornerRadius(20)
         .opacity(0.9)
-        .shadow(color: Color.init(hex: "dddddd"), radius: 0.5, x: 0.3, y: 0.3)
+        .overlay(RoundedRectangle(cornerRadius: 20)
+                            .stroke(lineWidth: 1)
+                            .foregroundColor(.gray)
+                            .shadow(color: .gray, radius: 2, x: 0, y: 2))
     }
     
     var body: some View {
@@ -111,8 +114,12 @@ struct ItemCellView: View {
             }
             .frame(width: UIScreen.main.bounds.width / 2 - 40, height: 268)
             .background(Color.white)
-            .cornerRadius(2)
+            .cornerRadius(10)
             .clipped()
+            .overlay(RoundedRectangle(cornerRadius: 10)
+                                .stroke(lineWidth: 1)
+                                .foregroundColor(.white)
+                                .shadow(color: .gray, radius: 2, x: 0, y: 2))
             .onTapGesture {
                 self.show.toggle()
             }

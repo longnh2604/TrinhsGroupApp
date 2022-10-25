@@ -12,7 +12,7 @@ struct OrderReceivedPricesView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
     
     var body: some View {
-        VStack(spacing: 4){
+        VStack(spacing: 4) {
             HStack {
                 Text("Subtotal")
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
