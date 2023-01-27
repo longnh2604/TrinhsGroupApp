@@ -23,6 +23,7 @@ protocol AuthServicesProtocol: BaseServiceProtocol {
 class AuthServices: AuthServicesProtocol {
     public private(set) lazy var userPublisher: AnyPublisher<User, Never> = $user.eraseToAnyPublisher()
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
+    public private(set) lazy var createdUserPublisher: AnyPublisher<Bool, Never> = $isCreated.eraseToAnyPublisher()
     public private(set) lazy var updatedUserPublisher: AnyPublisher<Bool, Never> = $isUpdated.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
@@ -31,6 +32,7 @@ class AuthServices: AuthServicesProtocol {
     @Published private var isLoading: Bool = false
     @Published private var isLoggedIn: Bool = false
     @Published private var isUpdated: Bool = false
+    @Published private var isCreated: Bool = false
     @Published private var error: String = ""
     @Published var user : User = User.default
     
@@ -42,6 +44,7 @@ class AuthServices: AuthServicesProtocol {
                     self.user.id = data["id"].intValue
                     self.user.email = data["email"].stringValue
                     self.user.username = data["username"].stringValue
+                    self.isCreated = true
                 }
             } else {
                 self.error = error ?? ""

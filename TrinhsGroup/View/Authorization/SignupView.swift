@@ -43,7 +43,7 @@ struct SignupView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Name", text: $authViewModel.username)
+            TextField("Username", text: $authViewModel.username)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -171,6 +171,9 @@ struct SignupView: View {
                 }
                 if !authViewModel.message.isEmpty {
                     CustomAlertView(message: authViewModel.message)
+                }
+                if authViewModel.isCreatedUser {
+                    CustomAlertView(message: "Your account was created successfully. Please switch to login")
                 }
             }
             .navigationBarHidden(true)

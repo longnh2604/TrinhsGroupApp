@@ -21,6 +21,7 @@ class AuthViewModel: ObservableObject {
     @Published var showEditProfile = false
     @Published var showEditAddress = false
     @Published var isUpdatedUser = false
+    @Published var isCreatedUser = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
@@ -54,6 +55,13 @@ class AuthViewModel: ObservableObject {
             }
             .store(in: &cancellableSet)
         
+        service.createdUserPublisher
+            .receive(on: RunLoop.main)
+            .sink { isCreated in
+                self.isCreatedUser = isCreated
+            }
+            .store(in: &cancellableSet)
+        
         service.updatedUserPublisher
             .dropFirst()
             .receive(on: RunLoop.main)
@@ -77,9 +85,6 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onAuthUser() {
-        email = "all4onegiallorossi@gmail.com"
-        password = "Batigol@123"
-        
         if email.isEmpty || password.isEmpty {
             message = "Please fill all data"
             return
