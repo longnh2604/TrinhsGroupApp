@@ -84,11 +84,11 @@ class AuthServices: AuthServicesProtocol {
         }
     }
     
-    func fetchingUserInfo(id: Int) {
+    func fetchingUserInfo(email: String) {
         self.isLoading.toggle()
-        APIClient.shared.onFetchUserInfo(id: id) { success, data, error in
+        APIClient.shared.onFetchUserInfo(email: email) { success, data, error in
             if success {
-                if let data = data {
+                if let data = data?.first {
                     self.user = data
                 }
             } else {

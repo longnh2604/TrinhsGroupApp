@@ -11,6 +11,6 @@ target 'TrinhsGroup' do
   pod 'Firebase/Core'
   pod 'Firebase/Messaging'
   pod 'Firebase/Firestore'
-  pod 'Stripe'
-  pod 'lottie-ios'
+  pod 'Stripe', '~> 22.5.0'
+  pod 'lottie-ios', '~> 3.3.0'
 end

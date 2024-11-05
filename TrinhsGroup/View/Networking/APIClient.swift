@@ -12,7 +12,7 @@ typealias requestCompletion = (_ success: Bool,_ error: String?) -> Void
 typealias requestDataCompletion = (_ success: Bool,_ data: JSON?, _ error: String?) -> Void
 typealias requestAnyArrDataCompletion = (_ success: Bool,_ data: [Any]?, _ error: String?) -> Void
 typealias requestAnyDataCompletion = (_ success: Bool,_ data: Any?, _ error: String?) -> Void
-typealias requestUserCompletion = (_ success: Bool,_ data: User?, _ error: String?) -> Void
+typealias requestUserCompletion = (_ success: Bool,_ data: [User]?, _ error: String?) -> Void
 
 class APIClient {
     static let shared = APIClient()
@@ -146,8 +146,8 @@ extension APIClient {
         task.resume()
     }
     
-    func onFetchUserInfo(id: Int, completion: @escaping requestUserCompletion) {
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/customers/\(id)?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
+    func onFetchUserInfo(email: String, completion: @escaping requestUserCompletion) {
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/customers?email=\(email)&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
             print("Invalid URL")
             return
         }
@@ -156,7 +156,7 @@ extension APIClient {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
                 do {
-                    let decodedResponse = try JSONDecoder().decode(User.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode([User].self, from: data)
                     DispatchQueue.main.async {
                         completion(true, decodedResponse, nil)
                     }

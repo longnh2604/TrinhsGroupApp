@@ -85,6 +85,9 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onAuthUser() {
+//        email = "Test01@abc.com"
+//        password = "Abc@123"
+
         if email.isEmpty || password.isEmpty {
             message = "Please fill all data"
             return
@@ -105,6 +108,6 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onGetUser() {
-        service.fetchingUserInfo(id: user.id)
+        service.fetchingUserInfo(email: user.email)
     }
 }
