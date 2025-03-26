@@ -6,18 +6,16 @@
 //
 
 import SwiftUI
-import SwiftyJSON
 import CoreData
-import Firebase
 
 @main
 struct TrinhsGroupApp: App {
     
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @AppStorage("isOnboarding") var isOnboarding: Bool = true
-    @ObservedObject var authViewModel = AuthViewModel()
-    @ObservedObject var mainViewModel = MainViewModel()
-    @ObservedObject var historyViewModel = HistoryViewModel()
+    @StateObject var authViewModel = AuthViewModel()
+    @StateObject var mainViewModel = MainViewModel()
+    @StateObject var historyViewModel = HistoryViewModel()
     @StateObject var firestoreManager = FirestoreManager()
     
     var body: some Scene {
@@ -31,7 +29,7 @@ struct TrinhsGroupApp: App {
                         LoadingView()
                     }
                     if !authViewModel.isLogin {
-                        SignupView()
+                        LogInView()
                             .environmentObject(authViewModel)
                             .preferredColorScheme(.light)
                     } else {

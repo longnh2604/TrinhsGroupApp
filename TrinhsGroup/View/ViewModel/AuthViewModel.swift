@@ -85,8 +85,8 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onAuthUser() {
-//        email = "Test01@abc.com"
-//        password = "Abc@123"
+        email = "Test01@abc.com"
+        password = "Abc@123"
 
         if email.isEmpty || password.isEmpty {
             message = "Please fill all data"

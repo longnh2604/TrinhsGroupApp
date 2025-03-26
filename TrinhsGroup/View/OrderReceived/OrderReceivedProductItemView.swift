@@ -22,7 +22,7 @@ struct OrderReceivedProductItemView: View {
                     Text("\(productOrder.quantity) X ")
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                         +
-                    Text(getPriceAndCurrencySymbol(price: String(productOrder.price), currency: "$", currencyPosition: "right"))
+                    Text(getPriceAndCurrencySymbol(price: productOrder.price, currency: "$", currencyPosition: "right"))
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                         .foregroundColor(Constants.AppColor.primaryBlack)
                 )
@@ -40,7 +40,7 @@ struct OrderReceivedProductItemView: View {
                         HStack {
                             Text(meta.key)
                             if let value = Int(meta.value.stringValue), value > 0 {
-                                Text("(+\(getPriceAndCurrencySymbol(price: String(value), currency: "$", currencyPosition: "right")))")
+                                Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "right")))")
                             }
                         }
                         .font(.custom(Constants.AppFont.regularFont, size: 11))

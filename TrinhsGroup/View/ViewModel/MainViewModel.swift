@@ -42,7 +42,7 @@ class MainViewModel: ObservableObject {
     @Published var selectedShip = ShipMethod.default
     @Published var shipMethods = [ShipMethod]()
     @Published var coupon: Coupon = Coupon.default
-    @Published var selectedPayment : Payment = Payment.default
+    @Published var selectedPayment: Payment?
     @Published var showOrderReceived = false
     @Published var receivedOrder: Order = Order.default
     @Published var payments = [Payment]()
@@ -60,7 +60,7 @@ class MainViewModel: ObservableObject {
     
     var discounts: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + ((Double($1.regular_price)! - (Double($1.price) ?? 0)) * Double($1.quantity)) }
+            return items.reduce(0) { $0 + ($1.regular_price - $1.price) * Double($1.quantity) }
         } else {
             return 0
         }
@@ -68,7 +68,7 @@ class MainViewModel: ObservableObject {
     
     var subtotal: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + (Double($1.price)! * Double($1.quantity)) }
+            return items.reduce(0) { $0 + $1.price * Double($1.quantity) }
         } else {
             return 0
         }
@@ -76,7 +76,7 @@ class MainViewModel: ObservableObject {
     
     var regularPriceTotal: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + (Double($1.regular_price)! * Double($1.quantity)) }
+            return items.reduce(0) { $0 + $1.regular_price * Double($1.quantity) }
         } else {
             return 0
         }
@@ -226,8 +226,13 @@ class MainViewModel: ObservableObject {
     }
     
     func onOpenURL() {
-        if let url = URL(string: "fb-messenger://user-thread/108416778461623") {
-            UIApplication.shared.open(url)
+        let messengerURL = URL(string: "fb-messenger://user-thread/108416778461623")!
+        let webURL = URL(string: "https://www.facebook.com/trinhskitchenmelton")!
+
+        if UIApplication.shared.canOpenURL(messengerURL) {
+            UIApplication.shared.open(messengerURL)
+        } else {
+            UIApplication.shared.open(webURL)
         }
     }
     
@@ -240,7 +245,9 @@ class MainViewModel: ObservableObject {
     }
     
     func onCreateOrder(user: User, productOrders: [ProductOrder]) {
-        service.onCreateOrder(user: user, paymentMethod: selectedPayment.id, paymentMethodTitle: selectedPayment.title, customerNote: "", status: "on-hold", productOrders: productOrders)
+        if let id = selectedPayment?.id, let title = selectedPayment?.title {
+            service.onCreateOrder(user: user, paymentMethod: id, paymentMethodTitle: title, customerNote: "", status: "on-hold", productOrders: productOrders)
+        }
     }
     
     func fetchProducts() {
@@ -254,12 +261,8 @@ class MainViewModel: ObservableObject {
         
         URLSession.shared.dataTask(with: request) {data, response, error in
             if let data = data {
-                
                 if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.products.append(contentsOf: decodedResponse)
-                    }
-                    return
+                    self.products.append(contentsOf: decodedResponse)
                 }
             }
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
@@ -269,25 +272,48 @@ class MainViewModel: ObservableObject {
     
     func fetchPayments() {
         self.payments.removeAll()
-        
+            
         guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/payment_gateways?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
             print("Invalid URL")
             return
         }
+        
         let request = URLRequest(url: url)
         
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-                
-                if let decodedResponse = try? JSONDecoder().decode([Payment].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.payments.append(contentsOf: decodedResponse)
-                    }
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Fetch failed: \(error.localizedDescription)")
                     return
                 }
+                
+                guard let data = data else {
+                    print("Fetch failed: No data received")
+                    return
+                }
+                
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Received JSON: \(jsonString)")
+                }
+                
+                do {
+                    let decodedResponse = try JSONDecoder().decode([Payment].self, from: data)
+                    self.payments.append(contentsOf: decodedResponse)
+                } catch let DecodingError.dataCorrupted(context) {
+                    print("Data corrupted: \(context)")
+                } catch let DecodingError.keyNotFound(key, context) {
+                    print("Key '\(key.stringValue)' not found: \(context.debugDescription)")
+                    print("Coding Path: \(context.codingPath)")
+                } catch let DecodingError.typeMismatch(type, context) {
+                    print("Type mismatch for type \(type): \(context.debugDescription)")
+                    print("Coding Path: \(context.codingPath)")
+                } catch let DecodingError.valueNotFound(value, context) {
+                    print("Value '\(value)' not found: \(context.debugDescription)")
+                    print("Coding Path: \(context.codingPath)")
+                } catch {
+                    print("Decoding failed with error: \(error.localizedDescription)")
+                }
             }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
         }.resume()
     }
     
@@ -300,19 +326,16 @@ class MainViewModel: ObservableObject {
         }
         let request = URLRequest(url: url)
 
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-
-                if let decodedResponse = try? JSONDecoder().decode([Zone].self, from: data) {
-                    DispatchQueue.main.async {
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let data = data {
+                    if let decodedResponse = try? JSONDecoder().decode([Zone].self, from: data) {
                         self.zones.append(contentsOf: decodedResponse)
                         self.fetchShipMethods(id: self.zones[0].id)
                     }
-                    return
                 }
+                print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-
         }.resume()
     }
     
@@ -326,20 +349,16 @@ class MainViewModel: ObservableObject {
         let request = URLRequest(url: url)
         
         URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-                
-                if let decodedResponse = try? JSONDecoder().decode([ShipMethod].self, from: data) {
-                    DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                if let data = data {
+                    if let decodedResponse = try? JSONDecoder().decode([ShipMethod].self, from: data) {
                         self.shipMethods.append(contentsOf: decodedResponse)
+                    } else {
+                        self.shipMethods.append(ShipMethod.default)
                     }
-                    return
-                } else {
-                    self.shipMethods.append(ShipMethod.default)
-                    return
                 }
+                print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
         }.resume()
     }
     

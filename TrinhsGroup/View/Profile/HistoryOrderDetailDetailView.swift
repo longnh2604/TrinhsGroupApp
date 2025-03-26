@@ -40,7 +40,7 @@ struct HistoryOrderDetailDetailView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
                     
-                    Text(order.total)
+                    Text("\(order.total)")
                         +
                         Text("\("$")")
                         .font(.footnote)

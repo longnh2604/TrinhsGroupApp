@@ -13,10 +13,8 @@ struct ShippingItemView: View {
     
     var body: some View {
         HStack {
-            ZStack{
-                
-                if mainViewModel.selectedShip.id == item.id{
-                    
+            ZStack {
+                if mainViewModel.selectedShip.id == item.id {
                     Color("ColorPrimary")
                         .clipShape(Circle())
                         .frame(width: 35, height: 35)

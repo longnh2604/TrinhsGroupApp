@@ -11,10 +11,19 @@ struct SignupView: View {
     
     @EnvironmentObject var authViewModel: AuthViewModel
     @State var selection: Int? = nil
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
     fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Text("")
+        return HStack(alignment: .center) {
+            Button(action: {
+                self.presentationMode.wrappedValue.dismiss()
+            }) {
+                Image(systemName: "arrow.left")
+                    .foregroundColor(.black)
+            }
+            .padding(.leading, 10)
+            .frame(width: 40, height: 40)
+            Spacer()
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
@@ -110,38 +119,6 @@ struct SignupView: View {
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
     }
-
-    // Push view
-    fileprivate func GoToLoginButton() -> some View {
-        return NavigationLink(destination: LogInView()
-                                .environmentObject(authViewModel), tag: 2, selection: $selection) {
-            Button(action: {
-                self.selection = 2
-            }) {
-                Text("Already have an account?")
-                    .foregroundColor(.gray)
-                    .padding()
-            }
-        }
-    }
-    
-    fileprivate func GoogleLogInButton() -> some View {
-        return Button(action: {
-            
-        }) {
-            Image("google")
-                .renderingMode(.original)
-        }
-    }
-    
-    fileprivate func FacebookLogInButton() -> some View {
-        return Button(action: {
-            
-        }) {
-            Image("facebook")
-                .renderingMode(.original)
-        }
-    }
     
     var body: some View {
         NavigationView {
@@ -156,15 +133,7 @@ struct SignupView: View {
                     EmailTextField()
                     PasswordTextField()
                     SignUpButton()
-                    GoToLoginButton()
                     Spacer()
-                    Text("Signup with social account")
-                        .foregroundColor(.gray)
-                        .padding(.bottom, 10)
-                    HStack {
-                        GoogleLogInButton()
-                        FacebookLogInButton()
-                    }
                 }
                 if authViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
@@ -176,9 +145,9 @@ struct SignupView: View {
                     CustomAlertView(message: "Your account was created successfully. Please switch to login")
                 }
             }
-            .navigationBarHidden(true)
-            .navigationBarBackButtonHidden(true)
         }
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

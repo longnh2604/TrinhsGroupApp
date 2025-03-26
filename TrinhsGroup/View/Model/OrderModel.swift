@@ -18,8 +18,8 @@ struct Order: Identifiable, Codable {
     var status: String
     var date_created: String
     var date_modified: String
-    var discount_total: String
-    var total: String
+    var discount_total: Double
+    var total: Double
     var customer_note: String
     var billing: Billing
     var shipping: Shipping
@@ -36,6 +36,6 @@ struct Order: Identifiable, Codable {
     }
     
     static var `default` : Order {
-        Order(id: 0, number: "", status: "on-hold", date_created: "", date_modified: "", discount_total: "0", total: "0", customer_note: "", billing: Billing.default, shipping: Shipping.default, payment_method_title: "",line_items: [ProductOrder.default], shipping_lines: [ShippingOrder.default])
+        Order(id: 0, number: "", status: "on-hold", date_created: "", date_modified: "", discount_total: 0, total: 0, customer_note: "", billing: Billing.default, shipping: Shipping.default, payment_method_title: "",line_items: [ProductOrder.default], shipping_lines: [ShippingOrder.default])
     }
 }

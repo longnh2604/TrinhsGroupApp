@@ -54,7 +54,7 @@ struct ItemCellView: View {
                 Text("")
             }
             VStack(alignment: .leading) {
-                Group{
+                Group {
                     if product.images.count > 0 {
                         KFImage(URL(string:product.images[0].src))
                             .resizable()
@@ -87,7 +87,7 @@ struct ItemCellView: View {
                     .padding(.top, 2)
                 HStack {
                     
-                    if product.sale_price != "" {
+                    if product.sale_price > 0 {
                         Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
@@ -97,7 +97,7 @@ struct ItemCellView: View {
                         Text(getDiscountPercentage(regularPrice: product.regular_price, salePrice: product.sale_price))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(Constants.AppColor.secondaryRed)
-                    }else{
+                    } else {
                         Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
@@ -123,8 +123,8 @@ struct ItemCellView: View {
     }
 }
 
-struct ItemCellView_Previews: PreviewProvider {
-    static var previews: some View {
-        ItemCellView(product: Product.default)
-    }
-}
+//struct ItemCellView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ItemCellView(product: Product.default)
+//    }
+//}

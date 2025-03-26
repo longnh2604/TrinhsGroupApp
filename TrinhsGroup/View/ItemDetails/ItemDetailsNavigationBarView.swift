@@ -63,9 +63,3 @@ struct ItemDetailsNavigationBarView: View {
             , alignment: .center)
     }
 }
-
-struct ItemDetailsNavigationBarView_Previews: PreviewProvider {
-    static var previews: some View {
-        ItemDetailsNavigationBarView(show: .constant(false), product: Product.default)
-    }
-}

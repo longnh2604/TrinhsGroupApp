@@ -19,7 +19,7 @@ struct OrderReceivedPricesView: View {
                 
                 Spacer()
                 
-                Text(getPriceAndCurrencySymbol(price: String(mainViewModel.receivedOrder.subtotal), currency: "$", currencyPosition: "right"))
+                Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.subtotal, currency: "$", currencyPosition: "right"))
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .foregroundColor(Constants.AppColor.primaryBlack)
                 
@@ -32,13 +32,13 @@ struct OrderReceivedPricesView: View {
                 
                 Spacer()
                 
-                Text(getPriceAndCurrencySymbol(price: "0", currency: "$", currencyPosition: "right"))
+                Text(getPriceAndCurrencySymbol(price: 0, currency: "$", currencyPosition: "right"))
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .foregroundColor(Constants.AppColor.primaryBlack)
               
             }
             
-            if Double(mainViewModel.receivedOrder.discount_total)! > 0 {
+            if mainViewModel.receivedOrder.discount_total > 0 {
                 HStack {
                     Text("Discount")
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))

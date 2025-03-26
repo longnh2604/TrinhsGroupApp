@@ -37,7 +37,7 @@ struct DiscountView: View {
             }
             ScrollView(.horizontal, showsIndicators: false, content: {
                 HStack(spacing: 5) {
-                    ForEach(mainViewModel.products.filter({ $0.sale_price != "" })) { product in
+                    ForEach(mainViewModel.products.filter({ $0.sale_price != 0 })) { product in
                         ItemCellView(product: product)
                             .environmentObject(mainViewModel)
                     }

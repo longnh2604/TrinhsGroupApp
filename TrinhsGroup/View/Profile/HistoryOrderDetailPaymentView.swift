@@ -19,7 +19,7 @@ struct HistoryOrderDetailPaymentView: View {
                 
                 Spacer()
                 
-                Text(getPriceAndCurrencySymbol(price: getPrice(value: order.subtotal), currency: "$", currencyPosition: "right"))
+                Text(getPriceAndCurrencySymbol(price: order.subtotal, currency: "$", currencyPosition: "right"))
                 
             }
             .foregroundColor(.black)
@@ -34,7 +34,7 @@ struct HistoryOrderDetailPaymentView: View {
 //            }
 //            .foregroundColor(.black)
 
-            if Double(order.discount_total)! > 0 {
+            if order.discount_total > 0 {
                 HStack {
                     Text("Discount")
 
