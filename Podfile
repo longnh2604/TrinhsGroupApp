@@ -14,6 +14,7 @@ target 'TrinhsGroup' do
   pod 'Stripe'
   pod 'StripePaymentSheet'
   pod 'lottie-ios'
+  pod 'netfox'
   
   post_install do |installer|
     installer.pods_project.targets.each do |target|

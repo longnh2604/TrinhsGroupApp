@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2205489B29D1835B00D24FFB /* CustomNavigationBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */; };
+		2F6079492D95051D00874FB5 /* WooCommerceOAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */; };
 		F96BFBC5D9F43C727671C840 /* Pods_TrinhsGroup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7805CBC834CE8193C51E980E /* Pods_TrinhsGroup.framework */; };
 		FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */; };
 		FD460EFE28696F0C004523FC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFD28696F0C004523FC /* ContentView.swift */; };
@@ -113,6 +114,7 @@
 /* Begin PBXFileReference section */
 		2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationBarView.swift; sourceTree = "<group>"; };
 		225C8486298223D100677AA9 /* TrinhsGroup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrinhsGroup.entitlements; sourceTree = "<group>"; };
+		2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooCommerceOAuth.swift; sourceTree = "<group>"; };
 		56A9769C3DFD635DE9C155EF /* Pods-TrinhsGroup.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.debug.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.debug.xcconfig"; sourceTree = "<group>"; };
 		6CB25BDAD4975A68FEBA98F4 /* Pods-TrinhsGroup.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.release.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.release.xcconfig"; sourceTree = "<group>"; };
 		7805CBC834CE8193C51E980E /* Pods_TrinhsGroup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrinhsGroup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -442,6 +444,7 @@
 		FD8EAF082872CD58004F9ED0 /* Utility */ = {
 			isa = PBXGroup;
 			children = (
+				2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */,
 				FD8EAF092872CD67004F9ED0 /* Extensions.swift */,
 				FD8EAF172872DB69004F9ED0 /* Constant.swift */,
 				FD6733A7287425470007F354 /* UserDefaultsManager.swift */,
@@ -692,6 +695,7 @@
 				FD460EFE28696F0C004523FC /* ContentView.swift in Sources */,
 				FD6733B6287428020007F354 /* WooImageModel.swift in Sources */,
 				FD8EAEF52872C8C6004F9ED0 /* OnboardCardView.swift in Sources */,
+				2F6079492D95051D00874FB5 /* WooCommerceOAuth.swift in Sources */,
 				FD8EAF222872E24A004F9ED0 /* AuthServices.swift in Sources */,
 				FD6733B8287428470007F354 /* AttributeModel.swift in Sources */,
 				FD8EAF182872DB69004F9ED0 /* Constant.swift in Sources */,

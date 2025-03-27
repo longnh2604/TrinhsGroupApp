@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct LogInView: View {
-    
     @EnvironmentObject var authViewModel: AuthViewModel
     @State var isShowForgetPasswordView : Bool = false
     @State var isShowSignUp : Bool = false
@@ -90,6 +89,7 @@ struct LogInView: View {
                 .padding()
         }.sheet(isPresented: $isShowForgetPasswordView) {
             ForgetPasswordView()
+                .environmentObject(authViewModel)
         }
     }
     

@@ -18,12 +18,9 @@ var ONBOARD_DATA: [Onboard] = [
     Onboard(title: "Payment Method", headline: "Multiple Payment method like bank transfer, payid", image: "onboard-3", gradientColors: [Color("ColorRed"), Color("ColorRed")])
 ]
 
-///Woocommerce
-var WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
-var CONSUMER_KEY = "ck_06a325c37f15382c68001a78af0e37af2085719c"
-var CONSUMER_SECRET_KEY = "cs_32c917fb8b82f86fc8305ae501b1d9096b12e461"
-
-var SECURITY_CODE = ""
+let WOOCOMMERCE_URL = ""
+let CONSUMER_KEY = ""
+let CONSUMER_SECRET_KEY = ""
 
 ///Settings
 var APP_NAME = "Trinhsgroup App"

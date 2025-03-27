@@ -15,12 +15,14 @@ protocol BaseServiceProtocol {
 }
 
 protocol AuthServicesProtocol: BaseServiceProtocol {
+    var authenticatePublisher: AnyPublisher<UserAuth?, Never> { get }
     var userPublisher: AnyPublisher<User, Never> { get }
     var loginPublisher: AnyPublisher<Bool, Never> { get }
     var updatedUserPublisher: AnyPublisher<Bool, Never> { get }
 }
 
 class AuthServices: AuthServicesProtocol {
+    public private(set) lazy var authenticatePublisher: AnyPublisher<UserAuth?, Never> = $authUser.eraseToAnyPublisher()
     public private(set) lazy var userPublisher: AnyPublisher<User, Never> = $user.eraseToAnyPublisher()
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
     public private(set) lazy var createdUserPublisher: AnyPublisher<Bool, Never> = $isCreated.eraseToAnyPublisher()
@@ -35,6 +37,7 @@ class AuthServices: AuthServicesProtocol {
     @Published private var isCreated: Bool = false
     @Published private var error: String = ""
     @Published var user : User = User.default
+    @Published var authUser : UserAuth?
     
     func createUser(username: String, password: String, email: String) {
         self.isLoading.toggle()
@@ -42,8 +45,8 @@ class AuthServices: AuthServicesProtocol {
             if success {
                 if let data = data {
                     self.user.id = data["id"].intValue
-                    self.user.email = data["email"].stringValue
-                    self.user.username = data["username"].stringValue
+                    self.user.username = data["email"].stringValue
+                    self.user.email = data["username"].stringValue
                     self.isCreated = true
                 }
             } else {
@@ -55,20 +58,42 @@ class AuthServices: AuthServicesProtocol {
     
     func onAuthUser(email: String, password: String) {
         self.isLoading.toggle()
-        APIClient.shared.onAuthUser(email: email, password: password) { success, data, error in
-            if success {
-                if let data = data {
-                    self.user.id = data["id"].intValue
-                    self.user.email = data["user_email"].stringValue
-                    self.user.username = data["user_display_name"].stringValue
+        let api = WooCommerceOAuth()
+        
+        api.requestBasicAuth(endpoint: .authenticate, method: .POST, email: email, password: password) { (result: Result<UserAuth, Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let userAuth):
+                    print("Authentication successful! Token: \(userAuth.token)")
+                    print("User Email: \(userAuth.email)")
+                    print("Username: \(userAuth.username)")
+                    print("Display Name: \(userAuth.displayName)")
+                    self.authUser = userAuth
                     self.isLoggedIn = true
+                case .failure(let error):
+                    print("Authentication failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
                 }
-            } else {
-                self.error = error ?? ""
             }
-            self.isLoading.toggle()
         }
     }
+    
+    func onForgotPassword(email: String) {
+        self.isLoading.toggle()
+        let api = WooCommerceOAuth()
+        
+        api.sendPasswordReset(endpoint: .forgotPassword, email: email) { (result: Result<PasswordResetResponse, Error>) in
+            self.isLoading.toggle()
+            switch result {
+            case .success(let response):
+                print("Password reset email sent: \(response.message)")
+            case .failure(let error):
+                print("Password reset failed: \(error.localizedDescription)")
+            }
+        }
+    }
+    
 
     func updateUser(user: User, password: String) {
         self.isLoading.toggle()

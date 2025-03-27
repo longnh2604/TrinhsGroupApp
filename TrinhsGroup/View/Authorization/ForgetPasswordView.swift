@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ForgetPasswordView: View {
-    
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State var email : String = ""
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
@@ -55,7 +55,7 @@ struct ForgetPasswordView: View {
     
     fileprivate func SendButton() -> some View {
         return Button(action: {
-            
+            authViewModel.onForgotPassword(email: email)
         }) {
             Text("Send")
                 .fontWeight(.bold)

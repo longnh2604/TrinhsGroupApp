@@ -369,7 +369,6 @@ class MainViewModel: ObservableObject {
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
         
         URLSession.shared.dataTask(with: request) {data, response, error in
          

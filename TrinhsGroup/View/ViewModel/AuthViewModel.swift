@@ -110,4 +110,8 @@ class AuthViewModel: ObservableObject {
     public func onGetUser() {
         service.fetchingUserInfo(email: user.email)
     }
+    
+    public func onForgotPassword(email: String) {
+        service.onForgotPassword(email: email)
+    }
 }
