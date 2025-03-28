@@ -64,51 +64,6 @@ extension APIClient {
         task.resume()
     }
     
-//    func onAuthUser(email: String, password: String, completion: @escaping (Result<User, Error>) -> Void) {
-//        let api = WooCommerceOAuth()
-//        api.requestBasicAuth(endpoint: .authenticate, method: .POST, email: email, password: password, completion: { data in
-//            da
-//            switch result {
-//            case .success(let user):
-//                print("Fetched \(user) products")
-//            case .failure(let error):
-//                print("Error fetching products: \(error.localizedDescription)")
-//            }
-//        }
-        
-//        // Prepare URL"
-//        let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/jwt-auth/v1/token")
-//        guard let requestUrl = url else { fatalError() }
-//        // Prepare URL Request Object
-//        var request = URLRequest(url: requestUrl)
-//        request.httpMethod = "POST"
-//        
-//        // HTTP Request Parameters which will be sent in HTTP Request Body
-//        let postString = "username=\(email)&password=\(password)";
-//        // Set HTTP Request Body
-//        request.httpBody = postString.data(using: String.Encoding.utf8);
-//        // Perform HTTP Request
-//        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-//            
-//            // Check for Error
-//            if let error = error {
-//                print("Error took place \(error)")
-//                return
-//            }
-//            let json = JSON(data!)
-//            print(json)
-//            
-//            DispatchQueue.main.async {
-//                if json["message"].exists() {
-//                    completion(false, nil, json["message"].stringValue.html2AttributedString ?? "")
-//                } else {
-//                    completion(true, json, nil)
-//                }
-//            }
-//        }
-//        task.resume()
-//    }
-    
     func onUpdateUser(user: User, password: String, completion: @escaping requestDataCompletion) {
 //        let json: [String: Any] = [
 //            "email": user.email,

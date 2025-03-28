@@ -9,7 +9,6 @@ import SwiftUI
 
 struct LogInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State var isShowForgetPasswordView : Bool = false
     @State var isShowSignUp : Bool = false
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
@@ -82,12 +81,12 @@ struct LogInView: View {
     
     fileprivate func ForgetPasswordButton() -> some View {
         return Button(action: {
-            self.isShowForgetPasswordView.toggle()
+            authViewModel.isShowForgot = true
         }) {
             Text("Forget your password?")
                 .foregroundColor(.gray)
                 .padding()
-        }.sheet(isPresented: $isShowForgetPasswordView) {
+        }.sheet(isPresented: $authViewModel.isShowForgot) {
             ForgetPasswordView()
                 .environmentObject(authViewModel)
         }

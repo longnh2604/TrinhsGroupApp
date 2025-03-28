@@ -113,11 +113,29 @@ struct SignupView: View {
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(LinearGradient(gradient: Gradient(colors: [Color.init(hex: "cb2d3e"), Color.init(hex: "ef473a")]), startPoint: .leading, endPoint: .trailing))
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: isFormValid ? [Color(hex: "cb2d3e"), Color(hex: "ef473a")] : [Color.gray, Color.gray]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
+        .disabled(!isFormValid)
+    }
+    
+    var isEmailValid: Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: authViewModel.email)
+    }
+    
+    var isFormValid: Bool {
+        return !authViewModel.username.isEmpty &&
+               isEmailValid &&
+               !authViewModel.password.isEmpty
     }
     
     var body: some View {

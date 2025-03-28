@@ -28,21 +28,19 @@ enum WooCommerceEndpoint {
     func urlPath() -> String {
         switch self {
         case .authenticate:
-            return "/jwt-auth/v1/token"
+            return "/wp-json/jwt-auth/v1/token"
         case .forgotPassword:
-            return "/wp/v2/users/lost-password"
-        case .customers:
-            return "wc/v3/customers"
-        case .createCustomer:
-            return "wc/v3/customers"
+            return "/wp-login.php?action=lostpassword"
+        case .createCustomer, .customers:
+            return "/wp-json/wc/v3/customers"
         case .orders:
-            return "wc/v3/orders"
+            return "/wp-json/wc/v3/orders"
         case .products:
-            return "wc/v3/products"
+            return "/wp-json/wc/v3/products"
         case .specificOrder(let orderID):
-            return "wc/v3/orders/\(orderID)"
+            return "/wp-json/wc/v3/orders/\(orderID)"
         case .specificProduct(let productID):
-            return "wc/v3/products/\(productID)"
+            return "/wp-json/wc/v3/products/\(productID)"
         }
     }
 }
@@ -50,7 +48,7 @@ enum WooCommerceEndpoint {
 struct WooCommerceOAuth {
     private let consumerKey = "ck_d1cac0d2dbd173bb0e63c485cdf097a563ec6694"
     private let consumerSecret = "cs_213b91a11dae9aff0edbd0133e9b50155f82bd25"
-    private let storeURL = "https://trinhsgroup.com.au/wp-json"
+    private let storeURL = "https://trinhsgroup.com.au"
 
     /// Generate OAuth signature
     private func generateOAuthSignature(httpMethod: HTTPMethod, endpoint: WooCommerceEndpoint, params: [String: String]) -> String {
@@ -163,8 +161,8 @@ struct WooCommerceOAuth {
         var request = URLRequest(url: requestURL)
         request.httpMethod = method.rawValue
         
-        let postString = "username=\(email)&password=\(password)";
-        request.httpBody = postString.data(using: String.Encoding.utf8);
+        let postString = "username=\(email)&password=\(password)"
+        request.httpBody = postString.data(using: String.Encoding.utf8)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -193,19 +191,18 @@ struct WooCommerceOAuth {
         }.resume()
     }
     
-    func sendPasswordReset<T: Decodable>(
+    func sendPasswordReset(
         endpoint: WooCommerceEndpoint,
         email: String,
-        completion: @escaping (Result<T, Error>) -> Void
+        completion: @escaping (Result<Bool, Error>) -> Void
     ) {
         let requestURL = URL(string: "\(storeURL)\(endpoint.urlPath())")!
         
         var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         
-        let body = ["email": email]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let postString = "user_login=\(email)"
+        request.httpBody = postString.data(using: String.Encoding.utf8)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -218,19 +215,8 @@ struct WooCommerceOAuth {
                 return
             }
             
-            do {
-                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                print("Decoded JSON: \(jsonObject)")
-                
-                let decodedData = try JSONDecoder().decode(T.self, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(decodedData))
-                }
-            } catch {
-                print("JSON Decoding Error: \(error)")
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
+            DispatchQueue.main.async {
+                completion(.success(true))
             }
         }.resume()
     }

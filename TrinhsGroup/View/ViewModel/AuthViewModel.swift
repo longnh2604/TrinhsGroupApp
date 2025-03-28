@@ -22,6 +22,7 @@ class AuthViewModel: ObservableObject {
     @Published var showEditAddress = false
     @Published var isUpdatedUser = false
     @Published var isCreatedUser = false
+    @Published var isShowForgot = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
@@ -72,6 +73,14 @@ class AuthViewModel: ObservableObject {
                         self.isUpdatedUser = false
                     }
                 }
+            }
+            .store(in: &cancellableSet)
+        
+        service.forgotPublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { isReset in
+                self.isShowForgot = !isReset
             }
             .store(in: &cancellableSet)
     }

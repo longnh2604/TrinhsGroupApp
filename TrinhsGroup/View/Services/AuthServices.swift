@@ -18,6 +18,7 @@ protocol AuthServicesProtocol: BaseServiceProtocol {
     var authenticatePublisher: AnyPublisher<UserAuth?, Never> { get }
     var userPublisher: AnyPublisher<User, Never> { get }
     var loginPublisher: AnyPublisher<Bool, Never> { get }
+    var forgotPublisher: AnyPublisher<Bool, Never> { get }
     var updatedUserPublisher: AnyPublisher<Bool, Never> { get }
 }
 
@@ -28,6 +29,7 @@ class AuthServices: AuthServicesProtocol {
     public private(set) lazy var createdUserPublisher: AnyPublisher<Bool, Never> = $isCreated.eraseToAnyPublisher()
     public private(set) lazy var updatedUserPublisher: AnyPublisher<Bool, Never> = $isUpdated.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
+    public private(set) lazy var forgotPublisher: AnyPublisher<Bool, Never> = $isReset.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
 
     private var cancellableSet: Set<AnyCancellable> = []
@@ -35,24 +37,27 @@ class AuthServices: AuthServicesProtocol {
     @Published private var isLoggedIn: Bool = false
     @Published private var isUpdated: Bool = false
     @Published private var isCreated: Bool = false
+    @Published private var isReset: Bool = false
     @Published private var error: String = ""
     @Published var user : User = User.default
     @Published var authUser : UserAuth?
     
     func createUser(username: String, password: String, email: String) {
         self.isLoading.toggle()
-        APIClient.shared.onCreateUser(username: username, password: password, email: email) { success, data, error in
-            if success {
-                if let data = data {
-                    self.user.id = data["id"].intValue
-                    self.user.username = data["email"].stringValue
-                    self.user.email = data["username"].stringValue
+        let api = WooCommerceOAuth()
+        
+        api.request(endpoint: .createCustomer, method: .POST) { (result: Result<User, Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    print(data)
                     self.isCreated = true
+                case .failure(let error):
+                    print("Authentication failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
                 }
-            } else {
-                self.error = error ?? ""
             }
-            self.isLoading.toggle()
         }
     }
     
@@ -83,13 +88,15 @@ class AuthServices: AuthServicesProtocol {
         self.isLoading.toggle()
         let api = WooCommerceOAuth()
         
-        api.sendPasswordReset(endpoint: .forgotPassword, email: email) { (result: Result<PasswordResetResponse, Error>) in
+        api.sendPasswordReset(endpoint: .forgotPassword, email: email) { (result: Result<Bool, any Error>) in
             self.isLoading.toggle()
             switch result {
-            case .success(let response):
-                print("Password reset email sent: \(response.message)")
+            case .success(_):
+                print("Password reset email sent")
+                self.isReset = true
             case .failure(let error):
                 print("Password reset failed: \(error.localizedDescription)")
+                self.error = error.localizedDescription
             }
         }
     }
