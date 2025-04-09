@@ -10,6 +10,7 @@ import SwiftyJSON
 import CoreData
 import Firebase
 import Stripe
+import netfox
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     
@@ -18,6 +19,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     let gcmMessageIDKey = "gcm.message_id"
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Debug
+        #if DEBUG
+        NFX.sharedInstance().start()
+        #endif
         // STPTestingPublishableKey
         STPAPIClient.shared.publishableKey = "pk_live_51KY9yTFxroI2z58cos6LBBuBu2jCrYNbLvaRx0C4JF3yjxFnPAYIWu8PEpFH9td9r7kM4ul41fy84PY1zLS3vpbX00dqy98QcG"
         FirebaseApp.configure()
@@ -36,7 +41,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             application.registerUserNotificationSettings(settings)
         }
         application.registerForRemoteNotifications()
-          return true
+        return true
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data)          {

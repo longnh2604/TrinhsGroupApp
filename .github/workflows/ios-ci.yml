@@ -1,0 +1,43 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.0.app
+
+      - name: Install CocoaPods
+        if: ${{ hashFiles('Podfile.lock') != '' }}
+        run: |
+          sudo gem install cocoapods
+          pod install
+
+      - name: Build project
+        run: |
+          xcodebuild clean build \
+          -workspace TrinhsGroup.xcworkspace \
+          -scheme TrinhsGroup \
+          -sdk iphonesimulator \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -allowProvisioningUpdates \
+          CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+          -workspace TrinhsGroup.xcworkspace \
+          -scheme TrinhsGroup \
+          -sdk iphonesimulator \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          ONLY_ACTIVE_ARCH=YES
+

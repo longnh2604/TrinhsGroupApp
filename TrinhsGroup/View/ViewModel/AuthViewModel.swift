@@ -22,6 +22,7 @@ class AuthViewModel: ObservableObject {
     @Published var showEditAddress = false
     @Published var isUpdatedUser = false
     @Published var isCreatedUser = false
+    @Published var isShowForgot = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
@@ -74,6 +75,14 @@ class AuthViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellableSet)
+        
+        service.forgotPublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { isReset in
+                self.isShowForgot = !isReset
+            }
+            .store(in: &cancellableSet)
     }
     
     public func createUser() {
@@ -85,6 +94,9 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onAuthUser() {
+        email = "Test01@abc.com"
+        password = "Abc@123"
+
         if email.isEmpty || password.isEmpty {
             message = "Please fill all data"
             return
@@ -105,6 +117,10 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onGetUser() {
-        service.fetchingUserInfo(id: user.id)
+        service.fetchingUserInfo(email: user.email)
+    }
+    
+    public func onForgotPassword(email: String) {
+        service.onForgotPassword(email: email)
     }
 }

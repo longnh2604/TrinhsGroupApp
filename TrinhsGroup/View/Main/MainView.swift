@@ -98,7 +98,7 @@ struct MainView: View {
         .onAppear(){
             mainViewModel.onFetchCategories()
             authViewModel.onGetUser()
-            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+//            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
         }
     }
 }

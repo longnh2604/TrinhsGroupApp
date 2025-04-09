@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ForgetPasswordView: View {
-    
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State var email : String = ""
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
@@ -33,7 +33,7 @@ struct ForgetPasswordView: View {
             , alignment: .center)
     }
     
-    fileprivate func EmailTextFiels() -> some View {
+    fileprivate func EmailTextField() -> some View {
         return HStack {
             Image(systemName: "envelope.fill")
                 .resizable()
@@ -55,18 +55,31 @@ struct ForgetPasswordView: View {
     
     fileprivate func SendButton() -> some View {
         return Button(action: {
-            
+            authViewModel.onForgotPassword(email: email)
         }) {
             Text("Send")
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(LinearGradient(gradient: Gradient(colors: [Color.init(hex: "cb2d3e"), Color.init(hex: "ef473a")]), startPoint: .leading, endPoint: .trailing))
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: isEmailValid ? [Color(hex: "cb2d3e"), Color(hex: "ef473a")] : [Color.gray, Color.gray]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
+        .disabled(!isEmailValid) // 👈 disable when email is invalid
+    }
+    
+    var isEmailValid: Bool {
+        // simple regex, you can make it stricter if needed
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
     }
     
     var body: some View {
@@ -81,9 +94,22 @@ struct ForgetPasswordView: View {
                         .padding([.trailing, .leading], 20)
                         .padding(.top, 50)
                         .lineLimit(nil)
-                    EmailTextFiels()
+                    EmailTextField()
+                    
+                    if !isEmailValid && !email.isEmpty {
+                        Text("Please enter a valid email address")
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.leading, 30)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
                     SendButton()
                     Spacer()
+                }
+                
+                if authViewModel.showLoading {
+                    LoadingView().ignoresSafeArea()
                 }
             }
             .navigationBarTitle(Text(""), displayMode: .inline)

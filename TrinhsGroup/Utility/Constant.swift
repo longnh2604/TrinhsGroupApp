@@ -38,7 +38,7 @@ func getPrice(value: String)->String{
     return format.string(from: NSNumber(value: Float(value) ?? 0)) ?? ""
 }
 
-func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition: String)->String{
+func getPriceAndCurrencySymbol(price: Double, currency: String, currencyPosition: String)->String{
     if currencyPosition == "right" {
         return "\(price)\(currency)"
     } else if currencyPosition == "right_space" {
@@ -50,8 +50,8 @@ func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition
     }
 }
 
-func getDiscountPercentage(regularPrice: String, salePrice: String)->String{
-    let percentage: Int = (100 * (Int(regularPrice)! - Int(salePrice)!)) / Int(regularPrice)!
+func getDiscountPercentage(regularPrice: Double, salePrice: Double) -> String {
+    let percentage: Int = Int((100 * regularPrice - salePrice) / regularPrice)
     return "\(percentage)% OFF"
 }
 

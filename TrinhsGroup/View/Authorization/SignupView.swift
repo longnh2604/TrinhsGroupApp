@@ -11,10 +11,19 @@ struct SignupView: View {
     
     @EnvironmentObject var authViewModel: AuthViewModel
     @State var selection: Int? = nil
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
     fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Text("")
+        return HStack(alignment: .center) {
+            Button(action: {
+                self.presentationMode.wrappedValue.dismiss()
+            }) {
+                Image(systemName: "arrow.left")
+                    .foregroundColor(.black)
+            }
+            .padding(.leading, 10)
+            .frame(width: 40, height: 40)
+            Spacer()
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
@@ -104,43 +113,29 @@ struct SignupView: View {
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(LinearGradient(gradient: Gradient(colors: [Color.init(hex: "cb2d3e"), Color.init(hex: "ef473a")]), startPoint: .leading, endPoint: .trailing))
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: isFormValid ? [Color(hex: "cb2d3e"), Color(hex: "ef473a")] : [Color.gray, Color.gray]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
-    }
-
-    // Push view
-    fileprivate func GoToLoginButton() -> some View {
-        return NavigationLink(destination: LogInView()
-                                .environmentObject(authViewModel), tag: 2, selection: $selection) {
-            Button(action: {
-                self.selection = 2
-            }) {
-                Text("Already have an account?")
-                    .foregroundColor(.gray)
-                    .padding()
-            }
-        }
+        .disabled(!isFormValid)
     }
     
-    fileprivate func GoogleLogInButton() -> some View {
-        return Button(action: {
-            
-        }) {
-            Image("google")
-                .renderingMode(.original)
-        }
+    var isEmailValid: Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: authViewModel.email)
     }
     
-    fileprivate func FacebookLogInButton() -> some View {
-        return Button(action: {
-            
-        }) {
-            Image("facebook")
-                .renderingMode(.original)
-        }
+    var isFormValid: Bool {
+        return !authViewModel.username.isEmpty &&
+               isEmailValid &&
+               !authViewModel.password.isEmpty
     }
     
     var body: some View {
@@ -156,15 +151,7 @@ struct SignupView: View {
                     EmailTextField()
                     PasswordTextField()
                     SignUpButton()
-                    GoToLoginButton()
                     Spacer()
-                    Text("Signup with social account")
-                        .foregroundColor(.gray)
-                        .padding(.bottom, 10)
-                    HStack {
-                        GoogleLogInButton()
-                        FacebookLogInButton()
-                    }
                 }
                 if authViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
@@ -176,9 +163,9 @@ struct SignupView: View {
                     CustomAlertView(message: "Your account was created successfully. Please switch to login")
                 }
             }
-            .navigationBarHidden(true)
-            .navigationBarBackButtonHidden(true)
         }
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

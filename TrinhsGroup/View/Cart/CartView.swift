@@ -134,7 +134,7 @@ struct CartView: View {
                                             .font(.custom(Constants.AppFont.regularFont, size: 13))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                         Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: String(mainViewModel.regularPriceTotal), currency: "$", currencyPosition: "right"))
+                                        Text(getPriceAndCurrencySymbol(price: mainViewModel.regularPriceTotal, currency: "$", currencyPosition: "right"))
                                             .font(.custom(Constants.AppFont.boldFont, size: 13))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                     }
@@ -160,7 +160,7 @@ struct CartView: View {
                                         Spacer()
                                         Text("\(mainViewModel.discounts > 0 ? "-" : "")")
                                         +
-                                        Text("\(getPriceAndCurrencySymbol(price: String(mainViewModel.discounts), currency: "$", currencyPosition: "right"))")
+                                        Text("\(getPriceAndCurrencySymbol(price: mainViewModel.discounts, currency: "$", currencyPosition: "right"))")
                                             .font(.custom(Constants.AppFont.boldFont, size: 13))
                                             .foregroundColor(Color.init(hex: "036440"))
                                     }
@@ -174,7 +174,7 @@ struct CartView: View {
                                             .font(.custom(Constants.AppFont.boldFont, size: 16))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                         Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: String(mainViewModel.total), currency: "$", currencyPosition: "right"))
+                                        Text(getPriceAndCurrencySymbol(price: mainViewModel.total, currency: "$", currencyPosition: "right"))
                                             .font(.custom(Constants.AppFont.boldFont, size: 16))
                                             .foregroundColor(Constants.AppColor.secondaryBlack)
                                     }
@@ -286,7 +286,7 @@ struct ItemCellTypeThree: View {
                             HStack {
                                 Text(meta.key)
                                 if let value = Int(meta.value.stringValue), value > 0 {
-                                    Text("(+\(getPriceAndCurrencySymbol(price: String(value), currency: "$", currencyPosition: "right")))")
+                                    Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "right")))")
                                 }
                             }
                             .font(.custom(Constants.AppFont.regularFont, size: 11))

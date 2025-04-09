@@ -44,7 +44,7 @@ struct DiscountProductsView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             
                             LazyVGrid(columns: gridLayout, spacing:15,  content: {
-                                ForEach(mainViewModel.products.filter({ $0.sale_price != "" })){ product in
+                                ForEach(mainViewModel.products.filter({ $0.sale_price > 0 })){ product in
                                     ItemCellView(product: product)
                                         .onTapGesture {
                                             withAnimation(.easeOut){

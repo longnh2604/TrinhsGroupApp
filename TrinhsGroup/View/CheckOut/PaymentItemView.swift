@@ -15,7 +15,7 @@ struct PaymentItemView: View {
         HStack {
             ZStack {
                 
-                if mainViewModel.selectedPayment.id == item.id{
+                if mainViewModel.selectedPayment?.id == item.id {
                     
                     Color("ColorPrimary")
                         .clipShape(Circle())
@@ -32,7 +32,7 @@ struct PaymentItemView: View {
                 
                 // checkmark for selected one...
                 
-                if mainViewModel.selectedPayment.id == item.id{
+                if mainViewModel.selectedPayment?.id == item.id {
                     
                     Color("ColorPrimary")
                         .clipShape(Circle())
@@ -56,9 +56,3 @@ struct PaymentItemView: View {
     }
 }
 
-struct PaymentItemView_Previews: PreviewProvider {
-    static var previews: some View {
-        PaymentItemView(item: Payment.default)
-            .previewLayout(.sizeThatFits)
-    }
-}

@@ -17,9 +17,9 @@ struct Product: Identifiable, Codable {
     var name: String
     var short_description: String
     var description: String
-    var price: String
-    var regular_price: String
-    var sale_price: String
+    var price: Double
+    var regular_price: Double
+    var sale_price: Double
     var images = [WooImage]()
     var quantity: Int = 0
     var attributes = [Attribute]()
@@ -29,14 +29,27 @@ struct Product: Identifiable, Codable {
     var color: String = ""
     var size: String = ""
     
-    var totalPrice: Double { return Double(price)! * Double(quantity) }
-    
-    static var `default` : Product {
-        Product(id: 0, name: "Test", short_description: "Test Short Description", description: "Test Description", price: "10",regular_price:"10", sale_price: "10", images: [WooImage(id: 0, src: "https://asilarslan.com/grocery/wp-content/uploads/2021/04/cocacola_PNG10-500x500-1.png")])
-    }
+    var totalPrice: Double { return price * Double(quantity) }
     
     func getProductAddonOnly() -> [ProductMetaData] {
         return meta_data.filter({ !$0.key.contains("_") || !$0.key.contains("epafw") })
+    }
+    
+    // Custom Decoder to handle nil `sale_price`
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(Int.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        short_description = try container.decode(String.self, forKey: .short_description)
+        description = try container.decode(String.self, forKey: .description)
+        price = try container.decode(Double.self, forKey: .price)
+        regular_price = try container.decode(Double.self, forKey: .regular_price)
+        sale_price = try container.decodeIfPresent(Double.self, forKey: .sale_price) ?? 0 // Default to 0 if nil
+        images = try container.decodeIfPresent([WooImage].self, forKey: .images) ?? []
+        attributes = try container.decodeIfPresent([Attribute].self, forKey: .attributes) ?? []
+        categories = try container.decodeIfPresent([Category].self, forKey: .categories) ?? []
+        meta_data = try container.decodeIfPresent([ProductMetaData].self, forKey: .meta_data) ?? []
     }
 }
 

@@ -7,6 +7,20 @@
 
 import Foundation
 
+struct UserAuth: Codable {
+    let token: String
+    let email: String
+    let username: String
+    let displayName: String
+
+    enum CodingKeys: String, CodingKey {
+        case token
+        case email = "user_email"
+        case username = "user_nicename"
+        case displayName = "user_display_name"
+    }
+}
+
 struct User: Identifiable, Codable {
     var id: Int
     var email: String

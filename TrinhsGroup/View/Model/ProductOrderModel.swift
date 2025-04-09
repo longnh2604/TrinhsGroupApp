@@ -13,11 +13,11 @@ struct ProductOrder: Identifiable, Codable {
     var name: String
     var quantity: Int
     var subtotal: String
-    var total: String
+    var total: Double
     var price: Double
     var meta_data = [ProductMetaData]()
     
     static var `default` : ProductOrder {
-        ProductOrder(id: 0, product_id: 0, name: "", quantity: 0, subtotal: "0", total: "0", price: 0, meta_data: [])
+        ProductOrder(id: 0, product_id: 0, name: "", quantity: 0, subtotal: "0", total: 0, price: 0, meta_data: [])
     }
 }
