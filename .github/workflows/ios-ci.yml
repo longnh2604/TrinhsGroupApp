@@ -16,11 +16,11 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select -s /Applications/Xcode_15.0.app
 
-      - name: Install CocoaPods (if needed)
+      - name: Install CocoaPods
+        if: ${{ hashFiles('Podfile.lock') != '' }}
         run: |
           sudo gem install cocoapods
           pod install
-        if: exists('Podfile')
 
       - name: Build project
         run: |
