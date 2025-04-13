@@ -236,7 +236,7 @@ struct EditAddressView: View {
     
     fileprivate func ShippingApartmentTextField() -> some View {
         return HStack {
-            TextField("Apartment, unit, etc. (optional)", text:  $authViewModel.user.shipping.address_2)
+            TextField("Apartment, unit, etc. (optional)", text:  $authViewModel.user.shipping.address_1)
                 .padding(.leading, 20)
                 .font(.system(size: 20))
                 .frame(height: 55)

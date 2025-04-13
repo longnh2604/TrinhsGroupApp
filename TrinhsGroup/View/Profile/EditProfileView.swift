@@ -43,7 +43,7 @@ struct EditProfileView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Name", text: $authViewModel.user.username)
+            TextField("Name", text: $authViewModel.username)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -65,7 +65,7 @@ struct EditProfileView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $authViewModel.user.email)
+            TextField("Email", text: $authViewModel.email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -99,7 +99,7 @@ struct EditProfileView: View {
     
     fileprivate func UpdateButton() -> some View {
         return Button(action: {
-            authViewModel.onUpdateUser(user: authViewModel.user)
+//            authViewModel.onUpdateUser(user: authViewModel.user)
         }) {
             Text("Update")
                 .fontWeight(.bold)

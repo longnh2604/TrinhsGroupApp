@@ -168,7 +168,7 @@ struct ProfileView: View {
             Alert(title: Text("Logout"),
                   message: Text("Are you sure want to logout"),
                   primaryButton: .default(Text("Yes")) {
-                    authViewModel.user = User.default
+                    authViewModel.user = .empty
                     authViewModel.isLogin = false
                   },
                   secondaryButton: .cancel()

@@ -34,16 +34,23 @@ class MainServices: MainServicesProtocol {
     
     func onFetchCategories() {
         self.isLoading.toggle()
-        APIClient.shared.onFetchCategories(completion: { success, data, error in
-            if success {
-                if let data = data as? [Category] {
-                    self.categories = data
+        let api = WooCommerceAPI()
+        
+        api.request(endpoint: .fetchCategories, method: .GET) { (result: Result<[Category], Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    print(data)
+                    if let data = data as? [Category] {
+                        self.categories = data
+                    }
+                case .failure(let error):
+                    print("Authentication failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
                 }
-            } else {
-                self.error = error ?? ""
             }
-            self.isLoading.toggle()
-        })
+        }
     }
     
     func fetchSelectedCategoryProducts(id: Int) {

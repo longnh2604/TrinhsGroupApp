@@ -96,7 +96,7 @@ struct MainView: View {
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
         .onAppear(){
-            mainViewModel.onFetchCategories()
+//            mainViewModel.onFetchCategories()
             authViewModel.onGetUser()
 //            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
         }

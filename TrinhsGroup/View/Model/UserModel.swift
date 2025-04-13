@@ -29,8 +29,18 @@ struct User: Identifiable, Codable {
     var last_name: String
     var billing: Billing
     var shipping: Shipping
+    var avatar_url: String?
+    var is_paying_customer: Bool
     
-    static var `default` : User {
-        User(id: 0, email: "", username: "", first_name: "", last_name: "", billing: Billing.default, shipping: Shipping.default)
-    }
+    static var empty = User(
+        id: 0,
+        email: "",
+        username: "",
+        first_name: "",
+        last_name: "",
+        billing: Billing.empty,
+        shipping: Shipping.empty,
+        avatar_url: nil,
+        is_paying_customer: false
+    )
 }

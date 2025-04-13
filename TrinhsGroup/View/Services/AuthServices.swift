@@ -39,14 +39,22 @@ class AuthServices: AuthServicesProtocol {
     @Published private var isCreated: Bool = false
     @Published private var isReset: Bool = false
     @Published private var error: String = ""
-    @Published var user : User = User.default
+    @Published var user : User = .empty
     @Published var authUser : UserAuth?
     
-    func createUser(username: String, password: String, email: String) {
+    private let api = WooCommerceAPI() // Single instance
+    
+    func createUser(username: String, firstName: String, lastName: String, password: String, email: String) {
         self.isLoading.toggle()
-        let api = WooCommerceOAuth()
+        let params = [
+            "email": "\(email)",
+            "first_name": "\(firstName)",
+            "last_name": "\(lastName)",
+            "username": "\(username)",
+            "password": "\(password)",
+        ] as [String : String]
         
-        api.request(endpoint: .createCustomer, method: .POST) { (result: Result<User, Error>) in
+        api.request(endpoint: .createCustomer, method: .POST, params: params) { (result: Result<User, Error>) in
             DispatchQueue.main.async {
                 self.isLoading.toggle()
                 switch result {
@@ -54,8 +62,13 @@ class AuthServices: AuthServicesProtocol {
                     print(data)
                     self.isCreated = true
                 case .failure(let error):
-                    print("Authentication failed: \(error.localizedDescription)")
-                    self.error = error.localizedDescription
+                    if let wooError = error as? WooErrorResponse {
+                        print("WooCommerce error: \(wooError.message)")
+                        self.error = wooError.message
+                    } else {
+                        print("Unexpected error: \(error.localizedDescription)")
+                        self.error = error.localizedDescription
+                    }
                 }
             }
         }
@@ -63,8 +76,6 @@ class AuthServices: AuthServicesProtocol {
     
     func onAuthUser(email: String, password: String) {
         self.isLoading.toggle()
-        let api = WooCommerceOAuth()
-        
         api.requestBasicAuth(endpoint: .authenticate, method: .POST, email: email, password: password) { (result: Result<UserAuth, Error>) in
             DispatchQueue.main.async {
                 self.isLoading.toggle()
@@ -86,8 +97,6 @@ class AuthServices: AuthServicesProtocol {
     
     func onForgotPassword(email: String) {
         self.isLoading.toggle()
-        let api = WooCommerceOAuth()
-        
         api.sendPasswordReset(endpoint: .forgotPassword, email: email) { (result: Result<Bool, any Error>) in
             self.isLoading.toggle()
             switch result {
@@ -118,15 +127,20 @@ class AuthServices: AuthServicesProtocol {
     
     func fetchingUserInfo(email: String) {
         self.isLoading.toggle()
-        APIClient.shared.onFetchUserInfo(email: email) { success, data, error in
-            if success {
-                if let data = data?.first {
-                    self.user = data
+        let params = ["email" : email]
+        api.request(endpoint: .getUserInfo, method: .GET, params: params) { (result: Result<[User], Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    guard let user = data.first else { return }
+                    print(user)
+                    self.user = user
+                case .failure(let error):
+                    print("Authentication failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
                 }
-            } else {
-                self.error = error ?? ""
             }
-            self.isLoading.toggle()
         }
     }
 }

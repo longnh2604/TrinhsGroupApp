@@ -36,6 +36,6 @@ struct Order: Identifiable, Codable {
     }
     
     static var `default` : Order {
-        Order(id: 0, number: "", status: "on-hold", date_created: "", date_modified: "", discount_total: 0, total: 0, customer_note: "", billing: Billing.default, shipping: Shipping.default, payment_method_title: "",line_items: [ProductOrder.default], shipping_lines: [ShippingOrder.default])
+        Order(id: 0, number: "", status: "on-hold", date_created: "", date_modified: "", discount_total: 0, total: 0, customer_note: "", billing: Billing.empty, shipping: Shipping.empty, payment_method_title: "",line_items: [ProductOrder.default], shipping_lines: [ShippingOrder.default])
     }
 }

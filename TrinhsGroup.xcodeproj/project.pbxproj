@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2205489B29D1835B00D24FFB /* CustomNavigationBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */; };
+		22EC20B82DA51C2E0032C77B /* WooErrorResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20B72DA51C200032C77B /* WooErrorResponse.swift */; };
 		2F6079492D95051D00874FB5 /* WooCommerceOAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */; };
 		F96BFBC5D9F43C727671C840 /* Pods_TrinhsGroup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7805CBC834CE8193C51E980E /* Pods_TrinhsGroup.framework */; };
 		FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */; };
@@ -114,6 +115,7 @@
 /* Begin PBXFileReference section */
 		2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationBarView.swift; sourceTree = "<group>"; };
 		225C8486298223D100677AA9 /* TrinhsGroup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrinhsGroup.entitlements; sourceTree = "<group>"; };
+		22EC20B72DA51C200032C77B /* WooErrorResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooErrorResponse.swift; sourceTree = "<group>"; };
 		2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooCommerceOAuth.swift; sourceTree = "<group>"; };
 		56A9769C3DFD635DE9C155EF /* Pods-TrinhsGroup.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.debug.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.debug.xcconfig"; sourceTree = "<group>"; };
 		6CB25BDAD4975A68FEBA98F4 /* Pods-TrinhsGroup.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.release.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.release.xcconfig"; sourceTree = "<group>"; };
@@ -408,6 +410,7 @@
 		FD8EAEFA2872C92E004F9ED0 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				22EC20B72DA51C200032C77B /* WooErrorResponse.swift */,
 				FD8EAEFB2872C93C004F9ED0 /* Onboard.swift */,
 				FD8EAF022872CB50004F9ED0 /* UserModel.swift */,
 				FDB69C982877F17C00878117 /* EventModel.swift */,
@@ -632,9 +635,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -676,6 +683,7 @@
 				FD8EAF0D2872CE89004F9ED0 /* SignupView.swift in Sources */,
 				FD9A222628757029009FDD65 /* CheckOutView.swift in Sources */,
 				FD8EAF052872CBC9004F9ED0 /* BillingModel.swift in Sources */,
+				22EC20B82DA51C2E0032C77B /* WooErrorResponse.swift in Sources */,
 				FD94E3EB287C187700ED4B2C /* OrderReceivedDetailView.swift in Sources */,
 				FDA4747D287D21EB00319E02 /* MainServices.swift in Sources */,
 				FD8EAF272872E6E9004F9ED0 /* APIClient.swift in Sources */,

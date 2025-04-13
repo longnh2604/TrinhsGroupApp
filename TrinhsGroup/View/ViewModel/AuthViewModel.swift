@@ -12,7 +12,8 @@ import Combine
 class AuthViewModel: ObservableObject {
     
     @AppStorage("isLogin") var isLogin : Bool = false
-    @Published var user : User = User.default
+    @Published var user : User = .empty
+    @Published var authUser: UserAuth?
     @Published var username = ""
     @Published var email = ""
     @Published var password = ""
@@ -83,6 +84,13 @@ class AuthViewModel: ObservableObject {
                 self.isShowForgot = !isReset
             }
             .store(in: &cancellableSet)
+        
+        service.authenticatePublisher
+            .receive(on: RunLoop.main)
+            .sink { authUser in
+                self.authUser = authUser
+            }
+            .store(in: &cancellableSet)
     }
     
     public func createUser() {
@@ -90,12 +98,12 @@ class AuthViewModel: ObservableObject {
             message = "Please fill all data"
             return
         }
-        service.createUser(username: username, password: password, email: email)
+        service.createUser(username: username, firstName: "", lastName: "", password: password, email: email)
     }
     
     public func onAuthUser() {
-        email = "Test01@abc.com"
-        password = "Abc@123"
+        email = "Test02@abc.com"
+        password = "abc123"
 
         if email.isEmpty || password.isEmpty {
             message = "Please fill all data"
@@ -109,14 +117,15 @@ class AuthViewModel: ObservableObject {
     }
     
     public func checkUserUpdatedBillInfo() -> Bool {
-        if !user.billing.checkFilledData() {
-            message = "Please fill your billing info before start to create order, thank you."
-            return false
-        }
+//        if !user.billing.checkFilledData() {
+//            message = "Please fill your billing info before start to create order, thank you."
+//            return false
+//        }
         return true
     }
     
     public func onGetUser() {
+        guard let user = authUser else { return }
         service.fetchingUserInfo(email: user.email)
     }
     
