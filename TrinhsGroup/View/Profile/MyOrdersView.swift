@@ -14,30 +14,6 @@ struct MyOrdersView: View {
     @EnvironmentObject var historyViewModel: HistoryViewModel
     @State var selectedOrder: Order = Order.default
     
-    fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Button(action: {
-                withAnimation(.spring()){
-                    mainViewModel.presentedType = .none
-                }
-            }) {
-                Image(systemName: "arrow.left")
-                    .foregroundColor(Constants.AppColor.secondaryBlack)
-            }
-            .padding(.leading, 10)
-            .frame(width: 40, height: 40)
-            Spacer()
-        }
-        .frame(width: UIScreen.main.bounds.width, height: 35)
-        .overlay(
-            Text("My Orders")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                .foregroundColor(Constants.AppColor.primaryBlack)
-                .padding(.horizontal, 10)
-                .background(Color.clear)
-            , alignment: .center)
-    }
-    
     var body: some View {
         NavigationView {
             ZStack {
@@ -45,7 +21,8 @@ struct MyOrdersView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-                    NavigationBarView()
+                    HomeNavigationBarView(title: "Menu", showNotificationIcon: false)
+                        .environmentObject(mainViewModel)
                     
                     List {
                         ForEach(historyViewModel.orders) { order in

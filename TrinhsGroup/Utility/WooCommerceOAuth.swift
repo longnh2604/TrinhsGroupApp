@@ -15,6 +15,8 @@ enum HTTPMethod: String {
     case DELETE = "DELETE"
 }
 
+let commonURL = "/wp-json/wc/v3"
+
 enum WooCommerceEndpoint {
     case authenticate
     case forgotPassword
@@ -26,6 +28,8 @@ enum WooCommerceEndpoint {
     case specificProduct(productID: Int)
     case fetchCategories
     case getUserInfo
+    case fetchPopularProducts
+    case fetchProductsCategory(categoryID: Int)
 
     func urlPath() -> String {
         switch self {
@@ -44,9 +48,13 @@ enum WooCommerceEndpoint {
         case .specificProduct(let productID):
             return "/wp-json/wc/v3/products/\(productID)"
         case .fetchCategories:
-            return "/wp-json/wc/v3/products/categories?page1&per_page=100&parent=0&order=asc"
+            return "\(commonURL)/products/categories"
         case .getUserInfo:
-            return "/wp-json/wc/v3/customers"
+            return "\(commonURL)/customers"
+        case .fetchPopularProducts:
+            return "\(commonURL)/products?orderby=popularity&order=desc&per_page=10"
+        case .fetchProductsCategory(let id):
+            return "\(commonURL)/products?category=\(id)"
         }
     }
 }

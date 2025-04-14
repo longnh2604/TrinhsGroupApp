@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Category: Identifiable, Codable {
+struct Category: Identifiable, Codable, Equatable {
     var id: Int
     var image: WooImage?
     var name: String

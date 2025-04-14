@@ -8,27 +8,43 @@
 import SwiftUI
 
 struct HomeNavigationBarView: View {
-    
     @EnvironmentObject var mainViewModel: MainViewModel
-    @Binding var showNotifications: Bool
+    
+    // Optional custom title (default = "Home")
+    var title: String = "Home"
+    
+    // Show/hide notification icon
+    var showNotificationIcon: Bool = true
+    
+    // Optional binding for notification toggle
+    var showNotifications: Binding<Bool>? = nil
     
     var body: some View {
         HStack {
-            Button(action: {
-                withAnimation(.spring()){
-                    showNotifications.toggle()
+            if showNotificationIcon, let showNotifications = showNotifications {
+                Button(action: {
+                    withAnimation(.spring()) {
+                        showNotifications.wrappedValue.toggle()
+                    }
+                }) {
+                    Image(systemName: "bell")
+                        .foregroundColor(Constants.AppColor.secondaryBlack)
+                        .frame(height: 30)
+                        .padding(.leading, 15)
                 }
-            }, label: {
-                Image(systemName: "bell")
-                    .foregroundColor(Constants.AppColor.secondaryBlack)
-                    .frame(height: 30)
+            } else {
+                // Empty space if notification icon is hidden (optional)
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(width: 30, height: 30)
                     .padding(.leading, 15)
-            })
-            
+            }
+
             Spacer()
+            
             Button(action: {
                 mainViewModel.presentedType = .cart
-            }, label: {
+            }) {
                 if mainViewModel.numberOfItems != 0 {
                     Image(systemName: "bag")
                         .foregroundColor(Constants.AppColor.secondaryBlack)
@@ -44,30 +60,23 @@ struct HomeNavigationBarView: View {
                                 .clipShape(Circle())
                                 .offset(x: 5, y: 5)
                         )
-                }else{
+                } else {
                     Image(systemName: "bag")
                         .foregroundColor(Constants.AppColor.secondaryBlack)
                         .frame(height: 30)
                         .padding(.trailing, 15)
                 }
-                
-            })
-            
+            }
         }
         .frame(width: getRect().width, height: 35)
+        .background(Constants.AppColor.lightGrayColor)
         .overlay(
-            Text("Home")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
+            Text(title)
+                .font(.custom(Constants.AppFont.semiBoldFont, size: 20))
                 .foregroundColor(Constants.AppColor.primaryBlack)
-                .padding(.horizontal, 10)
-            , alignment: .center)
+                .padding(.horizontal, 10),
+            alignment: .center
+        )
     }
 }
 
-struct HomeNavigationBarView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeNavigationBarView(showNotifications: .constant(false))
-            .previewLayout(.sizeThatFits)
-            .environmentObject(MainViewModel())
-    }
-}

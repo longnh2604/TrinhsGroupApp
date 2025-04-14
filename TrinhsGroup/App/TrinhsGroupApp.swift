@@ -6,28 +6,20 @@
 //
 
 import SwiftUI
-import CoreData
 
 @main
 struct TrinhsGroupApp: App {
-    
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
-    @AppStorage("isOnboarding") var isOnboarding: Bool = true
     @StateObject var authViewModel = AuthViewModel()
     @StateObject var mainViewModel = MainViewModel()
     @StateObject var historyViewModel = HistoryViewModel()
     @StateObject var firestoreManager = FirestoreManager()
+    @State private var isActive = false
     
     var body: some Scene {
         WindowGroup {
-            if isOnboarding && ONBOARD_ENABLED {
-                OnboardingView()
-                    .preferredColorScheme(.light)
-            } else {
-                ZStack {
-                    if authViewModel.showLoading {
-                        LoadingView()
-                    }
+            ZStack {
+                if isActive {
                     if !authViewModel.isLogin {
                         LogInView()
                             .environmentObject(authViewModel)
@@ -39,9 +31,18 @@ struct TrinhsGroupApp: App {
                             .environmentObject(historyViewModel)
                             .environmentObject(firestoreManager)
                     }
+                } else {
+                    SplashView()
+                }
+            }
+            .onAppear {
+                // Auto transition after 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation {
+                        isActive = true
+                    }
                 }
             }
         }
-                
     }
 }

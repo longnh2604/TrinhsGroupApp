@@ -9,7 +9,6 @@ import SwiftUI
 import Kingfisher
 
 struct CategoryView: View {
-    
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var firestoreManager: FirestoreManager
     @State var showNotifications = false
@@ -35,7 +34,7 @@ struct CategoryView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-                    CustomNavigationBarView()
+                    CustomNavigationBarView(title: "Category")
                         .environmentObject(mainViewModel)
                     
                     ScrollView(.horizontal, showsIndicators: false, content: {

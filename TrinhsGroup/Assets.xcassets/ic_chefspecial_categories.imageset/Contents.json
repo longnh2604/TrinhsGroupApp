@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "ic_chefspecial_categories.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

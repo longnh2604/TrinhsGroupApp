@@ -8,54 +8,32 @@
 import SwiftUI
 
 struct CustomNavigationBarView: View {
-    
     @EnvironmentObject var mainViewModel: MainViewModel
+    @Environment(\.dismiss) private var dismiss
+    
+    var title: String
     
     var body: some View {
         HStack {
-            Spacer()
             Button(action: {
-                mainViewModel.presentedType = .cart
-            }, label: {
-                if mainViewModel.numberOfItems != 0 {
-                    Image(systemName: "bag")
-                        .foregroundColor(Constants.AppColor.secondaryBlack)
-                        .frame(height: 30)
-                        .padding(.trailing, 15)
-                        .overlay(
-                            Text("\(mainViewModel.numberOfItems)")
-                                .font(.footnote)
-                                .fontWeight(.bold)
-                                .padding(5)
-                                .background(Color("ColorPrimary"))
-                                .foregroundColor(.white)
-                                .clipShape(Circle())
-                                .offset(x: 5, y: 5)
-                        )
-                }else{
-                    Image(systemName: "bag")
-                        .foregroundColor(Constants.AppColor.secondaryBlack)
-                        .frame(height: 30)
-                        .padding(.trailing, 15)
-                }
-                
-            })
+                dismiss()
+            }) {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(Constants.AppColor.secondaryBlack)
+                    .padding(.leading, 15)
+            }
             
+            Spacer()
         }
         .frame(width: getRect().width, height: 35)
+        .background(Constants.AppColor.lightGrayColor)
         .overlay(
-            Text("Home")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
+            Text(title)
+                .font(.custom(Constants.AppFont.semiBoldFont, size: 20))
                 .foregroundColor(Constants.AppColor.primaryBlack)
-                .padding(.horizontal, 10)
-            , alignment: .center)
+                .padding(.horizontal, 10),
+            alignment: .center
+        )
     }
 }
 
-struct CustomNavigationBarView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeNavigationBarView(showNotifications: .constant(false))
-            .previewLayout(.sizeThatFits)
-            .environmentObject(MainViewModel())
-    }
-}

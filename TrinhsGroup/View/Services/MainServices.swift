@@ -13,10 +13,12 @@ protocol MainServicesProtocol: BaseServiceProtocol {
     var selectedCategoryProductPublisher: AnyPublisher<[Product], Never> { get }
     var orderReceivedPublisher: AnyPublisher<Order, Never> { get }
     var loginPublisher: AnyPublisher<Bool, Never> { get }
+    var popularProductsPublisher: AnyPublisher<[Product], Never> { get }
 }
 
 class MainServices: MainServicesProtocol {
     public private(set) lazy var categoryPublisher: AnyPublisher<[Category], Never> = $categories.eraseToAnyPublisher()
+    public private(set) lazy var popularProductsPublisher: AnyPublisher<[Product], Never> = $popularProducts.eraseToAnyPublisher()
     public private(set) lazy var selectedCategoryProductPublisher: AnyPublisher<[Product], Never> = $selectedCategoryProducts.eraseToAnyPublisher()
     public private(set) lazy var orderReceivedPublisher: AnyPublisher<Order, Never> = $orderReceived.eraseToAnyPublisher()
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
@@ -30,23 +32,39 @@ class MainServices: MainServicesProtocol {
     @Published private var error: String = ""
     @Published var categories = [Category]()
     @Published var selectedCategoryProducts = [Product]()
+    @Published var popularProducts = [Product]()
     @Published var orderReceived = Order.default
+    
+    private let api = WooCommerceAPI()
     
     func onFetchCategories() {
         self.isLoading.toggle()
-        let api = WooCommerceAPI()
-        
         api.request(endpoint: .fetchCategories, method: .GET) { (result: Result<[Category], Error>) in
             DispatchQueue.main.async {
                 self.isLoading.toggle()
                 switch result {
                 case .success(let data):
                     print(data)
-                    if let data = data as? [Category] {
-                        self.categories = data
-                    }
+                    self.categories = data
                 case .failure(let error):
-                    print("Authentication failed: \(error.localizedDescription)")
+                    print("Error failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    func onFetchPopularProducts() {
+        self.isLoading.toggle()
+        api.request(endpoint: .fetchPopularProducts, method: .GET) { (result: Result<[Product], Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    print(data)
+                    self.popularProducts = data
+                case .failure(let error):
+                    print("Error failed: \(error.localizedDescription)")
                     self.error = error.localizedDescription
                 }
             }
@@ -55,15 +73,18 @@ class MainServices: MainServicesProtocol {
     
     func fetchSelectedCategoryProducts(id: Int) {
         self.isLoading.toggle()
-        APIClient.shared.onFetchSelectedCategoryProducts(id: id) { success, data, error in
-            if success {
-                if let data = data as? [Product] {
+        api.request(endpoint: .fetchProductsCategory(categoryID: id), method: .GET) { (result: Result<[Product], Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    print(data)
                     self.selectedCategoryProducts = data
+                case .failure(let error):
+                    print("Error failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
                 }
-            } else {
-                self.error = error ?? ""
             }
-            self.isLoading.toggle()
         }
     }
     

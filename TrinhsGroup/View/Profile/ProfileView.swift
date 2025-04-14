@@ -14,19 +14,6 @@ struct ProfileView: View {
     @State var selection: Int? = nil
     @State private var showDialog : Bool = false
     
-    fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Text("")
-        }
-        .frame(width: UIScreen.main.bounds.width, height: 45)
-        .overlay(
-            Text("Profile")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                .padding(.horizontal, 10)
-                .background(Color.init(hex: "f9f9f9"))
-            , alignment: .center)
-    }
-    
     fileprivate func LogoutButton() -> some View {
         return Button(action: {
             showDialog.toggle()
@@ -36,7 +23,7 @@ struct ProfileView: View {
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(Color("ColorPrimary"))
+                .background(Constants.AppColor.primaryRed)
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
@@ -44,14 +31,13 @@ struct ProfileView: View {
     }
     
     var body: some View {
-        
         NavigationView {
             ZStack {
                 Color.init(hex: "f9f9f9")
                     .edgesIgnoringSafeArea(.all)
                 VStack(alignment: .leading) {
-                    
-                    NavigationBarView()
+                    HomeNavigationBarView(title: "Profile", showNotificationIcon: false)
+                        .environmentObject(mainViewModel)
                     
                     HStack {
                         VStack(alignment: .leading) {
@@ -70,12 +56,12 @@ struct ProfileView: View {
                                 authViewModel.showEditProfile.toggle()
                             }
                         }) {
-                            Text("Edit")
+                            Text("View")
                                 .font(.footnote)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .padding(10)
-                                .background(Color("ColorPrimary"))
+                                .background(Constants.AppColor.primaryRed)
                                 .cornerRadius(20)
                         }
                     }
@@ -88,7 +74,7 @@ struct ProfileView: View {
                     VStack {
                         Button(action: {
                             withAnimation(.spring()){
-                                mainViewModel.presentedType = .orderHistory
+                                mainViewModel.showOrderReceived.toggle()
                             }
                         }, label: {
                             HStack {
@@ -112,7 +98,7 @@ struct ProfileView: View {
                         
                         Button(action: {
                             withAnimation(.spring()){
-                                mainViewModel.presentedType = .editUserInfo
+                                authViewModel.showEditAddress.toggle()
                             }
                         }, label: {
                             HStack {
@@ -121,9 +107,6 @@ struct ProfileView: View {
                                         .foregroundColor(.primary)
                                         .font(.subheadline)
                                         .bold()
-                                    Text("1 address")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
                                 }
                                 
                                 Spacer()
@@ -146,23 +129,38 @@ struct ProfileView: View {
                 .navigationBarHidden(true)
                 .navigationBarBackButtonHidden(true)
                 
-                if authViewModel.showEditProfile {
-                    EditProfileView()
-                        .environmentObject(authViewModel)
-                }
+                NavigationLink(
+                    destination: EditProfileView()
+                        .environmentObject(authViewModel),
+                    isActive: $authViewModel.showEditProfile,
+                    label: {
+                        EmptyView()
+                    }
+                )
+                .hidden()
                 
-                if mainViewModel.presentedType == .editUserInfo {
-                    EditAddressView()
+                NavigationLink(
+                    destination: EditAddressView()
                         .environmentObject(authViewModel)
-                        .environmentObject(mainViewModel)
-                }
+                        .environmentObject(mainViewModel),
+                    isActive: $authViewModel.showEditAddress,
+                    label: {
+                        EmptyView()
+                    }
+                )
+                .hidden()
                 
-                if mainViewModel.presentedType == .orderHistory {
-                    MyOrdersView()
+                NavigationLink(
+                    destination: MyOrdersView()
                         .environmentObject(mainViewModel)
                         .environmentObject(historyViewModel)
-                        .environmentObject(authViewModel)
-                }
+                        .environmentObject(authViewModel),
+                    isActive: $mainViewModel.showOrderReceived,
+                    label: {
+                        EmptyView()
+                    }
+                )
+                .hidden()
             }
         }.alert(isPresented: $showDialog, content: {
             Alert(title: Text("Logout"),

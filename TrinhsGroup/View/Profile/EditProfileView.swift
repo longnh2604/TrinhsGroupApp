@@ -8,42 +8,17 @@
 import SwiftUI
 
 struct EditProfileView: View {
-    
     @EnvironmentObject var authViewModel: AuthViewModel
     
-    fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Button(action: {
-                withAnimation(.spring()){
-                    authViewModel.showEditProfile.toggle()
-                }
-            }) {
-                Image(systemName: "arrow.left")
-                    .foregroundColor(Constants.AppColor.secondaryBlack)
-            }
-            .padding(.leading, 10)
-            .frame(width: 40, height: 40)
-            Spacer()
-        }
-        .frame(width: UIScreen.main.bounds.width, height: 35)
-        .overlay(
-            Text("Edit Profile")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                .foregroundColor(Constants.AppColor.primaryBlack)
-                .padding(.horizontal, 10)
-                .background(Color.clear)
-            , alignment: .center)
-    }
-    
-    fileprivate func NameTextFiels() -> some View {
+    fileprivate func NameTextFields() -> some View {
         return HStack {
             Image(systemName: "person.fill")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
-                .foregroundColor(Color("ColorPrimary"))
-            TextField("Name", text: $authViewModel.username)
+                .foregroundColor(Constants.AppColor.primaryRed)
+            TextField("Name", text: $authViewModel.user.username)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -57,21 +32,22 @@ struct EditProfileView: View {
         .shadow(color: .gray, radius: 0.5)
     }
     
-    fileprivate func EmailTextFiels() -> some View {
+    fileprivate func EmailTextFields() -> some View {
         return HStack {
             Image(systemName: "envelope.fill")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
-                .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $authViewModel.email)
+                .foregroundColor(Constants.AppColor.primaryRed)
+            TextField("Email", text: $authViewModel.user.email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
         }
         .background(Color.white)
         .cornerRadius(25)
+        .overlay(RoundedRectangle(cornerRadius: 25.0).foregroundColor(Color.gray.opacity(0.15)))
         .padding([.leading, .trailing], 20)
         .padding(.top, 5)
         .shadow(color: .gray, radius: 0.5)
@@ -84,7 +60,7 @@ struct EditProfileView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
-                .foregroundColor(Color("ColorPrimary"))
+                .foregroundColor(Constants.AppColor.primaryRed)
             SecureField("Password", text: $authViewModel.password)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
@@ -92,6 +68,7 @@ struct EditProfileView: View {
         }
         .background(Color.white)
         .cornerRadius(25)
+        .overlay(RoundedRectangle(cornerRadius: 25.0).foregroundColor(Color.gray.opacity(0.15)))
         .padding([.leading, .trailing], 20)
         .padding(.top, 5)
         .shadow(color: .gray, radius: 0.5)
@@ -99,14 +76,14 @@ struct EditProfileView: View {
     
     fileprivate func UpdateButton() -> some View {
         return Button(action: {
-//            authViewModel.onUpdateUser(user: authViewModel.user)
+            authViewModel.onUpdateUser(user: authViewModel.user)
         }) {
             Text("Update")
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(Color("ColorPrimary"))
+                .background(Constants.AppColor.primaryRed)
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
@@ -115,39 +92,24 @@ struct EditProfileView: View {
     
     
     var body: some View {
-        
-        NavigationView {
-            ZStack {
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
+        ZStack {
+            Color.init(hex: "f9f9f9")
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                CustomNavigationBarView(title: "Profile")
+                    .environmentObject(authViewModel)
                 
-                VStack {
-                    NavigationBarView()
-                    NameTextFiels()
-                        .padding(.top)
-                    EmailTextFiels()
-                    PasswordTextField()
-                    UpdateButton()
-                    
-                    Spacer()
-                }
-                if authViewModel.showLoading {
-                    LoadingView()
-                }
-                if authViewModel.isUpdatedUser {
-                    CustomAlertView(message: "Updated User Successful")
-                }
+                NameTextFields()
+                    .padding(.top)
+                EmailTextFields()
+                PasswordTextField()
+//                UpdateButton()
+                
+                Spacer()
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
-            .navigationBarHidden(true)
         }
+        .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
-    }
-}
-
-struct EditProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        EditProfileView()
-            .environmentObject(AuthViewModel())
     }
 }

@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SignupView: View {
-    
     @EnvironmentObject var authViewModel: AuthViewModel
     @State var selection: Int? = nil
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>

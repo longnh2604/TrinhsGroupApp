@@ -49,6 +49,7 @@ class MainViewModel: ObservableObject {
     @Published var zones = [Zone]()
     @Published var presentedType: PresentedType = .none
     @Published var message: String = ""
+    @Published var popularProducts = [Product]()
     
     var numberOfItems: Int {
         if items.count > 0 {
@@ -186,9 +187,12 @@ class MainViewModel: ObservableObject {
     
     func bindingData() {
         service.loadingPublisher
-            .dropFirst()
             .receive(on: RunLoop.main)
-            .assign(to: &$showLoading)
+            .sink { [weak self] isLoading in
+                print("isLoading = \(isLoading)")
+                self?.showLoading = isLoading
+            }
+            .store(in: &cancellableSet)
         
         service.errorPublisher
             .receive(on: RunLoop.main)
@@ -199,11 +203,17 @@ class MainViewModel: ObservableObject {
         
         service.categoryPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$categories)
+            .sink { [weak self] categories in
+                self?.categories = categories
+            }
+            .store(in: &cancellableSet)
         
         service.selectedCategoryProductPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$categoryProducts)
+            .sink { [weak self] products in
+                self?.categoryProducts = products
+            }
+            .store(in: &cancellableSet)
         
         service.orderReceivedPublisher
             .receive(on: RunLoop.main)
@@ -213,6 +223,13 @@ class MainViewModel: ObservableObject {
                     self.presentedType = .orderReceived
                     self.reset()
                 }
+            }
+            .store(in: &cancellableSet)
+        
+        service.popularProductsPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] products in
+                self?.popularProducts = products
             }
             .store(in: &cancellableSet)
         
@@ -240,6 +257,10 @@ class MainViewModel: ObservableObject {
         service.onFetchCategories()
     }
     
+    func onFetchPopularProducts() {
+        service.onFetchPopularProducts()
+    }
+    
     func onFetchSelectedCategoryProducts(id: Int) {
         service.fetchSelectedCategoryProducts(id: id)
     }
@@ -248,26 +269,6 @@ class MainViewModel: ObservableObject {
         if let id = selectedPayment?.id, let title = selectedPayment?.title {
             service.onCreateOrder(user: user, paymentMethod: id, paymentMethodTitle: title, customerNote: "", status: "on-hold", productOrders: productOrders)
         }
-    }
-    
-    func fetchProducts() {
-        self.products.removeAll()
-        
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/products?page=1&per_page=100&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-        
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-                    self.products.append(contentsOf: decodedResponse)
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
     }
     
     func fetchPayments() {

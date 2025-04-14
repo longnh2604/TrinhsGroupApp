@@ -35,20 +35,25 @@ class AuthViewModel: ObservableObject {
     
     func bindingData() {
         service.loadingPublisher
-            .dropFirst()
             .receive(on: RunLoop.main)
-            .assign(to: &$showLoading)
+            .sink { [weak self] isLoading in
+                self?.showLoading = isLoading
+            }
+            .store(in: &cancellableSet)
         
         service.errorPublisher
             .receive(on: RunLoop.main)
-            .sink { error in
-                self.message = error
+            .sink { [weak self] error in
+                self?.message = error
             }
             .store(in: &cancellableSet)
         
         service.userPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$user)
+            .sink { [weak self] user in
+                self?.user = user
+            }
+            .store(in: &cancellableSet)
         
         service.loginPublisher
             .receive(on: RunLoop.main)

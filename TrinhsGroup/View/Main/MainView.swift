@@ -12,7 +12,7 @@ struct MainView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var historyViewModel: HistoryViewModel
     @EnvironmentObject var firestoreManager: FirestoreManager
-    @State var selected = 0
+    @State private var selectedTab = 0
     
     init() {
         UITabBar.appearance().backgroundColor = .white
@@ -20,85 +20,48 @@ struct MainView: View {
     
     var body: some View {
         ZStack {
-            Color.init(hex: "f9f9f9")
+            Constants.AppColor.lightGrayColor
                 .edgesIgnoringSafeArea(.all)
             
-            TabView(selection: $selected) {
-                HomeView()
-                    .environmentObject(mainViewModel)
-                    .environmentObject(firestoreManager)
-                    .tabItem {
-                        Image(systemName: "house.fill")
-                        Text("Home")
-                    }.tag(0)
+            VStack {
+                Group {
+                    switch selectedTab {
+                        case 0: HomeView()
+                            .environmentObject(mainViewModel)
+                            .environmentObject(firestoreManager)
+                        case 1: MenuView()
+                            .environmentObject(mainViewModel)
+                        case 2: MyOrdersView()
+                            .environmentObject(mainViewModel)
+                            .environmentObject(authViewModel)
+                            .environmentObject(historyViewModel)
+                        case 3: FavoriteView()
+                            .environmentObject(mainViewModel)
+                        case 4: ProfileView()
+                            .environmentObject(mainViewModel)
+                            .environmentObject(authViewModel)
+                            .environmentObject(historyViewModel)
+                        default: HomeView()
+                            .environmentObject(mainViewModel)
+                            .environmentObject(firestoreManager)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(.keyboard)
                 
-                CategoryView()
-                    .environmentObject(mainViewModel)
-                    .environmentObject(firestoreManager)
-                    .tabItem {
-                        Image(systemName: "cart.fill")
-                        Text("Category")
-                    }.tag(1)
-                
-                FavoriteView()
-                    .environmentObject(mainViewModel)
-                    .tabItem {
-                        Image(systemName: "heart.fill")
-                        Text("Favorite")
-                    }.tag(2)
-                
-                ProfileView()
-                    .environmentObject(authViewModel)
-                    .environmentObject(historyViewModel)
-                    .environmentObject(mainViewModel)
-                    .tabItem {
-                        Image(systemName: "person.fill")
-                        Text("Profile")
-                    }.tag(3)
-                
-                SettingView()
-                    .tabItem {
-                        Image(systemName: "gearshape.fill")
-                        Text("Setting")
-                    }.tag(4)
+                CustomTabBar(selectedTab: $selectedTab)
             }
-            
-            if mainViewModel.presentedType == .cart {
-                CartView().environmentObject(mainViewModel)
-            } else if mainViewModel.presentedType == .checkOut {
-                CheckOutView()
-                    .environmentObject(mainViewModel)
-                    .environmentObject(authViewModel)
-            } else if mainViewModel.presentedType == .orderReceived {
-                OrderReceivedView()
-                    .environmentObject(mainViewModel)
-            }
-            
-//            if mainViewModel.showNewSeason {
-//                SaleProductsView()
-//                    .environmentObject(mainViewModel)
-//            }
-//
-//            if mainViewModel.showDiscount {
-//                DiscountProductsView()
-//                    .environmentObject(mainViewModel)
-//            }
             
             if mainViewModel.showLoading {
                 LoadingView().ignoresSafeArea()
             }
         }
-        .floatingActionButton(color: .white, image: Image("chatSupport"), action: {
-            mainViewModel.onOpenURL()
-        })
-        .accentColor(Color("ColorPrimary"))
-        .navigationBarTitle("")
-        .navigationBarHidden(true)
+        .edgesIgnoringSafeArea(.all)
         .navigationBarBackButtonHidden(true)
-        .onAppear(){
-//            mainViewModel.onFetchCategories()
+        .onAppear() {
             authViewModel.onGetUser()
-//            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+            mainViewModel.onFetchCategories()
+            mainViewModel.onFetchPopularProducts()
         }
     }
 }
