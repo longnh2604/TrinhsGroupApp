@@ -14,9 +14,7 @@ struct PaymentItemView: View {
     var body: some View {
         HStack {
             ZStack {
-                
                 if mainViewModel.selectedPayment?.id == item.id {
-                    
                     Color("ColorPrimary")
                         .clipShape(Circle())
                         .frame(width: 35, height: 35)
@@ -29,8 +27,6 @@ struct PaymentItemView: View {
                 Color.white
                     .clipShape(Circle())
                     .frame(width: 30, height: 30)
-                
-                // checkmark for selected one...
                 
                 if mainViewModel.selectedPayment?.id == item.id {
                     

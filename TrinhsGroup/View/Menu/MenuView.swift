@@ -22,15 +22,6 @@ struct MenuView: View {
             }
         }
     }
-
-    private func scrollToCategoryOfSearchedProduct() {
-//        if let firstMatch = viewModel.products.first(where: { $0.name.lowercased().contains(searchText.lowercased()) }),
-//           let category = viewModel.categories.first(where: { $0.id == firstMatch.categoryID }) {
-//            withAnimation {
-//                selectedCategory = category
-//            }
-//        }
-    }
     
     var body: some View {
         NavigationView {
@@ -56,8 +47,13 @@ struct MenuView: View {
                     
                     // Filtered Products
                     ScrollView {
-                        ProductListView(products: filteredProducts())
-                            .padding(.horizontal)
+                        VStack(spacing: 16) {
+                            ForEach(filteredProducts()) { product in
+                                ProductCard(product: product) { selectedProduct in
+                                    mainViewModel.add(item: selectedProduct)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -66,9 +62,6 @@ struct MenuView: View {
                     selectedCategory = first
                     mainViewModel.onFetchSelectedCategoryProducts(id: first.id)
                 }
-            }
-            .onChange(of: searchText) { newText in
-                scrollToCategoryOfSearchedProduct()
             }
             .onChange(of: selectedCategory) { newValue in
                 mainViewModel.onFetchSelectedCategoryProducts(id: newValue.id)
@@ -119,18 +112,6 @@ struct CategorySelectorView: View {
                 }
             }
             .padding(.horizontal)
-        }
-    }
-}
-
-struct ProductListView: View {
-    var products: [Product]
-
-    var body: some View {
-        VStack(spacing: 16) {
-            ForEach(products) { product in
-                ProductCard(product: product)
-            }
         }
     }
 }

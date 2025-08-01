@@ -46,16 +46,16 @@ struct SaleProductsView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             
                             LazyVGrid(columns: gridLayout, spacing:15,  content: {
-                                ForEach(mainViewModel.products){ product in
-                                    ItemCellView(product: product)
-                                        .onTapGesture {
-                                            withAnimation(.easeOut){
-//                                                selectedProduct = product
-//                                                mainViewModel.showDetail.toggle()
-                                            }
-                                        }
-                                        .environmentObject(mainViewModel)
-                                }
+//                                ForEach(mainViewModel.products){ product in
+//                                    ItemCellView(product: product)
+//                                        .onTapGesture {
+//                                            withAnimation(.easeOut){
+////                                                selectedProduct = product
+////                                                mainViewModel.showDetail.toggle()
+//                                            }
+//                                        }
+//                                        .environmentObject(mainViewModel)
+//                                }
                             })
                             .padding(15)
                             .padding(.bottom, 130)

@@ -9,7 +9,6 @@ import SwiftUI
 import Kingfisher
 
 struct CartView: View {
-    
     @EnvironmentObject var mainViewModel: MainViewModel
     
     init() {
@@ -119,12 +118,6 @@ struct CartView: View {
                                             .padding()
                                             .environmentObject(mainViewModel)
                                     }
-                                    
-//                                    ForEach(mainViewModel.items) { product in
-//                                        ItemCellTypeThree(product: product)
-//                                            .padding()
-//                                            .environmentObject(mainViewModel)
-//                                    }
                                 })
                                     .padding(.bottom, 10)
                                 
@@ -140,18 +133,6 @@ struct CartView: View {
                                     }
                                     .padding(.top, 25)
                                     .padding(.horizontal, 15)
-                                    
-//                                    HStack {
-//                                        Text("Delivery Charges")
-//                                            .font(.custom(Constants.AppFont.regularFont, size: 13))
-//                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-//                                        Spacer()
-//                                        Text(getPriceAndCurrencySymbol(price: String(self.deliveryCharges), currency: "$", currencyPosition: "right"))
-//                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
-//                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-//                                    }
-//                                    .padding(.top, 10)
-//                                    .padding(.horizontal, 15)
                                     
                                     HStack {
                                         Text("Discount")
@@ -250,7 +231,7 @@ struct ItemCellTypeThree: View {
                         KFImage(URL(string:product.images[0].src))
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                    }else{
+                    } else {
                         Image(systemName: "photo")
                             .resizable()
                             .scaledToFit()
@@ -268,7 +249,7 @@ struct ItemCellTypeThree: View {
                             .lineLimit(1)
                         Spacer()
                         Button(action: {
-                            
+                            mainViewModel.removeAll(item: product)
                         }) {
                             Image(systemName: "trash")
                                 .foregroundColor(Color.init(hex: "bbbbbb"))

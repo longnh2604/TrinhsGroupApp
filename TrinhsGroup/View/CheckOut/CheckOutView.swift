@@ -9,7 +9,6 @@ import SwiftUI
 import Stripe
 
 struct CheckOutView: View {
-    
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
     @StateObject var stripeManager = StripeManager()
@@ -18,17 +17,12 @@ struct CheckOutView: View {
         Button(action: {
             if !authViewModel.checkUserUpdatedBillInfo() { return }
             
-//            if mainViewModel.selectedPayment.id == Payment.default.id {
-//                mainViewModel.message = "Please select a payment method"
-//                return
-//            }
-            
             if mainViewModel.selectedPayment?.id == "stripe" {
                 stripeManager.presentPaymentSheet()
                 return
             }
             
-            var productOrders = mainViewModel.items.map { order_item in
+            let productOrders = mainViewModel.items.map { order_item in
                 ProductOrder(id: 0, product_id: order_item.id, name: order_item.name, quantity: order_item.quantity, subtotal: "", total: order_item.regular_price, price: order_item.regular_price, meta_data: order_item.meta_data)
             }
             
@@ -73,16 +67,8 @@ struct CheckOutView: View {
                         }
                         .padding(15)
                     }
+                    
                     SubmitButton()
-                }
-                if mainViewModel.showLoading {
-                    LoadingView().ignoresSafeArea()
-                }
-                if !authViewModel.message.isEmpty {
-                    CustomAlertView(message: authViewModel.message)
-                }
-                if !mainViewModel.message.isEmpty {
-                    CustomAlertView(message: mainViewModel.message)
                 }
             }
             .navigationBarHidden(true)

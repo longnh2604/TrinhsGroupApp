@@ -30,6 +30,7 @@ class MainViewModel: ObservableObject {
     @Published var sliders = [Slider]()
     @Published var items = [Product]()
     @Published var products = [Product]()
+    @Published var selectedProduct: Product?
     @Published var showDiscount = false
     @Published var showCategoryProducts = true
     @Published var selectedSubCategory: Category = Category.default
@@ -134,7 +135,6 @@ class MainViewModel: ObservableObject {
                 }
             }
         }
-        
     }
     
     func remove(item: Product) {

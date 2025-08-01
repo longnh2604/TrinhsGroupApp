@@ -52,6 +52,16 @@ struct MainView: View {
                 CustomTabBar(selectedTab: $selectedTab)
             }
             
+            if mainViewModel.presentedType == .cart {
+                CartView()
+            } else if mainViewModel.presentedType == .productDetail {
+                if let product = mainViewModel.selectedProduct {
+                    ProductDetailsCard(product: product)
+                }
+            } else if mainViewModel.presentedType == .checkOut {
+                CheckOutView()
+            }
+            
             if mainViewModel.showLoading {
                 LoadingView().ignoresSafeArea()
             }

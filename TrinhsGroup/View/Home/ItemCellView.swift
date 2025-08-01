@@ -122,9 +122,3 @@ struct ItemCellView: View {
         }
     }
 }
-
-//struct ItemCellView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ItemCellView(product: Product.default)
-//    }
-//}
