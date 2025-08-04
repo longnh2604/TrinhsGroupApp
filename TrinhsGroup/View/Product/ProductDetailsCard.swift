@@ -35,17 +35,19 @@ struct ProductDetailsCard: View {
     fileprivate func AddToCartButton() -> some View {
         Button(action: {
             withAnimation(.spring()){
+                var newProduct = product
+                newProduct.meta_data = []
                 var newPrice = product.price
                 firestoreManager.productAddOns.forEach { addon in
                     if addon.checked {
-                        product.meta_data.append(ProductMetaData(id: addon.id, key: addon.content, value: .string(String(addon.value))))
+                        newProduct.meta_data.append(ProductMetaData(id: addon.id, key: addon.content, value: .string(String(addon.value))))
                         newPrice += Double(addon.value)
                     }
                 }
-                product.price = Double(newPrice)
-                product.regular_price = Double(newPrice)
-                product.meta_data = product.meta_data.filter({ return !$0.key.contains("_") })
-                mainViewModel.add(item: product)
+                newProduct.price = Double(newPrice)
+                newProduct.regular_price = Double(newPrice)
+                newProduct.meta_data = newProduct.meta_data.filter({ return !$0.key.contains("_") })
+                mainViewModel.add(item: newProduct)
             }
             // Animation trigger
             withAnimation {
@@ -88,7 +90,7 @@ struct ProductDetailsCard: View {
                             .edgesIgnoringSafeArea(.all)
                         VStack(alignment: .leading) {
                             ImageSlider()
-
+                            
                             VStack(alignment: .leading) {
                                 HStack {
                                     Text(product.short_description.decodingHTMLEntities())
@@ -98,7 +100,7 @@ struct ProductDetailsCard: View {
                                 }
                                 .padding([.horizontal], 15)
                                 .padding(.top, 8)
-
+                                
                                 Text(product.name)
                                     .font(.custom(Constants.AppFont.extraBoldFont, size: 16))
                                     .foregroundColor(Constants.AppColor.secondaryBlack)
@@ -106,7 +108,7 @@ struct ProductDetailsCard: View {
                                     .padding([.horizontal], 15)
                                     .padding(.top, -5)
                                     .padding(.bottom, 5)
-
+                                
                                 HStack {
                                     if product.sale_price > 0 {
                                         Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
@@ -146,7 +148,7 @@ struct ProductDetailsCard: View {
                             }
                             .padding(.bottom, 5)
                             .background(Color.white)
-
+                            
                             VStack(alignment: .leading) {
                                 Text("Product Details")
                                     .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
@@ -189,6 +191,8 @@ struct ProductDetailsCard: View {
             .padding(.trailing, 8)
         }
         .onAppear {
+            // Immediately clear add-ons so UI blanks out all checks
+            firestoreManager.productAddOns = []
             if let id = product.categories.first?.id {
                 firestoreManager.fetchProductAddOns(categoryId: id)
             }

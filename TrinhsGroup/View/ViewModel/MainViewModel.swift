@@ -117,57 +117,33 @@ class MainViewModel: ObservableObject {
     }
     
     func add(item: Product) {
-        var fl = false
-        for index in 0..<items.count {
-            if items[index].name == item.name && items[index].meta_data == item.meta_data {
-                items[index].quantity += 1
-                fl = true
-                break
-            }
-        }
-        
-        if !fl {
-            items.append(item)
-            for index in 0..<items.count {
-                if items[index].name == item.name && items[index].meta_data == item.meta_data {
-                    items[index].quantity += 1
-                    break
-                }
-            }
+        if let index = items.firstIndex(where: { $0.cartIdentifier == item.cartIdentifier }) {
+            items[index].quantity += 1
+        } else {
+            var newItem = item
+            newItem.quantity = 1
+            items.append(newItem)
         }
     }
-    
+
     func remove(item: Product) {
-        var em = true
-        for index in 0..<items.count {
-            if items[index].name == item.name && items[index].meta_data == item.meta_data {
-                if items[index].quantity == 1 {
-                    items.remove(at: index)
-                    em = false
-                    break
-                } else {
-                    if items[index].quantity == 0 {
-                        items.remove(at: index)
-                        em = false
-                        break
-                    } else {
-                        items[index].quantity -= 1
-                        em = false
-                        break
-                    }
-                    
-                }
+        if let index = items.firstIndex(where: { $0.cartIdentifier == item.cartIdentifier }) {
+            if items[index].quantity > 1 {
+                items[index].quantity -= 1
+            } else {
+                items.remove(at: index)
             }
-        }
-        
-        if em {
+        } else {
             print("empty")
         }
     }
     
     func removeAll(item: Product) {
-        let index = items.firstIndex{$0.id == item.id}
-        items.remove(at: index!)
+        if let index = items.firstIndex(where: { $0.cartIdentifier == item.cartIdentifier }) {
+            items.remove(at: index)
+        } else {
+            print("empty")
+        }
     }
     
     func reset() {

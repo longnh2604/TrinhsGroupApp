@@ -31,6 +31,15 @@ struct Product: Identifiable, Codable {
     
     var totalPrice: Double { return price * Double(quantity) }
     
+    var cartIdentifier: String {
+        // Always sort to make the identifier order-independent!
+        let metaString = meta_data
+            .sorted { $0.key < $1.key }
+            .map { "\($0.key)=\($0.value.stringValue)" }
+            .joined(separator: "&")
+        return name + "|" + metaString
+    }
+    
     func getProductAddonOnly() -> [ProductMetaData] {
         return meta_data.filter({ !$0.key.contains("_") || !$0.key.contains("epafw") })
     }

@@ -220,6 +220,4 @@ enum AnyCodableValue: Codable, Equatable {
             return false
         }
     }
-
-    
 }

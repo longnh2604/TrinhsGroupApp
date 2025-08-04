@@ -52,6 +52,10 @@ struct MenuView: View {
                                 ProductCard(product: product) { selectedProduct in
                                     mainViewModel.add(item: selectedProduct)
                                 }
+                                .onTapGesture {
+                                    mainViewModel.selectedProduct = product
+                                    mainViewModel.presentedType = .productDetail
+                                }
                             }
                         }
                     }

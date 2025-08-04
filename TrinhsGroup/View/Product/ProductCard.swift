@@ -10,7 +10,7 @@ import Kingfisher
 
 // MARK: - Product Card
 struct ProductCard: View {
-    let product: Product
+    var product: Product
     let onAdd: (Product) -> Void
 
     var body: some View {
@@ -50,7 +50,9 @@ struct ProductCard: View {
             Spacer()
 
             Button(action: {
-                onAdd(product)
+                var newProduct = product
+                newProduct.meta_data = newProduct.meta_data.filter({ return !$0.key.contains("_") })
+                onAdd(newProduct)
             }) {
                 Text("+ Add")
                     .padding(.horizontal)
