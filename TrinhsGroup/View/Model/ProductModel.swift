@@ -52,13 +52,20 @@ struct Product: Identifiable, Codable {
         name = try container.decode(String.self, forKey: .name)
         short_description = try container.decode(String.self, forKey: .short_description)
         description = try container.decode(String.self, forKey: .description)
-        price = try container.decode(Double.self, forKey: .price)
-        regular_price = try container.decode(Double.self, forKey: .regular_price)
-        sale_price = try container.decodeIfPresent(Double.self, forKey: .sale_price) ?? 0 // Default to 0 if nil
         images = try container.decodeIfPresent([WooImage].self, forKey: .images) ?? []
         attributes = try container.decodeIfPresent([Attribute].self, forKey: .attributes) ?? []
         categories = try container.decodeIfPresent([Category].self, forKey: .categories) ?? []
         meta_data = try container.decodeIfPresent([ProductMetaData].self, forKey: .meta_data) ?? []
+        
+        // Handle price conversion from String to Double
+        let priceString = try container.decode(String.self, forKey: .price)
+        price = Double(priceString) ?? 0
+        
+        let regularPriceString = try container.decode(String.self, forKey: .regular_price)
+        regular_price = Double(regularPriceString) ?? 0
+        
+        let salePriceString = try container.decodeIfPresent(String.self, forKey: .sale_price) ?? ""
+        sale_price = Double(salePriceString) ?? 0
     }
 }
 
