@@ -18,7 +18,7 @@ struct OrderHistoryItemView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Order No #\(order.number)")
                         .fontWeight(.semibold)
-                    Text(order.date_created.toDate())
+                    Text(order.dateCreated.toDate())
                         .font(.footnote)
                 }
                 .foregroundColor(.black)
@@ -31,7 +31,7 @@ struct OrderHistoryItemView: View {
             }
             
             HStack {
-                Text(order.line_items[0].name)
+                Text(order.lineItems[0].name)
                     .font(.callout)
                 
                 Spacer()
@@ -46,7 +46,7 @@ struct OrderHistoryItemView: View {
             Divider()
             
             HStack {
-                Text(order.payment_method_title)
+                Text(order.paymentMethodTitle)
                     .padding(4)
                     .foregroundColor(.black)
                     .background(colorGray.cornerRadius(4))
@@ -55,8 +55,8 @@ struct OrderHistoryItemView: View {
                 
                 Text("Total")
                 
-                Text(getPriceAndCurrencySymbol(price: order.total, currency: "$", currencyPosition: "right"))
-                    .foregroundColor(Constants.AppColor.primaryBlack)
+//                Text(getPriceAndCurrencySymbol(price: order.discountTotal, currency: "$", currencyPosition: "right"))
+//                    .foregroundColor(Constants.AppColor.primaryBlack)
                 
             }
             .foregroundColor(.black)

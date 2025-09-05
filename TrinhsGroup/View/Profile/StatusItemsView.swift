@@ -18,10 +18,10 @@ struct StatusItemsView: View {
                 .foregroundColor(Color("ColorPrimary"))
             
             VStack(alignment: .leading, spacing: 0) {
-                StatusItemView(current: order.status, status: "pending payment", date: order.date_modified)
-                StatusItemView(current: order.status, status: "on-hold", date: order.date_modified)
-                StatusItemView(current: order.status, status: "processing", date: order.date_modified)
-                StatusItemView(current: order.status, status: "completed", date: order.date_modified)
+                StatusItemView(current: order.status, status: "pending payment", date: order.dateModified)
+                StatusItemView(current: order.status, status: "on-hold", date: order.dateModified)
+                StatusItemView(current: order.status, status: "processing", date: order.dateModified)
+                StatusItemView(current: order.status, status: "completed", date: order.dateModified)
             }
         }
     }

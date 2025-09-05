@@ -11,16 +11,18 @@ import Combine
 protocol MainServicesProtocol: BaseServiceProtocol {
     var categoryPublisher: AnyPublisher<[Category], Never> { get }
     var selectedCategoryProductPublisher: AnyPublisher<[Product], Never> { get }
-    var orderReceivedPublisher: AnyPublisher<Order, Never> { get }
+    var orderPublisher: AnyPublisher<Order, Never> { get }
     var loginPublisher: AnyPublisher<Bool, Never> { get }
     var popularProductsPublisher: AnyPublisher<[Product], Never> { get }
+    var paymentMethodPublisher: AnyPublisher<[Payment], Never> { get }
 }
 
 class MainServices: MainServicesProtocol {
     public private(set) lazy var categoryPublisher: AnyPublisher<[Category], Never> = $categories.eraseToAnyPublisher()
     public private(set) lazy var popularProductsPublisher: AnyPublisher<[Product], Never> = $popularProducts.eraseToAnyPublisher()
     public private(set) lazy var selectedCategoryProductPublisher: AnyPublisher<[Product], Never> = $selectedCategoryProducts.eraseToAnyPublisher()
-    public private(set) lazy var orderReceivedPublisher: AnyPublisher<Order, Never> = $orderReceived.eraseToAnyPublisher()
+    public private(set) lazy var orderPublisher: AnyPublisher<Order, Never> = $order.eraseToAnyPublisher()
+    public private(set) lazy var paymentMethodPublisher: AnyPublisher<[Payment], Never> = $payments.eraseToAnyPublisher()
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
@@ -33,7 +35,8 @@ class MainServices: MainServicesProtocol {
     @Published var categories = [Category]()
     @Published var selectedCategoryProducts = [Product]()
     @Published var popularProducts = [Product]()
-    @Published var orderReceived = Order.default
+    @Published var order = Order.default
+    @Published var payments = [Payment]()
     
     private let api = WooCommerceAPI()
     
@@ -90,15 +93,72 @@ class MainServices: MainServicesProtocol {
     
     func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder]) {
         self.isLoading.toggle()
-        APIClient.shared.onCreateOrder(user: user, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle, customerNote: customerNote, status: status, productOrders: productOrders) { success, data, error in
-            if success {
-                if let data = data as? Order {
-                    self.orderReceived = data
-                }
-            } else {
-                self.error = error ?? ""
+        
+        var lineItems:Array = [Dictionary<String, Any>]()
+        
+        for productOrder in productOrders {
+            var meta_data: Array = [Dictionary<String, Any>]()
+            for meta in productOrder.meta_data {
+                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
             }
-            self.isLoading.toggle()
+            
+            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
+        }
+        
+        print(lineItems)
+        
+        // prepare json data
+        var json: [String: Any] = [
+            "customer_id": user.id,
+            "payment_method": paymentMethod,
+            "payment_method_title": paymentMethodTitle,
+            "customer_note": customerNote,
+            "status": status,
+            "billing": [
+                "first_name":user.billing.first_name,
+                "last_name":user.billing.last_name,
+                "country":user.billing.country,
+                "address_1":user.billing.address_1,
+                "city":user.billing.city,
+                "postcode":user.billing.postcode,
+                "state":user.billing.state,
+                "email":user.billing.email,
+                "phone":user.billing.phone
+            ],
+            "line_items": lineItems
+        ]
+        
+        api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    print(data)
+                    self.order = data
+                case .failure(let error):
+                    print("Error failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    func onFetchPaymentMethods() {
+        self.isLoading.toggle()
+        api.request(endpoint: .fetchPaymentMethods, method: .GET) { (result: Result<[Payment], Error>) in
+            DispatchQueue.main.async {
+                self.isLoading.toggle()
+                switch result {
+                case .success(let data):
+                    print("All payments: \(data)")
+                    // Filter to get only enabled payments
+                    self.payments = data.filter { $0.enabled }
+                    print("Enabled payments: \(self.payments)")
+                case .failure(let error):
+                    print("Error failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
+                }
+            }
         }
     }
 }

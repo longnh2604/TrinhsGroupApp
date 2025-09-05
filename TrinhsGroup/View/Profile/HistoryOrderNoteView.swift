@@ -17,7 +17,7 @@ struct HistoryOrderNoteView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             
-            Text(order.customer_note)
+            Text(order.customerNote)
                 .foregroundColor(.black)
                 .multilineTextAlignment(.leading)
             

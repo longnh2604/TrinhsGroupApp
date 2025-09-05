@@ -29,7 +29,7 @@ struct HistoryOrderDetailDetailView: View {
                     Text("Date")
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
-                    Text(order.date_created.toDate())
+                    Text(order.dateCreated.toDate())
                         .foregroundColor(.black)
                 }
                 

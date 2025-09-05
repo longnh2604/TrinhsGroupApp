@@ -24,46 +24,48 @@ struct HistoryOrderDetailPaymentView: View {
             }
             .foregroundColor(.black)
             
-//            HStack {
-//                Text("Shipping( Flat Rate )")
-//
-//                Spacer()
-//                
-//                Text(getPriceAndCurrencySymbol(price: order.shipping_lines[0].total, currency: "$", currencyPosition: "right"))
-//
-//            }
-//            .foregroundColor(.black)
-
-            if order.discount_total > 0 {
-                HStack {
-                    Text("Discount")
-
-                    Spacer()
-                    
-                    (
-                        Text("-")
-                            +
-                    Text(getPriceAndCurrencySymbol(price: order.discount_total, currency: "$", currencyPosition: "right"))
-                    )
-
-                }
-                .foregroundColor(.black)
-            }
-
-
+            //            HStack {
+            //                Text("Shipping( Flat Rate )")
+            //
+            //                Spacer()
+            //                
+            //                Text(getPriceAndCurrencySymbol(price: order.shipping_lines[0].total, currency: "$", currencyPosition: "right"))
+            //
+            //            }
+            //            .foregroundColor(.black)
+            
+            //            if order.discountTotal > 0 {
+            //                HStack {
+            //                    Text("Discount")
+            //
+            //                    Spacer()
+            //                    
+            //                    (
+            //                        Text("-")
+            //                            +
+            //                    Text(getPriceAndCurrencySymbol(price: order.discountTotal, currency: "$", currencyPosition: "right"))
+            //                    )
+            //
+            //                }
+            //                .foregroundColor(.black)
+            //            }
+            
+            
             HStack {
                 Text("Total")
                     .fontWeight(.semibold)
-
-
-                Spacer()
                 
-        Text(getPriceAndCurrencySymbol(price: order.total, currency: "$", currencyPosition: "right"))
-        
+                
+                Spacer()
             }
-            .foregroundColor(.black)
         }
-        .padding(.vertical)
+                
+//        Text(getPriceAndCurrencySymbol(price: order.total, currency: "$", currencyPosition: "right"))
+//        
+//            }
+//            .foregroundColor(.black)
+//        }
+//        .padding(.vertical)
     }
 }
 

@@ -214,98 +214,98 @@ extension APIClient {
     }
     
     func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], completion: @escaping requestAnyDataCompletion) {
-//        var lineItems:Array = [Dictionary<String, Any>]()
-//        
-//        for productOrder in productOrders {
-//            var meta_data: Array = [Dictionary<String, Any>]()
-//            for meta in productOrder.meta_data {
-//                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
-//            }
-//            
-//            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
+        var lineItems:Array = [Dictionary<String, Any>]()
+        
+        for productOrder in productOrders {
+            var meta_data: Array = [Dictionary<String, Any>]()
+            for meta in productOrder.meta_data {
+                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
+            }
+            
+            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
+        }
+        
+        print(lineItems)
+        
+        // prepare json data
+        var json: [String: Any] = [
+            "customer_id": user.id,
+            "payment_method": paymentMethod,
+            "payment_method_title": paymentMethodTitle,
+            "customer_note": customerNote,
+            "status": status,
+            "billing": [
+                "first_name":user.billing.first_name,
+                "last_name":user.billing.last_name,
+                "country":user.billing.country,
+                "address_1":user.billing.address_1,
+                "city":user.billing.city,
+                "postcode":user.billing.postcode,
+                "state":user.billing.state,
+                "email":user.billing.email,
+                "phone":user.billing.phone
+            ],
+            "line_items": lineItems
+        ]
+        
+//        if coupon.id != Coupon.default.id {
+//            json["coupon_lines"] = [["code": coupon.code]]
 //        }
-//        
-//        print(lineItems)
-//        
-//        // prepare json data
-//        var json: [String: Any] = [
-//            "customer_id": user.id,
-//            "payment_method": paymentMethod,
-//            "payment_method_title": paymentMethodTitle,
-//            "customer_note": customerNote,
-//            "status": status,
-//            "billing": [
-//                "first_name":user.billing.first_name,
-//                "last_name":user.billing.last_name,
-//                "country":user.billing.country,
-//                "address_1":user.billing.address_1,
-//                "city":user.billing.city,
-//                "postcode":user.billing.postcode,
-//                "state":user.billing.state,
-//                "email":user.billing.email,
-//                "phone":user.billing.phone
-//            ],
-//            "line_items": lineItems
-//        ]
-//        
-////        if coupon.id != Coupon.default.id {
-////            json["coupon_lines"] = [["code": coupon.code]]
-////        }
-//        
-//        let jsonData = try? JSONSerialization.data(withJSONObject: json)
-//        
-//        print(String(decoding: jsonData!, as: UTF8.self))
-//        
-//        // Prepare URL"
-//        let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/orders?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)")
-//        guard let requestUrl = url else { fatalError() }
-//        // Prepare URL Request Object
-//        var request = URLRequest(url: requestUrl)
-//        request.httpMethod = "POST"
-//        
-//        //HTTP Headers
-//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-//        request.addValue("application/json", forHTTPHeaderField: "Accept")
-//        
-//        // Set HTTP Request Body
-//        request.httpBody = jsonData//postString.data(using: String.Encoding.utf8);
-//        // Perform HTTP Request
-//        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-//            // Check for Error
-//            if let error = error {
-//                print("Error took place \(error)")
-//                return
-//            }
-//            let json = JSON(data!)
-//            print(json)
-//            
-//            if let data = data {
-//                do {
-//                    let decodedResponse = try JSONDecoder().decode(Order.self, from: data)
-//                    DispatchQueue.main.async {
-//                        print(decodedResponse)
-//                        DispatchQueue.main.async {
-//                            completion(true, decodedResponse, nil)
-//                        }
-//                        return
-//                    }
-//                } catch DecodingError.keyNotFound(let key, let context) {
-//                    Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
-//                } catch DecodingError.valueNotFound(let type, let context) {
-//                    Swift.print("could not find type \(type) in JSON: \(context.debugDescription)")
-//                } catch DecodingError.typeMismatch(let type, let context) {
-//                    Swift.print("type mismatch for type \(type) in JSON: \(context.debugDescription)")
-//                } catch DecodingError.dataCorrupted(let context) {
-//                    Swift.print("data found to be corrupted in JSON: \(context.debugDescription)")
-//                } catch let error as NSError {
-//                    NSLog("Error in read(from:ofType:) domain= \(error.domain), description= \(error.localizedDescription)")
-//                }
-//                return
-//            }
-//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-//            completion(false, nil, error?.localizedDescription)
-//        }
-//        task.resume()
+        
+        let jsonData = try? JSONSerialization.data(withJSONObject: json)
+        
+        print(String(decoding: jsonData!, as: UTF8.self))
+        
+        // Prepare URL"
+        let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/orders?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)")
+        guard let requestUrl = url else { fatalError() }
+        // Prepare URL Request Object
+        var request = URLRequest(url: requestUrl)
+        request.httpMethod = "POST"
+        
+        //HTTP Headers
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        // Set HTTP Request Body
+        request.httpBody = jsonData//postString.data(using: String.Encoding.utf8);
+        // Perform HTTP Request
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            // Check for Error
+            if let error = error {
+                print("Error took place \(error)")
+                return
+            }
+            let json = JSON(data!)
+            print(json)
+            
+            if let data = data {
+                do {
+                    let decodedResponse = try JSONDecoder().decode(Order.self, from: data)
+                    DispatchQueue.main.async {
+                        print(decodedResponse)
+                        DispatchQueue.main.async {
+                            completion(true, decodedResponse, nil)
+                        }
+                        return
+                    }
+                } catch DecodingError.keyNotFound(let key, let context) {
+                    Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
+                } catch DecodingError.valueNotFound(let type, let context) {
+                    Swift.print("could not find type \(type) in JSON: \(context.debugDescription)")
+                } catch DecodingError.typeMismatch(let type, let context) {
+                    Swift.print("type mismatch for type \(type) in JSON: \(context.debugDescription)")
+                } catch DecodingError.dataCorrupted(let context) {
+                    Swift.print("data found to be corrupted in JSON: \(context.debugDescription)")
+                } catch let error as NSError {
+                    NSLog("Error in read(from:ofType:) domain= \(error.domain), description= \(error.localizedDescription)")
+                }
+                return
+            }
+            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
+            completion(false, nil, error?.localizedDescription)
+        }
+        task.resume()
     }
     
     func onFetchHistoryOrders(id: Int, completion: @escaping requestAnyArrDataCompletion) {

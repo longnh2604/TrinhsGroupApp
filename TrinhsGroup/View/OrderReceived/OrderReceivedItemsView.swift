@@ -17,9 +17,9 @@ struct OrderReceivedItemsView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             
-            ForEach(mainViewModel.receivedOrder.line_items) { item in
-                OrderReceivedProductItemView(productOrder: item)
-            }
+//            ForEach(mainViewModel.receivedOrder.lineItems) { item in
+//                OrderReceivedProductItemView(productOrder: item)
+//            }
         }
     }
 }

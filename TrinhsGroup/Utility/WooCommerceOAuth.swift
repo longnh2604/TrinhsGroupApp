@@ -22,7 +22,6 @@ enum WooCommerceEndpoint {
     case forgotPassword
     case customers
     case createCustomer
-    case orders
     case products
     case specificOrder(orderID: Int)
     case specificProduct(productID: Int)
@@ -30,6 +29,8 @@ enum WooCommerceEndpoint {
     case getUserInfo
     case fetchPopularProducts
     case fetchProductsCategory(categoryID: Int)
+    case fetchPaymentMethods
+    case onCreateOrder
 
     func urlPath() -> String {
         switch self {
@@ -39,8 +40,6 @@ enum WooCommerceEndpoint {
             return "/wp-login.php?action=lostpassword"
         case .createCustomer, .customers:
             return "/wp-json/wc/v3/customers"
-        case .orders:
-            return "/wp-json/wc/v3/orders"
         case .products:
             return "/wp-json/wc/v3/products"
         case .specificOrder(let orderID):
@@ -55,6 +54,10 @@ enum WooCommerceEndpoint {
             return "\(commonURL)/products?orderby=popularity&order=desc&per_page=10"
         case .fetchProductsCategory(let id):
             return "\(commonURL)/products?category=\(id)"
+        case .fetchPaymentMethods:
+            return "\(commonURL)/payment_gateways"
+        case .onCreateOrder:
+            return "\(commonURL)/orders"
         }
     }
 }

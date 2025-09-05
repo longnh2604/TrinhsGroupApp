@@ -17,9 +17,9 @@ struct HistoryOrderItemsView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             
-            ForEach(order.line_items) { item in
-                HistoryOrderProductItemView(productOrder: item)
-            }
+//            ForEach(order.lineItems) { item in
+//                HistoryOrderProductItemView(productOrder: item)
+//            }
         }
     }
 }

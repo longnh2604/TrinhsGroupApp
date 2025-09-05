@@ -71,11 +71,9 @@ struct CheckOutView: View {
                     SubmitButton()
                 }
             }
-            .navigationBarHidden(true)
             .onAppear {
                 DispatchQueue.main.async {
-                    mainViewModel.fetchPayments()
-                    mainViewModel.fetchZones()
+                    mainViewModel.onFetchPamyentMethods()
                     stripeManager.preparePaymentSheet()
                 }
             }

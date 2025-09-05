@@ -191,7 +191,7 @@ class MainViewModel: ObservableObject {
             }
             .store(in: &cancellableSet)
         
-        service.orderReceivedPublisher
+        service.orderPublisher
             .receive(on: RunLoop.main)
             .sink { order in
                 if order.id != Order.default.id {
@@ -206,6 +206,13 @@ class MainViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] products in
                 self?.popularProducts = products
+            }
+            .store(in: &cancellableSet)
+        
+        service.paymentMethodPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] payments in
+                self?.payments = payments
             }
             .store(in: &cancellableSet)
         
@@ -247,51 +254,8 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    func fetchPayments() {
-        self.payments.removeAll()
-            
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/payment_gateways?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        
-        let request = URLRequest(url: url)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Fetch failed: \(error.localizedDescription)")
-                    return
-                }
-                
-                guard let data = data else {
-                    print("Fetch failed: No data received")
-                    return
-                }
-                
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Received JSON: \(jsonString)")
-                }
-                
-                do {
-                    let decodedResponse = try JSONDecoder().decode([Payment].self, from: data)
-                    self.payments.append(contentsOf: decodedResponse)
-                } catch let DecodingError.dataCorrupted(context) {
-                    print("Data corrupted: \(context)")
-                } catch let DecodingError.keyNotFound(key, context) {
-                    print("Key '\(key.stringValue)' not found: \(context.debugDescription)")
-                    print("Coding Path: \(context.codingPath)")
-                } catch let DecodingError.typeMismatch(type, context) {
-                    print("Type mismatch for type \(type): \(context.debugDescription)")
-                    print("Coding Path: \(context.codingPath)")
-                } catch let DecodingError.valueNotFound(value, context) {
-                    print("Value '\(value)' not found: \(context.debugDescription)")
-                    print("Coding Path: \(context.codingPath)")
-                } catch {
-                    print("Decoding failed with error: \(error.localizedDescription)")
-                }
-            }
-        }.resume()
+    func onFetchPamyentMethods() {
+        service.onFetchPaymentMethods()
     }
     
     func fetchZones() {

@@ -38,20 +38,20 @@ struct OrderReceivedPricesView: View {
               
             }
             
-            if mainViewModel.receivedOrder.discount_total > 0 {
-                HStack {
-                    Text("Discount")
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                    
-                    Spacer()
-                    
-                    
-                    Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.discount_total, currency: "$", currencyPosition: "right"))
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                        .foregroundColor(Constants.AppColor.primaryBlack)
-                 
-                }
-            }
+//            if mainViewModel.receivedOrder.discountTotal > 0 {
+//                HStack {
+//                    Text("Discount")
+//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+//                    
+//                    Spacer()
+//                    
+//                    
+//                    Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.discount_total, currency: "$", currencyPosition: "right"))
+//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+//                        .foregroundColor(Constants.AppColor.primaryBlack)
+//                 
+//                }
+//            }
             
             
             HStack {
@@ -62,9 +62,9 @@ struct OrderReceivedPricesView: View {
                 
                 Spacer()
                 
-                Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.total, currency: "$", currencyPosition: "right"))
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                    .foregroundColor(Constants.AppColor.primaryBlack)
+//                Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.total, currency: "$", currencyPosition: "right"))
+//                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+//                    .foregroundColor(Constants.AppColor.primaryBlack)
                 
             }
         }

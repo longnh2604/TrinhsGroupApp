@@ -28,7 +28,7 @@ struct OrderReceivedDetailView: View {
                     Text("Date")
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
-                    Text(mainViewModel.receivedOrder.date_created.toDate())
+                    Text(mainViewModel.receivedOrder.dateCreated.toDate())
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                 }
                 
@@ -39,9 +39,9 @@ struct OrderReceivedDetailView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
                     
-                    Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.total, currency: "$", currencyPosition: "right"))
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                        .foregroundColor(Constants.AppColor.primaryBlack)
+//                    Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.discountTotal, currency: "$", currencyPosition: "right"))
+//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+//                        .foregroundColor(Constants.AppColor.primaryBlack)
            
                 }
             }
