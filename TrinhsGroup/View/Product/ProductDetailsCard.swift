@@ -38,9 +38,10 @@ struct ProductDetailsCard: View {
             .clipped()
             
             FavoriteButton(
-                isFav: mainViewModel.isFavorite(productId: product.id),
+                isFav: isFavorite,
                 onTap: {
                     mainViewModel.toggleFavorite(product: product)
+                    isFavorite.toggle()
                 }
             )
             .padding(.trailing, 12)
@@ -206,6 +207,8 @@ struct ProductDetailsCard: View {
             .padding(.top, topInset + 8)
             .padding(.trailing, 8)
         }
+        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             // existing code
             firestoreManager.productAddOns = []
@@ -213,8 +216,8 @@ struct ProductDetailsCard: View {
                 firestoreManager.fetchProductAddOns(categoryId: id)
             }
 
-            // init favorite state from persistence
-            isFavorite = UserDefaultsManager.isFavorite(product.id)
+            // init favorite state from MainViewModel
+            isFavorite = mainViewModel.isFavorite(productId: product.id)
         }
     }
 }

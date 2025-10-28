@@ -29,23 +29,19 @@ struct ItemCellView: View {
     
     fileprivate func FavoriteButton() -> some View {
         return Button(action: {
-            if UserDefaultsManager.isFavorite(product.id) {
-                UserDefaultsManager.removeFavorite(product)
-                print("Remove: \(self.product.name)")
-            }else{
-                UserDefaultsManager.saveFavorite(product)
-                print("Save: \(self.product.name)")
-            }
+            // Toggle favorite without triggering navigation
+            mainViewModel.toggleFavorite(product: product)
             isFavorite.toggle()
         }) {
             Image(systemName: isFavorite ? "heart.fill" : "heart")
-                .foregroundColor(isFavorite ? .red :.gray)
+                .foregroundColor(isFavorite ? .red : .gray)
                 .frame(width: 30, height: 30)
                 .background(Color.white)
         }
         .cornerRadius(20)
         .opacity(0.9)
         .shadow(color: Color.init(hex: "dddddd"), radius: 0.5, x: 0.3, y: 0.3)
+        .buttonStyle(PlainButtonStyle()) // Prevent default button behavior
     }
     
     var body: some View {
@@ -72,7 +68,7 @@ struct ItemCellView: View {
                 .cornerRadius(1)
                 .overlay(
                     FavoriteButton()
-                        .padding(5), alignment: .topTrailing)
+                        .padding(5), alignment: .bottomTrailing)
                 
                 Text(product.short_description.decodingHTMLEntities())
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
@@ -118,7 +114,7 @@ struct ItemCellView: View {
             }
         }
         .onAppear(){
-            isFavorite = UserDefaultsManager.isFavorite(product.id)
+            isFavorite = mainViewModel.isFavorite(productId: product.id)
         }
     }
 }

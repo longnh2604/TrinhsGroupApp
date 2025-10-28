@@ -37,6 +37,7 @@ struct MainView: View {
                             .environmentObject(historyViewModel)
                         case 3: FavoriteView()
                             .environmentObject(mainViewModel)
+                            .environmentObject(firestoreManager)
                         case 4: ProfileView()
                             .environmentObject(mainViewModel)
                             .environmentObject(authViewModel)
@@ -57,6 +58,10 @@ struct MainView: View {
             } else if mainViewModel.presentedType == .productDetail {
                 if let product = mainViewModel.selectedProduct {
                     ProductDetailsCard(product: product)
+                        .environmentObject(mainViewModel)
+                        .environmentObject(firestoreManager)
+                        .ignoresSafeArea()
+                        .zIndex(2)
                 }
             } else if mainViewModel.presentedType == .checkOut {
                 CheckOutView()

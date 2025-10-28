@@ -52,6 +52,7 @@ class MainViewModel: ObservableObject {
     @Published var message: String = ""
     @Published var popularProducts = [Product]()
     @Published var favoriteProductIDs: Set<Int> = []
+    @Published var favoriteProducts: [Product] = []
     
     var numberOfItems: Int {
         if items.count > 0 {
@@ -160,6 +161,7 @@ class MainViewModel: ObservableObject {
     init(service: MainServices = MainServices()) {
         self.service = service
         self.bindingData()
+        self.loadFavoritesFromStorage()
     }
     
     func bindingData() {
@@ -362,8 +364,9 @@ class MainViewModel: ObservableObject {
 
 extension MainViewModel {
     func loadFavoritesFromStorage() {
-        let favorites = UserDefaultsManager.loadFavorites()
-        favoriteProductIDs = Set(favorites.map { $0.id })
+        let stored = UserDefaultsManager.loadFavorites()
+        favoriteProducts = stored
+        favoriteProductIDs = Set(stored.map { $0.id })
     }
     
     func isFavorite(productId: Int) -> Bool {
@@ -372,14 +375,14 @@ extension MainViewModel {
     
     func toggleFavorite(product: Product) {
         if favoriteProductIDs.contains(product.id) {
-            // remove from memory
+            // remove
             favoriteProductIDs.remove(product.id)
-            // remove from disk
+            favoriteProducts.removeAll { $0.id == product.id }
             UserDefaultsManager.removeFavorite(product)
         } else {
-            // add to memory
+            // add
             favoriteProductIDs.insert(product.id)
-            // persist to disk
+            favoriteProducts.append(product)
             UserDefaultsManager.saveFavorite(product)
         }
     }
