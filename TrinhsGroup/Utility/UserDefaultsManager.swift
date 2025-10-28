@@ -12,12 +12,48 @@ class UserDefaultsManager {
     static let allNotifications = "allNotifications"
     static let newNotifications = "newNotifications"
     
+    // MARK: - Favorites
+    
     static func saveFavorite(_ favorite: Product) {
         var favorites = loadFavorites()
         favorites.append(favorite)
         saveFavorites(favorites)
     }
     
+    static func removeFavorite(_ product: Product) {
+        var favorites = loadFavorites()
+        if let index = favorites.firstIndex(where: { $0.id == product.id }) {
+            favorites.remove(at: index)
+        }
+        saveFavorites(favorites)
+    }
+    
+    static func toggleFavorite(_ product: Product) {
+        if isFavorite(product.id) {
+            removeFavorite(product)
+        } else {
+            saveFavorite(product)
+        }
+    }
+    
+    static func isFavorite(_ id: Int) -> Bool {
+        let favorites = loadFavorites()
+        return favorites.firstIndex(where: { $0.id == id }) != nil
+    }
+    
+    static func saveFavorites(_ products: [Product]) {
+        let data = products.compactMap { try? JSONEncoder().encode($0) }
+        UserDefaults.standard.set(data, forKey: favorites)
+    }
+    
+    static func loadFavorites() -> [Product] {
+        guard let encodedData = UserDefaults.standard.array(forKey: favorites) as? [Data] else {
+            return []
+        }
+        return encodedData.compactMap { try? JSONDecoder().decode(Product.self, from: $0) }
+    }
+    
+    // MARK: - Notifications (unchanged below)
     static func save(_ notification: AppNotification) {
         var notifications = load()
         notifications.append(notification)
@@ -28,14 +64,6 @@ class UserDefaultsManager {
         var notifications = loadNew()
         notifications.append(notification)
         saveNew(notifications)
-    }
-    
-    static func removeFavorite(_ product: Product) {
-        var favorites = loadFavorites()
-        if let index = favorites.firstIndex(where: {$0.id == product.id}){
-            favorites.remove(at: index)
-        }
-        saveFavorites(favorites)
     }
     
     static func remove(_ notification: AppNotification) {
@@ -54,25 +82,9 @@ class UserDefaultsManager {
         saveNew([])
     }
     
-    static func isFavorite(_ id: Int) -> Bool{
-        let favorites = loadFavorites()
-        if favorites.firstIndex(where: {$0.id == id}) != nil{
-            return true
-        }
-        return false
-    }
-    
     static func isInclude(_ id: Int) -> Bool{
         let news = load()
-        if news.firstIndex(where: {$0.id == id}) != nil{
-            return true
-        }
-        return false
-    }
-    
-    static func saveFavorites(_ news: [Product]) {
-        let data = news.map { try? JSONEncoder().encode($0) }
-        UserDefaults.standard.set(data, forKey: favorites)
+        return news.firstIndex(where: {$0.id == id}) != nil
     }
 
     static func save(_ news: [AppNotification]) {
@@ -85,27 +97,17 @@ class UserDefaultsManager {
         UserDefaults.standard.set(data, forKey: newNotifications)
     }
     
-    static func loadFavorites() -> [Product] {
-        guard let encodedData = UserDefaults.standard.array(forKey: favorites) as? [Data] else {
-            return []
-        }
-
-        return encodedData.map { try! JSONDecoder().decode(Product.self, from: $0) }
-    }
-
     static func load() -> [AppNotification] {
         guard let encodedData = UserDefaults.standard.array(forKey: allNotifications) as? [Data] else {
             return []
         }
-
-        return encodedData.map { try! JSONDecoder().decode(AppNotification.self, from: $0) }
+        return encodedData.compactMap { try? JSONDecoder().decode(AppNotification.self, from: $0) }
     }
     
     static func loadNew() -> [AppNotification] {
         guard let encodedData = UserDefaults.standard.array(forKey: newNotifications) as? [Data] else {
             return []
         }
-
-        return encodedData.map { try! JSONDecoder().decode(AppNotification.self, from: $0) }
+        return encodedData.compactMap { try? JSONDecoder().decode(AppNotification.self, from: $0) }
     }
 }

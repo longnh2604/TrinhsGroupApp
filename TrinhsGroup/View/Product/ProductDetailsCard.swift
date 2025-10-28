@@ -11,6 +11,7 @@ import Kingfisher
 struct ProductDetailsCard: View {
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var firestoreManager: FirestoreManager
+    @State private var isFavorite: Bool = false
     @State var product: Product
     @State var index = 0
     @State private var isAdded = false
@@ -21,15 +22,30 @@ struct ProductDetailsCard: View {
             .first?.windows.first?.safeAreaInsets.top ?? 0
     }
     
+    // MARK: Image Slider + Favorite overlay
     fileprivate func ImageSlider() -> some View {
-        return PagingView(index: $index.animation(), maxIndex: product.images.count - 1) {
-            ForEach(product.images) { image in
-                KFImage(URL(string:image.src))
-                    .resizable()
-                    .scaledToFill()
+        ZStack(alignment: .bottomTrailing) {
+            PagingView(index: $index.animation(), maxIndex: product.images.count - 1) {
+                ForEach(product.images) { image in
+                    KFImage(URL(string:image.src))
+                        .resizable()
+                        .scaledToFill()
+                        .clipped()
+                }
             }
+            .aspectRatio(4/3, contentMode: .fit)
+            .background(Color.black.opacity(0.05))
+            .clipped()
+            
+            FavoriteButton(
+                isFav: mainViewModel.isFavorite(productId: product.id),
+                onTap: {
+                    mainViewModel.toggleFavorite(product: product)
+                }
+            )
+            .padding(.trailing, 12)
+            .padding(.bottom, 12)
         }
-        .aspectRatio(4/3, contentMode: .fit)
     }
     
     fileprivate func AddToCartButton() -> some View {
@@ -191,11 +207,14 @@ struct ProductDetailsCard: View {
             .padding(.trailing, 8)
         }
         .onAppear {
-            // Immediately clear add-ons so UI blanks out all checks
+            // existing code
             firestoreManager.productAddOns = []
             if let id = product.categories.first?.id {
                 firestoreManager.fetchProductAddOns(categoryId: id)
             }
+
+            // init favorite state from persistence
+            isFavorite = UserDefaultsManager.isFavorite(product.id)
         }
     }
 }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2205489B29D1835B00D24FFB /* CustomNavigationBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */; };
+		2248AA732EAE346A00CEBFB1 /* FavoriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */; };
 		22EC20B82DA51C2E0032C77B /* WooErrorResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20B72DA51C200032C77B /* WooErrorResponse.swift */; };
 		22EC20BA2DA90D3A0032C77B /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20B92DA90D360032C77B /* SplashView.swift */; };
 		22EC20BC2DA90DE70032C77B /* AppAssets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20BB2DA90DE30032C77B /* AppAssets.swift */; };
@@ -119,6 +120,7 @@
 
 /* Begin PBXFileReference section */
 		2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationBarView.swift; sourceTree = "<group>"; };
+		2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteButton.swift; sourceTree = "<group>"; };
 		225C8486298223D100677AA9 /* TrinhsGroup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrinhsGroup.entitlements; sourceTree = "<group>"; };
 		22EC20B72DA51C200032C77B /* WooErrorResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooErrorResponse.swift; sourceTree = "<group>"; };
 		22EC20B92DA90D360032C77B /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
@@ -508,6 +510,7 @@
 				FDA32E3428939A920005621A /* MyApiClient.swift */,
 				FDC6A91F289A2107002C4970 /* LottieLoadingView.swift */,
 				FDA842F9289BAE70002FB283 /* FloatingButton.swift */,
+				2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -759,6 +762,7 @@
 				FD9A222328756BF9009FDD65 /* ShipMethodModel.swift in Sources */,
 				64C8D3FD2E3CA099006ECB89 /* ProductDetailsCard.swift in Sources */,
 				FD8EAEF72872C8EB004F9ED0 /* StartButtonView.swift in Sources */,
+				2248AA732EAE346A00CEBFB1 /* FavoriteButton.swift in Sources */,
 				FD9A223428757353009FDD65 /* ZoneModel.swift in Sources */,
 				FD5364B5288A41FA0049E902 /* HistoryServices.swift in Sources */,
 				FD8EAF1B2872DD35004F9ED0 /* MainView.swift in Sources */,

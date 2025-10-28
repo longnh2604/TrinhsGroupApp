@@ -51,6 +51,7 @@ class MainViewModel: ObservableObject {
     @Published var presentedType: PresentedType = .none
     @Published var message: String = ""
     @Published var popularProducts = [Product]()
+    @Published var favoriteProductIDs: Set<Int> = []
     
     var numberOfItems: Int {
         if items.count > 0 {
@@ -356,5 +357,30 @@ class MainViewModel: ObservableObject {
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             
         }.resume()
+    }
+}
+
+extension MainViewModel {
+    func loadFavoritesFromStorage() {
+        let favorites = UserDefaultsManager.loadFavorites()
+        favoriteProductIDs = Set(favorites.map { $0.id })
+    }
+    
+    func isFavorite(productId: Int) -> Bool {
+        favoriteProductIDs.contains(productId)
+    }
+    
+    func toggleFavorite(product: Product) {
+        if favoriteProductIDs.contains(product.id) {
+            // remove from memory
+            favoriteProductIDs.remove(product.id)
+            // remove from disk
+            UserDefaultsManager.removeFavorite(product)
+        } else {
+            // add to memory
+            favoriteProductIDs.insert(product.id)
+            // persist to disk
+            UserDefaultsManager.saveFavorite(product)
+        }
     }
 }
