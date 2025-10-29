@@ -14,7 +14,6 @@ struct ItemCellView: View {
     @EnvironmentObject var firestoreManager: FirestoreManager
     
     var product: Product
-    @State var show = false
     @State var isFavorite: Bool = false
     
     fileprivate func TopLabel() -> some View {
@@ -46,9 +45,6 @@ struct ItemCellView: View {
     
     var body: some View {
         ZStack {
-            NavigationLink(destination: ItemDetailsView(product: product, show: self.$show).environmentObject(mainViewModel).environmentObject(firestoreManager), isActive: self.$show) {
-                Text("")
-            }
             VStack(alignment: .leading) {
                 Group {
                     if product.images.count > 0 {
@@ -109,9 +105,6 @@ struct ItemCellView: View {
             .background(Color.white)
             .cornerRadius(2)
             .clipped()
-            .onTapGesture {
-                self.show.toggle()
-            }
         }
         .onAppear(){
             isFavorite = mainViewModel.isFavorite(productId: product.id)

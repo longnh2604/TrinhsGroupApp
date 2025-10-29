@@ -22,6 +22,10 @@ struct Order: Identifiable, Codable {
     var lineItems: [LineItem]
     var shippingLines: [ShippingLine]
 
+    // NEW (optional but important)
+    var paymentURL: String?      // <- add this
+    var orderKey: String?        // <- optional, sometimes useful
+
     private enum CodingKeys: String, CodingKey {
         case id, number, status
         case dateCreated = "date_created"
@@ -33,6 +37,9 @@ struct Order: Identifiable, Codable {
         case paymentMethodTitle = "payment_method_title"
         case lineItems = "line_items"
         case shippingLines = "shipping_lines"
+        // NEW
+        case paymentURL = "payment_url"
+        case orderKey   = "order_key"
     }
 
     var subtotal: Double {
@@ -53,7 +60,9 @@ struct Order: Identifiable, Codable {
             shipping: Shipping.empty,
             paymentMethodTitle: "",
             lineItems: [],
-            shippingLines: []
+            shippingLines: [],
+            paymentURL: nil,
+            orderKey: nil
         )
     }
 }

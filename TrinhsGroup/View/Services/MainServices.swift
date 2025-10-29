@@ -91,53 +91,116 @@ class MainServices: MainServicesProtocol {
         }
     }
     
-    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder]) {
-        self.isLoading.toggle()
-        
-        var lineItems:Array = [Dictionary<String, Any>]()
-        
-        for productOrder in productOrders {
-            var meta_data: Array = [Dictionary<String, Any>]()
-            for meta in productOrder.meta_data {
-                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
+//    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder]) {
+//        self.isLoading.toggle()
+//        
+//        var lineItems:Array = [Dictionary<String, Any>]()
+//        
+//        for productOrder in productOrders {
+//            var meta_data: Array = [Dictionary<String, Any>]()
+//            for meta in productOrder.meta_data {
+//                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
+//            }
+//            
+//            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
+//        }
+//        
+//        print(lineItems)
+//        
+//        // prepare json data
+//        var json: [String: Any] = [
+//            "customer_id": user.id,
+//            "payment_method": paymentMethod,
+//            "payment_method_title": paymentMethodTitle,
+//            "customer_note": customerNote,
+//            "status": status,
+//            "billing": [
+//                "first_name":user.billing.first_name,
+//                "last_name":user.billing.last_name,
+//                "country":user.billing.country,
+//                "address_1":user.billing.address_1,
+//                "city":user.billing.city,
+//                "postcode":user.billing.postcode,
+//                "state":user.billing.state,
+//                "email":user.billing.email,
+//                "phone":user.billing.phone
+//            ],
+//            "line_items": lineItems
+//        ]
+//        
+//        api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
+//            DispatchQueue.main.async {
+//                self.isLoading.toggle()
+//                switch result {
+//                case .success(let data):
+//                    print(data)
+//                    self.order = data
+//                case .failure(let error):
+//                    print("Error failed: \(error.localizedDescription)")
+//                    self.error = error.localizedDescription
+//                }
+//            }
+//        }
+//    }
+    
+    // Service
+    func onCreateOrder(
+        user: User,
+        paymentMethod: String,
+        paymentMethodTitle: String,
+        customerNote: String,
+        status: String,
+        productOrders: [ProductOrder],
+        completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
+    ) {
+        self.isLoading = true
+
+        var lineItems: [[String: Any]] = []
+        for p in productOrders {
+            var metas: [[String: Any]] = []
+            for m in p.meta_data {
+                metas.append(["id": m.id, "key": m.key, "value": m.value])
             }
-            
-            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
+            lineItems.append([
+                "product_id": p.product_id,
+                "quantity": p.quantity,
+                "meta_data": metas
+                // Woo can compute totals; if you must send total, keep it as a String.
+                // "total": "\(p.price)"
+            ])
         }
-        
-        print(lineItems)
-        
-        // prepare json data
+
         var json: [String: Any] = [
             "customer_id": user.id,
-            "payment_method": paymentMethod,
+            "payment_method": paymentMethod,            // e.g. "stripe"
             "payment_method_title": paymentMethodTitle,
             "customer_note": customerNote,
+            // Consider "pending" for unpaid orders; "on-hold" also works.
             "status": status,
             "billing": [
-                "first_name":user.billing.first_name,
-                "last_name":user.billing.last_name,
-                "country":user.billing.country,
-                "address_1":user.billing.address_1,
-                "city":user.billing.city,
-                "postcode":user.billing.postcode,
-                "state":user.billing.state,
-                "email":user.billing.email,
-                "phone":user.billing.phone
+                "first_name": user.billing.first_name,
+                "last_name": user.billing.last_name,
+                "country": user.billing.country,
+                "address_1": user.billing.address_1,
+                "city": user.billing.city,
+                "postcode": user.billing.postcode,
+                "state": user.billing.state,
+                "email": user.billing.email,
+                "phone": user.billing.phone
             ],
             "line_items": lineItems
         ]
-        
+
         api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
             DispatchQueue.main.async {
-                self.isLoading.toggle()
+                self.isLoading = false
                 switch result {
-                case .success(let data):
-                    print(data)
-                    self.order = data
+                case .success(let order):
+                    self.order = order
+                    completion(order.id, order.paymentURL)
                 case .failure(let error):
-                    print("Error failed: \(error.localizedDescription)")
                     self.error = error.localizedDescription
+                    completion(nil, nil)
                 }
             }
         }

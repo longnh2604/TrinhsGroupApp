@@ -199,8 +199,12 @@ class MainViewModel: ObservableObject {
             .sink { order in
                 if order.id != Order.default.id {
                     self.receivedOrder = order
-                    self.presentedType = .orderReceived
-                    self.reset()
+                    if let urlPayment = order.paymentURL, !urlPayment.isEmpty {
+                        // Payment by Stripe
+                    } else {
+                        self.presentedType = .orderReceived
+                        self.reset()
+                    }
                 }
             }
             .store(in: &cancellableSet)
@@ -251,11 +255,39 @@ class MainViewModel: ObservableObject {
         service.fetchSelectedCategoryProducts(id: id)
     }
     
-    func onCreateOrder(user: User, productOrders: [ProductOrder]) {
-        if let id = selectedPayment?.id, let title = selectedPayment?.title {
-            service.onCreateOrder(user: user, paymentMethod: id, paymentMethodTitle: title, customerNote: "", status: "on-hold", productOrders: productOrders)
+//    func onCreateOrder(user: User, productOrders: [ProductOrder]) {
+//        if let id = selectedPayment?.id, let title = selectedPayment?.title {
+//            service.onCreateOrder(user: user, paymentMethod: id, paymentMethodTitle: title, customerNote: "", status: "on-hold", productOrders: productOrders)
+//        }
+//    }
+    
+    // ViewModel
+    func onCreateOrder(
+        user: User,
+        productOrders: [ProductOrder],
+        completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
+    ) {
+        guard let id = selectedPayment?.id,
+              let title = selectedPayment?.title
+        else {
+            completion(nil, nil)
+            return
         }
+
+        // Use "pending" to represent “awaiting payment” (optional)
+        let desiredStatus = "on-hold" // or keep "on-hold" if you prefer
+
+        service.onCreateOrder(
+            user: user,
+            paymentMethod: id,
+            paymentMethodTitle: title,
+            customerNote: "",
+            status: desiredStatus,
+            productOrders: productOrders,
+            completion: completion
+        )
     }
+
     
     func onFetchPamyentMethods() {
         service.onFetchPaymentMethods()

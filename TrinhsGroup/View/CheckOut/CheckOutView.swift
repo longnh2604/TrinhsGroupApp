@@ -6,25 +6,47 @@
 //
 
 import SwiftUI
-import Stripe
 
 struct CheckOutView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
     @StateObject var stripeManager = StripeManager()
+    @State private var checkoutURL: URL?
+    @State private var showSafari: Bool = false
 
     fileprivate func SubmitButton() -> some View {
-        Button {
+        Button(action: {
             guard authViewModel.checkUserUpdatedBillInfo() else { return }
 
             if mainViewModel.selectedPayment?.id == "stripe" {
-                if stripeManager.paymentSheet == nil {
-                    stripeManager.preparePaymentSheet { ok in
-                        if ok { stripeManager.presentPaymentSheet() }
-                    }
-                } else {
-                    stripeManager.presentPaymentSheet()
+                // 1) Create a WooCommerce order (pending) and get its payment URL
+                //    Make sure your onCreateOrder returns the Woo "payment_url" in completion.
+                let productOrders = mainViewModel.items.map { item in
+                    ProductOrder(
+                        id: 0,
+                        product_id: item.id,
+                        name: item.name,
+                        quantity: item.quantity,
+                        subtotal: "",
+                        total: item.regular_price,
+                        price: item.regular_price,
+                        meta_data: item.meta_data
+                    )
                 }
+
+                mainViewModel.onCreateOrder(
+                    user: authViewModel.user,
+                    productOrders: productOrders
+                ) { orderId, paymentURLString in
+                    // paymentURLString should be Woo's order payment URL (or checkout url)
+                    if let s = paymentURLString, let url = URL(string: s) {
+                        checkoutURL = url
+                        showSafari = true
+                    } else {
+                        // TODO: show an alert that we couldn't get a payment URL
+                    }
+                }
+
                 return
             }
 
@@ -40,9 +62,11 @@ struct CheckOutView: View {
                     meta_data: order_item.meta_data
                 )
             }
-            mainViewModel.onCreateOrder(user: authViewModel.user, productOrders: productOrders)
-        } label: {
-            Text(stripeManager.isPreparing ? "Preparing…" : "Submit Order")
+            mainViewModel.onCreateOrder(user: authViewModel.user, productOrders: productOrders) { orderId, paymentURL in
+                // do nothing
+            }
+        }) {
+            Text("Submit Order")
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 50)
@@ -58,11 +82,12 @@ struct CheckOutView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.init(hex: "f9f9f9").ignoresSafeArea()
+                Color.init(hex: "f9f9f9").edgesIgnoringSafeArea(.all)
                 VStack {
                     ScrollView {
                         VStack(alignment: .leading) {
                             Text("Select Payment").font(.headline)
+
                             ForEach(mainViewModel.payments.filter { $0.enabled }) { item in
                                 PaymentItemView(item: item)
                                     .environmentObject(mainViewModel)
@@ -84,10 +109,52 @@ struct CheckOutView: View {
                 }
             }
             .onAppear {
-                // Only fetch payment methods here.
-                mainViewModel.onFetchPamyentMethods() // (typo?) onFetchPaymentMethods
-                // Do NOT prepare Stripe here; do it on demand.
+                DispatchQueue.main.async {
+                    mainViewModel.onFetchPamyentMethods()
+                }
+            }
+            // Present Safari for the checkout
+            .sheet(isPresented: $showSafari) {
+                if let url = checkoutURL {
+                    SafariSheet(url: url)
+                        .ignoresSafeArea()
+                }
+            }
+            // 2) Handle RETURN deep-link from Woo "Thank you" page
+            .onOpenURL { url in
+                // Example deep link: myapp://checkout/complete?order_id=123&status=processing
+                guard url.scheme == "trinhsgroup",
+                      url.host == "checkout" else { return }
+
+                let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                let path = url.path  // e.g., "/complete"
+                let orderId = components?.queryItems?.first(where: {$0.name == "order_id"})?.value
+                let status  = components?.queryItems?.first(where: {$0.name == "status"})?.value
+
+                // Dismiss Safari
+                showSafari = false
             }
         }
     }
+}
+
+struct CheckOutView_Previews: PreviewProvider {
+    static var previews: some View {
+        CheckOutView()
+    }
+}
+
+import SafariServices
+import SwiftUI
+
+struct SafariSheet: UIViewControllerRepresentable {
+    let url: URL
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let vc = SFSafariViewController(url: url)
+        vc.preferredBarTintColor = .systemBackground
+        vc.preferredControlTintColor = .label
+        vc.dismissButtonStyle = .close
+        return vc
+    }
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }

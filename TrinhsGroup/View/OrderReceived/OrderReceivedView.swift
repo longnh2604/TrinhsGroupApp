@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct OrderReceivedView: View {
-    
     @EnvironmentObject var mainViewModel: MainViewModel
     
     fileprivate func NavigationBarView() -> some View {
