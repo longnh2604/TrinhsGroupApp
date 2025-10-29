@@ -95,6 +95,7 @@
 		FD9A222128756913009FDD65 /* CouponModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A222028756913009FDD65 /* CouponModel.swift */; };
 		FD9A222328756BF9009FDD65 /* ShipMethodModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A222228756BF9009FDD65 /* ShipMethodModel.swift */; };
 		FD9A222628757029009FDD65 /* CheckOutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A222528757029009FDD65 /* CheckOutView.swift */; };
+		F5AD91C0DB3042398B88C5B8 /* PickupDateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */; };
 		FD9A222828757074009FDD65 /* PaymentItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A222728757074009FDD65 /* PaymentItemView.swift */; };
 		FD9A222A28757097009FDD65 /* ShippingItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A222928757097009FDD65 /* ShippingItemView.swift */; };
 		FD9A222C287570DE009FDD65 /* PaymentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A222B287570DE009FDD65 /* PaymentModel.swift */; };
@@ -212,6 +213,7 @@
 		FD9A222028756913009FDD65 /* CouponModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CouponModel.swift; sourceTree = "<group>"; };
 		FD9A222228756BF9009FDD65 /* ShipMethodModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipMethodModel.swift; sourceTree = "<group>"; };
 		FD9A222528757029009FDD65 /* CheckOutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckOutView.swift; sourceTree = "<group>"; };
+		F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupDateTimeView.swift; sourceTree = "<group>"; };
 		FD9A222728757074009FDD65 /* PaymentItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentItemView.swift; sourceTree = "<group>"; };
 		FD9A222928757097009FDD65 /* ShippingItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShippingItemView.swift; sourceTree = "<group>"; };
 		FD9A222B287570DE009FDD65 /* PaymentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentModel.swift; sourceTree = "<group>"; };
@@ -577,6 +579,7 @@
 			isa = PBXGroup;
 			children = (
 				FD9A222528757029009FDD65 /* CheckOutView.swift */,
+				F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */,
 				FD9A222728757074009FDD65 /* PaymentItemView.swift */,
 				FD9A222928757097009FDD65 /* ShippingItemView.swift */,
 			);
@@ -716,6 +719,7 @@
 				FD8EAF1F2872E08B004F9ED0 /* AppSetting.swift in Sources */,
 				FD8EAF0D2872CE89004F9ED0 /* SignupView.swift in Sources */,
 				FD9A222628757029009FDD65 /* CheckOutView.swift in Sources */,
+				F5AD91C0DB3042398B88C5B8 /* PickupDateTimeView.swift in Sources */,
 				FD8EAF052872CBC9004F9ED0 /* BillingModel.swift in Sources */,
 				22EC20B82DA51C2E0032C77B /* WooErrorResponse.swift in Sources */,
 				FD94E3EB287C187700ED4B2C /* OrderReceivedDetailView.swift in Sources */,

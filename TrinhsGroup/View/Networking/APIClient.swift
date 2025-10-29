@@ -23,6 +23,24 @@ class APIClient {
         let cache = URLCache(memoryCapacity: MEMORY_CAPACITY, diskCapacity: DISK_CAPACITY, diskPath: nil)
         URLCache.shared = cache
     }
+    
+    // Helper function to convert AnyCodableValue to JSON-serializable value
+    private func convertAnyCodableValueToJSON(_ value: AnyCodableValue) -> Any {
+        switch value {
+        case .integer(let intValue):
+            return intValue
+        case .string(let stringValue):
+            return stringValue
+        case .float(let floatValue):
+            return floatValue
+        case .double(let doubleValue):
+            return doubleValue
+        case .boolean(let boolValue):
+            return boolValue
+        case .null:
+            return NSNull()
+        }
+    }
 }
 
 extension APIClient {
@@ -213,13 +231,15 @@ extension APIClient {
         }.resume()
     }
     
-    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], completion: @escaping requestAnyDataCompletion) {
+    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder], pickupDateTime: String, completion: @escaping requestAnyDataCompletion) {
         var lineItems:Array = [Dictionary<String, Any>]()
         
         for productOrder in productOrders {
             var meta_data: Array = [Dictionary<String, Any>]()
             for meta in productOrder.meta_data {
-                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
+                // Convert AnyCodableValue to JSON-serializable value
+                let jsonValue: Any = convertAnyCodableValueToJSON(meta.value)
+                meta_data.append(["id": meta.id, "key": meta.key, "value": jsonValue])
             }
             
             lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
@@ -245,7 +265,13 @@ extension APIClient {
                 "email":user.billing.email,
                 "phone":user.billing.phone
             ],
-            "line_items": lineItems
+            "line_items": lineItems,
+            "meta_data": [
+                [
+                    "key": "pickup_datetime",
+                    "value": pickupDateTime
+                ]
+            ]
         ]
         
 //        if coupon.id != Coupon.default.id {

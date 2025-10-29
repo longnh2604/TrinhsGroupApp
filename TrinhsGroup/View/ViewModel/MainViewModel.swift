@@ -199,12 +199,8 @@ class MainViewModel: ObservableObject {
             .sink { order in
                 if order.id != Order.default.id {
                     self.receivedOrder = order
-                    if let urlPayment = order.paymentURL, !urlPayment.isEmpty {
-                        // Payment by Stripe
-                    } else {
-                        self.presentedType = .orderReceived
-                        self.reset()
-                    }
+                    self.presentedType = .orderReceived
+                    self.reset()
                 }
             }
             .store(in: &cancellableSet)
@@ -255,16 +251,10 @@ class MainViewModel: ObservableObject {
         service.fetchSelectedCategoryProducts(id: id)
     }
     
-//    func onCreateOrder(user: User, productOrders: [ProductOrder]) {
-//        if let id = selectedPayment?.id, let title = selectedPayment?.title {
-//            service.onCreateOrder(user: user, paymentMethod: id, paymentMethodTitle: title, customerNote: "", status: "on-hold", productOrders: productOrders)
-//        }
-//    }
-    
-    // ViewModel
     func onCreateOrder(
         user: User,
         productOrders: [ProductOrder],
+        pickupDateTime: String,
         completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
     ) {
         guard let id = selectedPayment?.id,
@@ -274,7 +264,7 @@ class MainViewModel: ObservableObject {
             return
         }
 
-        // Use "pending" to represent “awaiting payment” (optional)
+        // Use "pending" to represent "awaiting payment" (optional)
         let desiredStatus = "on-hold" // or keep "on-hold" if you prefer
 
         service.onCreateOrder(
@@ -284,11 +274,11 @@ class MainViewModel: ObservableObject {
             customerNote: "",
             status: desiredStatus,
             productOrders: productOrders,
+            pickupDateTime: pickupDateTime,
             completion: completion
         )
     }
 
-    
     func onFetchPamyentMethods() {
         service.onFetchPaymentMethods()
     }

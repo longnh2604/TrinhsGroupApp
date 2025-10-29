@@ -13,16 +13,31 @@ struct CheckOutView: View {
     @StateObject var stripeManager = StripeManager()
     @State private var checkoutURL: URL?
     @State private var showSafari: Bool = false
+    @State private var selectedPickupDateTime: Date?
+    
+    // Computed property to check if submit button should be enabled
+    private var isSubmitEnabled: Bool {
+        return mainViewModel.selectedPayment != nil && selectedPickupDateTime != nil
+    }
+    
+    // Format pickup datetime for API
+    private func formatPickupDateTimeForAPI(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        formatter.timeZone = TimeZone(identifier: "Australia/Sydney")
+        return formatter.string(from: date)
+    }
 
     fileprivate func SubmitButton() -> some View {
         Button(action: {
             guard authViewModel.checkUserUpdatedBillInfo() else { return }
+            guard let pickupDateTime = selectedPickupDateTime else { return }
 
             if mainViewModel.selectedPayment?.id == "stripe" {
                 // 1) Create a WooCommerce order (pending) and get its payment URL
                 //    Make sure your onCreateOrder returns the Woo "payment_url" in completion.
                 let productOrders = mainViewModel.items.map { item in
-                    ProductOrder(
+                    return ProductOrder(
                         id: 0,
                         product_id: item.id,
                         name: item.name,
@@ -36,14 +51,22 @@ struct CheckOutView: View {
 
                 mainViewModel.onCreateOrder(
                     user: authViewModel.user,
-                    productOrders: productOrders
+                    productOrders: productOrders,
+                    pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime)
                 ) { orderId, paymentURLString in
-                    // paymentURLString should be Woo's order payment URL (or checkout url)
-                    if let s = paymentURLString, let url = URL(string: s) {
-                        checkoutURL = url
-                        showSafari = true
+                    // Handle Stripe payment flow
+                    if let orderId = orderId {
+                        print("Stripe order created successfully with ID: \(orderId)")
+                        if let s = paymentURLString, let url = URL(string: s) {
+                            checkoutURL = url
+                            showSafari = true
+                        } else {
+                            print("Failed to get payment URL for Stripe")
+                            // TODO: show an alert that we couldn't get a payment URL
+                        }
                     } else {
-                        // TODO: show an alert that we couldn't get a payment URL
+                        print("Failed to create Stripe order")
+                        // TODO: Show error message to user
                     }
                 }
 
@@ -51,7 +74,7 @@ struct CheckOutView: View {
             }
 
             let productOrders = mainViewModel.items.map { order_item in
-                ProductOrder(
+                return ProductOrder(
                     id: 0,
                     product_id: order_item.id,
                     name: order_item.name,
@@ -62,8 +85,18 @@ struct CheckOutView: View {
                     meta_data: order_item.meta_data
                 )
             }
-            mainViewModel.onCreateOrder(user: authViewModel.user, productOrders: productOrders) { orderId, paymentURL in
-                // do nothing
+            mainViewModel.onCreateOrder(
+                user: authViewModel.user, 
+                productOrders: productOrders,
+                pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime)
+            ) { orderId, paymentURL in
+                // Handle successful order creation
+                if let orderId = orderId {
+                    print("Order created successfully with ID: \(orderId)")
+                } else {
+                    print("Failed to create order")
+                    // TODO: Show error message to user
+                }
             }
         }) {
             Text("Submit Order")
@@ -74,7 +107,7 @@ struct CheckOutView: View {
                 .background(Color("ColorPrimary"))
                 .cornerRadius(25)
         }
-        .disabled(stripeManager.isPreparing)
+        .disabled(stripeManager.isPreparing || !isSubmitEnabled)
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
     }
@@ -92,6 +125,11 @@ struct CheckOutView: View {
                                 PaymentItemView(item: item)
                                     .environmentObject(mainViewModel)
                             }
+                            
+                            // Pickup Date & Time Selection
+                            PickupDateTimeView(selectedDateTime: $selectedPickupDateTime)
+                                .padding(.top, 20)
+                            
                             HStack {
                                 Text("Total:").foregroundColor(.gray)
                                 Spacer()
@@ -122,7 +160,6 @@ struct CheckOutView: View {
             }
             // 2) Handle RETURN deep-link from Woo "Thank you" page
             .onOpenURL { url in
-                // Example deep link: myapp://checkout/complete?order_id=123&status=processing
                 guard url.scheme == "trinhsgroup",
                       url.host == "checkout" else { return }
 
@@ -131,8 +168,15 @@ struct CheckOutView: View {
                 let orderId = components?.queryItems?.first(where: {$0.name == "order_id"})?.value
                 let status  = components?.queryItems?.first(where: {$0.name == "status"})?.value
 
+                print("Deep link received - Order ID: \(orderId ?? "nil"), Status: \(status ?? "nil")")
+                
                 // Dismiss Safari
                 showSafari = false
+                
+                // Navigate to OrderReceivedView after successful payment
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    mainViewModel.presentedType = .orderReceived
+                }
             }
         }
     }

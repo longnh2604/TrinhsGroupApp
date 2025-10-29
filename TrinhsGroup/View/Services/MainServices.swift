@@ -40,6 +40,24 @@ class MainServices: MainServicesProtocol {
     
     private let api = WooCommerceAPI()
     
+    // Helper function to convert AnyCodableValue to JSON-serializable value
+    private func convertAnyCodableValueToJSON(_ value: AnyCodableValue) -> Any {
+        switch value {
+        case .integer(let intValue):
+            return intValue
+        case .string(let stringValue):
+            return stringValue
+        case .float(let floatValue):
+            return floatValue
+        case .double(let doubleValue):
+            return doubleValue
+        case .boolean(let boolValue):
+            return boolValue
+        case .null:
+            return NSNull()
+        }
+    }
+    
     func onFetchCategories() {
         self.isLoading.toggle()
         api.request(endpoint: .fetchCategories, method: .GET) { (result: Result<[Category], Error>) in
@@ -91,59 +109,6 @@ class MainServices: MainServicesProtocol {
         }
     }
     
-//    func onCreateOrder(user: User, paymentMethod: String, paymentMethodTitle: String, customerNote: String, status: String, productOrders: [ProductOrder]) {
-//        self.isLoading.toggle()
-//        
-//        var lineItems:Array = [Dictionary<String, Any>]()
-//        
-//        for productOrder in productOrders {
-//            var meta_data: Array = [Dictionary<String, Any>]()
-//            for meta in productOrder.meta_data {
-//                meta_data.append(["id": meta.id, "key": meta.key, "value": meta.value])
-//            }
-//            
-//            lineItems.append(["product_id" : productOrder.product_id, "quantity" : productOrder.quantity, "meta_data": meta_data, "price": productOrder.price, "total": "\(productOrder.price)"])
-//        }
-//        
-//        print(lineItems)
-//        
-//        // prepare json data
-//        var json: [String: Any] = [
-//            "customer_id": user.id,
-//            "payment_method": paymentMethod,
-//            "payment_method_title": paymentMethodTitle,
-//            "customer_note": customerNote,
-//            "status": status,
-//            "billing": [
-//                "first_name":user.billing.first_name,
-//                "last_name":user.billing.last_name,
-//                "country":user.billing.country,
-//                "address_1":user.billing.address_1,
-//                "city":user.billing.city,
-//                "postcode":user.billing.postcode,
-//                "state":user.billing.state,
-//                "email":user.billing.email,
-//                "phone":user.billing.phone
-//            ],
-//            "line_items": lineItems
-//        ]
-//        
-//        api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
-//            DispatchQueue.main.async {
-//                self.isLoading.toggle()
-//                switch result {
-//                case .success(let data):
-//                    print(data)
-//                    self.order = data
-//                case .failure(let error):
-//                    print("Error failed: \(error.localizedDescription)")
-//                    self.error = error.localizedDescription
-//                }
-//            }
-//        }
-//    }
-    
-    // Service
     func onCreateOrder(
         user: User,
         paymentMethod: String,
@@ -151,6 +116,7 @@ class MainServices: MainServicesProtocol {
         customerNote: String,
         status: String,
         productOrders: [ProductOrder],
+        pickupDateTime: String,
         completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
     ) {
         self.isLoading = true
@@ -159,7 +125,9 @@ class MainServices: MainServicesProtocol {
         for p in productOrders {
             var metas: [[String: Any]] = []
             for m in p.meta_data {
-                metas.append(["id": m.id, "key": m.key, "value": m.value])
+                // Convert AnyCodableValue to JSON-serializable value
+                let jsonValue: Any = convertAnyCodableValueToJSON(m.value)
+                metas.append(["id": m.id, "key": m.key, "value": jsonValue])
             }
             lineItems.append([
                 "product_id": p.product_id,
@@ -188,7 +156,13 @@ class MainServices: MainServicesProtocol {
                 "email": user.billing.email,
                 "phone": user.billing.phone
             ],
-            "line_items": lineItems
+            "line_items": lineItems,
+            "meta_data": [
+                [
+                    "key": "pickup_datetime",
+                    "value": pickupDateTime
+                ]
+            ]
         ]
 
         api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
