@@ -49,7 +49,7 @@ struct StatusItemView: View {
             Spacer()
             
             if current == status {
-                Text(date.toDate())
+                Text(date.toAustraliaDateTime())
                     .foregroundColor(.black)
                     .font(.footnote)
             }

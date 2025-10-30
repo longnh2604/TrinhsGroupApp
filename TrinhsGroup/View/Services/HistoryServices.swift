@@ -29,7 +29,6 @@ class HistoryServices: HistoryServicesProtocol {
         self.isLoading.toggle()
         api.request(endpoint: .fetchHistoryOrders(customerID: id), method: .GET) { (result: Result<[Order], Error>) in
             DispatchQueue.main.async {
-                self.isLoading.toggle()
                 switch result {
                 case .success(let data):
                     print("All orders: \(data)")

@@ -125,9 +125,9 @@ struct ProfileView: View {
                     LogoutButton()
                         .padding(.bottom, 8)
                 }
-                .navigationBarTitle(Text(""), displayMode: .inline)
-                .navigationBarHidden(true)
-                .navigationBarBackButtonHidden(true)
+                .onAppear {
+                    historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+                }
                 
                 NavigationLink(
                     destination: EditProfileView()
@@ -151,7 +151,7 @@ struct ProfileView: View {
                 .hidden()
                 
                 NavigationLink(
-                    destination: MyOrdersView()
+                    destination: MyOrdersView(filter: .pastOnly)
                         .environmentObject(mainViewModel)
                         .environmentObject(historyViewModel)
                         .environmentObject(authViewModel),
@@ -161,6 +161,10 @@ struct ProfileView: View {
                     }
                 )
                 .hidden()
+                
+                if historyViewModel.showLoading {
+                    LoadingView().ignoresSafeArea()
+                }
             }
         }
         .alert(isPresented: $showDialog, content: {
@@ -173,9 +177,6 @@ struct ProfileView: View {
                   secondaryButton: .cancel()
             )
         })
-        .onAppear {
-            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
-        }
     }
 }
 

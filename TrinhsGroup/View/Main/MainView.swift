@@ -20,35 +20,7 @@ struct MainView: View {
             Constants.AppColor.lightGrayColor
                 .edgesIgnoringSafeArea(.all)
             
-            VStack {
-                Group {
-                    switch selectedTab {
-                        case 0: HomeView()
-                            .environmentObject(mainViewModel)
-                            .environmentObject(firestoreManager)
-                        case 1: MenuView()
-                            .environmentObject(mainViewModel)
-                        case 2: MyOrdersView()
-                            .environmentObject(mainViewModel)
-                            .environmentObject(authViewModel)
-                            .environmentObject(historyViewModel)
-                        case 3: FavoriteView()
-                            .environmentObject(mainViewModel)
-                            .environmentObject(firestoreManager)
-                        case 4: ProfileView()
-                            .environmentObject(mainViewModel)
-                            .environmentObject(authViewModel)
-                            .environmentObject(historyViewModel)
-                        default: HomeView()
-                            .environmentObject(mainViewModel)
-                            .environmentObject(firestoreManager)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea(.keyboard)
-                
-                CustomTabBar(selectedTab: $selectedTab)
-            }
+            
             
             if mainViewModel.presentedType == .cart {
                 CartView()
@@ -86,6 +58,16 @@ struct MainView: View {
             mainViewModel.onFetchCategories()
             mainViewModel.onFetchPopularProducts()
         }
+        .onChange(of: selectedTab) { newValue in
+            // Reset Profile navigation when leaving Profile tab
+            if newValue != 4 {
+                authViewModel.showEditProfile = false
+                authViewModel.showEditAddress = false
+                mainViewModel.showOrderReceived = false
+            }
+            // Also reset order detail overlay when switching tabs
+            historyViewModel.showHistoryOrderDetail = false
+        }
     }
 }
 
@@ -99,7 +81,7 @@ private extension MainView {
         case 1:
             MenuView()
         case 2:
-            MyOrdersView()
+            MyOrdersView(filter: .todayOnly)
         case 3:
             FavoriteView()
         case 4:

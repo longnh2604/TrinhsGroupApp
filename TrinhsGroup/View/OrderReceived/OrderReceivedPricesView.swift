@@ -26,46 +26,30 @@ struct OrderReceivedPricesView: View {
         
             }
             
-            HStack {
-                Text("Shipping( Flat Rate )")
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                
-                Spacer()
-                
-                Text(getPriceAndCurrencySymbol(price: 0, currency: "$", currencyPosition: "right"))
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                    .foregroundColor(Constants.AppColor.primaryBlack)
-              
+            let discountValue = Double(mainViewModel.receivedOrder.discountTotal) ?? 0
+            if discountValue > 0 {
+                HStack {
+                    Text("Discount")
+                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                    
+                    Spacer()
+                    
+                    Text(getPriceAndCurrencySymbol(price: Double(mainViewModel.receivedOrder.discountTotal) ?? 0, currency: "$", currencyPosition: "right"))
+                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                        .foregroundColor(Constants.AppColor.primaryBlack)
+                }
             }
-            
-//            if mainViewModel.receivedOrder.discountTotal > 0 {
-//                HStack {
-//                    Text("Discount")
-//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-//                    
-//                    Spacer()
-//                    
-//                    
-//                    Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.discount_total, currency: "$", currencyPosition: "right"))
-//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-//                        .foregroundColor(Constants.AppColor.primaryBlack)
-//                 
-//                }
-//            }
-            
             
             HStack {
                 Text("Total")
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .fontWeight(.semibold)
                 
-                
                 Spacer()
                 
-//                Text(getPriceAndCurrencySymbol(price: mainViewModel.receivedOrder.total, currency: "$", currencyPosition: "right"))
-//                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-//                    .foregroundColor(Constants.AppColor.primaryBlack)
-                
+                Text(getPriceAndCurrencySymbol(price: Double(mainViewModel.receivedOrder.total) ?? 0, currency: "$", currencyPosition: "right"))
+                    .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                    .foregroundColor(Constants.AppColor.primaryBlack)
             }
         }
         .padding(.vertical)

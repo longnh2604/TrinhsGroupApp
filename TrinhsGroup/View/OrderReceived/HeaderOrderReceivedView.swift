@@ -11,7 +11,7 @@ struct HeaderOrderReceivedView: View {
     var body: some View {
         VStack(spacing: 10){
             
-            Image("logo")
+            Image("ic_logo")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 100, height: 100, alignment: .center)

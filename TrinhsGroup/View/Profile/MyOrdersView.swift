@@ -8,11 +8,41 @@
 import SwiftUI
 
 struct MyOrdersView: View {
+    enum OrdersFilter {
+        case todayOnly
+        case pastOnly
+    }
     
+    var filter: OrdersFilter = .todayOnly
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var historyViewModel: HistoryViewModel
     @State var selectedOrder: Order = Order.default
+    
+    private var filteredOrders: [Order] {
+        let tz = TimeZone(identifier: "Australia/Sydney") ?? .current
+        var calendar = Calendar.current
+        calendar.timeZone = tz
+        guard let todayStart = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: Date()) else {
+            return historyViewModel.orders
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        formatter.timeZone = tz
+        
+        func isSameAustralianDay(_ dateString: String) -> Bool {
+            guard let date = formatter.date(from: dateString) else { return false }
+            return calendar.isDate(date, inSameDayAs: todayStart)
+        }
+        
+        switch filter {
+        case .todayOnly:
+            return historyViewModel.orders.filter { isSameAustralianDay($0.dateCreated) }
+        case .pastOnly:
+            return historyViewModel.orders.filter { !isSameAustralianDay($0.dateCreated) }
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -25,7 +55,7 @@ struct MyOrdersView: View {
                         .environmentObject(mainViewModel)
                     
                     List {
-                        ForEach(historyViewModel.orders) { order in
+                        ForEach(filteredOrders) { order in
                             OrderHistoryItemView(order: order)
                                 .padding(.horizontal)
                                 .padding(.bottom)
@@ -58,6 +88,12 @@ struct MyOrdersView: View {
             .navigationBarHidden(true)
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            // Fetch orders when entering via bottom tab so the list is populated
+            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+            // Always start from list view (not detail overlay)
+            historyViewModel.showHistoryOrderDetail = false
+        }
     }
 }
 

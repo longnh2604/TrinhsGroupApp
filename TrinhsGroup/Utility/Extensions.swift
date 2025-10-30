@@ -62,12 +62,34 @@ extension String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = format
         guard let date = dateFormatter.date(from: self) else {
-//            preconditionFailure("Take a look to your format")
             return self
         }
         let dateFormatterTo = DateFormatter()
         dateFormatterTo.dateFormat = "dd MMM yyyy HH:mm"
         return dateFormatterTo.string(from: date)
+    }
+
+    // Convert ISO-like string (e.g., 2025-09-22T03:04:03) to Australia/Sydney time with a custom format
+    // Default output format: yyyy-MM-dd hh:mm:ss (12-hour as requested)
+    func toAustraliaDateTime(
+        inputFormat: String = "yyyy-MM-dd'T'HH:mm:ss",
+        outputFormat: String = "yyyy-MM-dd hh:mm:ss"
+    ) -> String {
+        let input = DateFormatter()
+        input.locale = Locale(identifier: "en_US_POSIX")
+        input.dateFormat = inputFormat
+        // Assume server times are UTC when no timezone provided
+        input.timeZone = TimeZone(secondsFromGMT: 0)
+
+        guard let date = input.date(from: self) else {
+            return self
+        }
+
+        let output = DateFormatter()
+        output.locale = Locale(identifier: "en_AU_POSIX")
+        output.dateFormat = outputFormat
+        output.timeZone = TimeZone(identifier: "Australia/Sydney")
+        return output.string(from: date)
     }
     
     var html2AttributedString: String? {

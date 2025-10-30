@@ -26,7 +26,6 @@ class HistoryViewModel: ObservableObject {
     
     func bindingData() {
         service.loadingPublisher
-            .dropFirst()
             .receive(on: RunLoop.main)
             .assign(to: &$showLoading)
         

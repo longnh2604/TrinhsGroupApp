@@ -28,7 +28,7 @@ struct OrderReceivedDetailView: View {
                     Text("Date")
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
-                    Text(mainViewModel.receivedOrder.dateCreated.toDate())
+                    Text(mainViewModel.receivedOrder.dateCreated.toAustraliaDateTime())
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                 }
                 

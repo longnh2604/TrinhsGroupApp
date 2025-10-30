@@ -18,7 +18,7 @@ struct OrderHistoryItemView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Order No #\(order.number)")
                         .fontWeight(.semibold)
-                    Text(order.dateCreated.toDate())
+                    Text(order.dateCreated.toAustraliaDateTime())
                         .font(.footnote)
                 }
                 .foregroundColor(.black)
