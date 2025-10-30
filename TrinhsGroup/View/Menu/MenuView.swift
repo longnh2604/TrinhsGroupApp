@@ -33,14 +33,14 @@ struct MenuView: View {
                     HomeNavigationBarView(title: "Menu", showNotificationIcon: false)
                         .environmentObject(mainViewModel)
                     
-                    HStack {
-                        TextField("Search...", text: $searchText)
-                            .padding(10)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(16)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
+//                    HStack {
+//                        TextField("Search...", text: $searchText)
+//                            .padding(10)
+//                            .background(Color(.systemGray6))
+//                            .cornerRadius(16)
+//                    }
+//                    .padding(.horizontal)
+//                    .padding(.bottom, 8)
                     
                     // Category Selector
                     CategorySelectorView(selectedCategory: $selectedCategory, categories: mainViewModel.categories)
@@ -59,6 +59,10 @@ struct MenuView: View {
                             }
                         }
                     }
+                }
+                
+                if mainViewModel.isCategoryProductsLoading {
+                    LoadingView().ignoresSafeArea()
                 }
             }
             .onAppear {

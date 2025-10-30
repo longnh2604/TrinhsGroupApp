@@ -26,7 +26,10 @@ struct OrderReceivedPricesView: View {
         
             }
             
-            let discountValue = Double(mainViewModel.receivedOrder.discountTotal) ?? 0
+            // Show Discount 5% line derived from final total
+            let finalTotal = Double(mainViewModel.receivedOrder.total) ?? 0
+            let originalFromFinal = finalTotal > 0 ? (finalTotal / 0.95) : mainViewModel.receivedOrder.subtotal
+            let discountValue = max(0, originalFromFinal - finalTotal)
             if discountValue > 0 {
                 HStack {
                     Text("Discount")
@@ -34,7 +37,7 @@ struct OrderReceivedPricesView: View {
                     
                     Spacer()
                     
-                    Text(getPriceAndCurrencySymbol(price: Double(mainViewModel.receivedOrder.discountTotal) ?? 0, currency: "$", currencyPosition: "right"))
+                    Text(getPriceAndCurrencySymbol(price: discountValue, currency: "$", currencyPosition: "right"))
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                         .foregroundColor(Constants.AppColor.primaryBlack)
                 }
@@ -47,7 +50,7 @@ struct OrderReceivedPricesView: View {
                 
                 Spacer()
                 
-                Text(getPriceAndCurrencySymbol(price: Double(mainViewModel.receivedOrder.total) ?? 0, currency: "$", currencyPosition: "right"))
+                Text(getPriceAndCurrencySymbol(price: finalTotal, currency: "$", currencyPosition: "right"))
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .foregroundColor(Constants.AppColor.primaryBlack)
             }

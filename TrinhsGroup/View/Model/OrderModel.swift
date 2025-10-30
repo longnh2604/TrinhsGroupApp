@@ -42,6 +42,11 @@ struct Order: Identifiable, Codable {
         case orderKey   = "order_key"
     }
 
+    // Convenience: numeric discount value
+    var discount: Double {
+        Double(discountTotal) ?? 0
+    }
+
     var subtotal: Double {
         lineItems.reduce(0) { $0 + (Double($1.subtotal) ?? 0) }
     }
@@ -67,7 +72,7 @@ struct Order: Identifiable, Codable {
     }
 }
 
-struct LineItem: Codable {
+struct LineItem: Codable, Identifiable {
     var id: Int
     var name: String
     var productId: Int

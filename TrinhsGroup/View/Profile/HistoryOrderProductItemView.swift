@@ -10,7 +10,7 @@ import SwiftUI
 struct HistoryOrderProductItemView: View {
     
     @EnvironmentObject var mainViewModel: MainViewModel
-    var productOrder : ProductOrder = ProductOrder.default
+    var productOrder : LineItem = LineItem.default
     
     var body: some View {
         VStack {
@@ -26,27 +26,27 @@ struct HistoryOrderProductItemView: View {
                 )
             }
             
-            if productOrder.meta_data.count > 0 {
-                HStack {
-                    Text ("Addition:")
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                    Spacer()
-                }.padding(.top, 8)
-                
-                HStack {
-                    ForEach(productOrder.meta_data, id:\.key) { meta in
-                        HStack {
-                            Text(meta.key)
-                            if let value = Int(meta.value.stringValue), value > 0 {
-                                Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "right")))")
-                            }
-                        }
-                        .font(.custom(Constants.AppFont.regularFont, size: 11))
-                        .foregroundColor(Constants.AppColor.secondaryBlack)
-                    }
-                    Spacer()
-                }.padding(.top, 8)
-            }
+//            if productOrder.meta_data.count > 0 {
+//                HStack {
+//                    Text ("Addition:")
+//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+//                    Spacer()
+//                }.padding(.top, 8)
+//                
+//                HStack {
+//                    ForEach(productOrder.meta_data, id:\.key) { meta in
+//                        HStack {
+//                            Text(meta.key)
+//                            if let value = Int(meta.value.stringValue), value > 0 {
+//                                Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "right")))")
+//                            }
+//                        }
+//                        .font(.custom(Constants.AppFont.regularFont, size: 11))
+//                        .foregroundColor(Constants.AppColor.secondaryBlack)
+//                    }
+//                    Spacer()
+//                }.padding(.top, 8)
+//            }
             
             Divider()
         }

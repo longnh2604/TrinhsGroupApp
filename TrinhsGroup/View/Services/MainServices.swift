@@ -15,6 +15,7 @@ protocol MainServicesProtocol: BaseServiceProtocol {
     var loginPublisher: AnyPublisher<Bool, Never> { get }
     var popularProductsPublisher: AnyPublisher<[Product], Never> { get }
     var paymentMethodPublisher: AnyPublisher<[Payment], Never> { get }
+    var categoryProductsLoadingPublisher: AnyPublisher<Bool, Never> { get }
 }
 
 class MainServices: MainServicesProtocol {
@@ -26,9 +27,11 @@ class MainServices: MainServicesProtocol {
     public private(set) lazy var loginPublisher: AnyPublisher<Bool, Never> = $isLoggedIn.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
+    public private(set) lazy var categoryProductsLoadingPublisher: AnyPublisher<Bool, Never> = $isCategoryProductsLoading.eraseToAnyPublisher()
 
     private var cancellableSet: Set<AnyCancellable> = []
     @Published private var isLoading: Bool = false
+    @Published private var isCategoryProductsLoading: Bool = false
     @Published private var isLoggedIn: Bool = false
     @Published private var isUpdated: Bool = false
     @Published private var error: String = ""
@@ -93,10 +96,9 @@ class MainServices: MainServicesProtocol {
     }
     
     func fetchSelectedCategoryProducts(id: Int) {
-        self.isLoading.toggle()
+        self.isCategoryProductsLoading = true
         api.request(endpoint: .fetchProductsCategory(categoryID: id), method: .GET) { (result: Result<[Product], Error>) in
             DispatchQueue.main.async {
-                self.isLoading.toggle()
                 switch result {
                 case .success(let data):
                     print(data)
@@ -105,6 +107,7 @@ class MainServices: MainServicesProtocol {
                     print("Error failed: \(error.localizedDescription)")
                     self.error = error.localizedDescription
                 }
+                self.isCategoryProductsLoading = false
             }
         }
     }
@@ -117,6 +120,7 @@ class MainServices: MainServicesProtocol {
         status: String,
         productOrders: [ProductOrder],
         pickupDateTime: String,
+        discountValue: Double,
         completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
     ) {
         self.isLoading = true
@@ -160,6 +164,7 @@ class MainServices: MainServicesProtocol {
 
         var json: [String: Any] = [
             "customer_id": user.id,
+            "set_paid": false,
             "payment_method": paymentMethod,            // e.g. "stripe"
             "payment_method_title": paymentMethodTitle,
             "customer_note": customerNote,
@@ -184,6 +189,15 @@ class MainServices: MainServicesProtocol {
                 ]
             ]
         ]
+
+        // Apply 5% discount as a negative fee line so order total reflects discount
+        if discountValue > 0 {
+            let feeLines: [[String: Any]] = [[
+                "name": "Discount 5%",
+                "total": String(format: "-%.2f", discountValue)
+            ]]
+            json["fee_lines"] = feeLines
+        }
 
         api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
             DispatchQueue.main.async {

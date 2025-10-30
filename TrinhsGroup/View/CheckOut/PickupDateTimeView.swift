@@ -15,27 +15,25 @@ struct PickupDateTimeView: View {
     // Australia timezone
     private let australiaTimeZone = TimeZone(identifier: "Australia/Sydney") ?? TimeZone.current
     
-    // Available time slots (30-minute intervals)
-    private let timeSlots: [TimeSlot] = [
-        TimeSlot(hour: 11, minute: 0),  // 11:00 AM
-        TimeSlot(hour: 11, minute: 30), // 11:30 AM
-        TimeSlot(hour: 12, minute: 0),  // 12:00 PM
-        TimeSlot(hour: 12, minute: 30), // 12:30 PM
-        TimeSlot(hour: 13, minute: 0),  // 1:00 PM
-        TimeSlot(hour: 13, minute: 30), // 1:30 PM
-        TimeSlot(hour: 14, minute: 0),  // 2:00 PM
-        TimeSlot(hour: 14, minute: 30), // 2:30 PM
-        // Break from 15:00 to 16:30 (3:00 PM to 4:30 PM)
-        TimeSlot(hour: 16, minute: 30), // 4:30 PM
-        TimeSlot(hour: 17, minute: 0),  // 5:00 PM
-        TimeSlot(hour: 17, minute: 30), // 5:30 PM
-        TimeSlot(hour: 18, minute: 0),  // 6:00 PM
-        TimeSlot(hour: 18, minute: 30), // 6:30 PM
-        TimeSlot(hour: 19, minute: 0),  // 7:00 PM
-        TimeSlot(hour: 19, minute: 30), // 7:30 PM
-        TimeSlot(hour: 20, minute: 0),  // 8:00 PM
-        TimeSlot(hour: 20, minute: 30)  // 8:30 PM
-    ]
+    // Fixed 30-minute blocks from 11:30 to 20:30 (inclusive start times)
+    private var timeSlots: [TimeSlot] {
+        var slots: [TimeSlot] = []
+        // Generate from 11:30 up to 20:30
+        var hour = 11
+        var minute = 30
+        while hour < 21 { // last start 20:30
+            // OFF window 15:00 - 16:00 (skip 15:00 and 15:30)
+            if !(hour == 15) {
+                slots.append(TimeSlot(hour: hour, minute: minute))
+            }
+            minute += 30
+            if minute >= 60 {
+                minute = 0
+                hour += 1
+            }
+        }
+        return slots
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -81,19 +79,6 @@ struct PickupDateTimeView: View {
                         .stroke(selectedTimeSlot != nil ? Color.blue : Color.gray.opacity(0.3), lineWidth: 1)
                 )
             }
-            
-            // Selected DateTime Display
-            if let dateTime = selectedDateTime {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("Selected: \(formatFullDateTime(dateTime))")
-                        .font(.subheadline)
-                        .foregroundColor(.green)
-                    Spacer()
-                }
-                .padding(.top, 8)
-            }
         }
         .sheet(isPresented: $showTimePicker) {
             TimeSlotPickerSheet(
@@ -108,33 +93,38 @@ struct PickupDateTimeView: View {
         }
     }
     
-    // Get available time slots for today only
+    // Get available time slots for today (Australia/Sydney); hides past times
     private func getAvailableTimeSlotsForToday() -> [TimeSlot] {
-        let calendar = Calendar.current
-        let now = Date()
-        let currentTime = calendar.dateComponents([.hour, .minute], from: now)
-        let currentMinutes = currentTime.hour! * 60 + currentTime.minute!
+        var calendar = Calendar.current
+        calendar.timeZone = australiaTimeZone
+        let nowSydney = Date()
+        let currentTime = calendar.dateComponents([.hour, .minute], from: nowSydney)
+        let rawMinutes = (currentTime.hour ?? 0) * 60 + (currentTime.minute ?? 0)
+        // Round up to the next half-hour boundary
+        let nextHalfHour: Int = {
+            let remainder = rawMinutes % 30
+            return remainder == 0 ? rawMinutes : rawMinutes + (30 - remainder)
+        }()
         
         return timeSlots.filter { timeSlot in
             let slotMinutes = timeSlot.hour * 60 + timeSlot.minute
-            return slotMinutes > currentMinutes
+            return slotMinutes >= nextHalfHour
         }
     }
     
     // Update selectedDateTime when time is selected (always for today)
     private func updateSelectedDateTime() {
         guard let timeSlot = selectedTimeSlot else { return }
-        
-        let calendar = Calendar.current
-        let today = Date()
-        var components = calendar.dateComponents([.year, .month, .day], from: today)
+        var calendar = Calendar.current
+        calendar.timeZone = australiaTimeZone
+        let todaySydney = Date()
+        var components = calendar.dateComponents([.year, .month, .day], from: todaySydney)
         components.hour = timeSlot.hour
         components.minute = timeSlot.minute
         components.second = 0
         
-        // Convert to Australia timezone
-        if let dateTime = calendar.date(from: components) {
-            selectedDateTime = dateTime
+        if let dateTimeSydney = calendar.date(from: components) {
+            selectedDateTime = dateTimeSydney
         }
     }
     
@@ -162,18 +152,23 @@ struct TimeSlot: Identifiable, Equatable {
     let minute: Int
     
     var displayText: String {
+        // Display as a range: HH:mm - HH:mm in Australia/Sydney
+        let tz = TimeZone(identifier: "Australia/Sydney")
         let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
+        formatter.timeZone = tz
+        formatter.dateFormat = "HH:mm"
         
-        let calendar = Calendar.current
+        var calendar = Calendar.current
+        calendar.timeZone = tz ?? .current
         var components = DateComponents()
         components.hour = hour
         components.minute = minute
         
-        if let date = calendar.date(from: components) {
-            return formatter.string(from: date)
+        guard let start = calendar.date(from: components),
+              let end = calendar.date(byAdding: .minute, value: 30, to: start) else {
+            return "\(hour):\(String(format: "%02d", minute))"
         }
-        return "\(hour):\(String(format: "%02d", minute))"
+        return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
     }
 }
 

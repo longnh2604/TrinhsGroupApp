@@ -32,19 +32,6 @@ struct HistoryOrderDetailDetailView: View {
                     Text(order.dateCreated.toAustraliaDateTime())
                         .foregroundColor(.black)
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Total")
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color("ColorPrimary"))
-                    
-                    Text("\(order.total)")
-                        +
-                        Text("\("$")")
-                        .font(.footnote)
-                }
             }
             
             VStack(alignment: .leading, spacing: 4) {

@@ -39,14 +39,21 @@ func getPrice(value: String)->String{
 }
 
 func getPriceAndCurrencySymbol(price: Double, currency: String, currencyPosition: String)->String{
-    if currencyPosition == "right" {
-        return "\(price)\(currency)"
-    } else if currencyPosition == "right_space" {
-        return "\(price) \(currency)"
-    } else if currencyPosition == "left" {
-        return "\(currency)\(price)"
-    } else {
-        return "\(currency) \(price)"
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    formatter.minimumFractionDigits = 2
+    formatter.maximumFractionDigits = 2
+    let priceString = formatter.string(from: NSNumber(value: price)) ?? String(format: "%.2f", price)
+    
+    switch currencyPosition {
+    case "right":
+        return "\(priceString)\(currency)"
+    case "right_space":
+        return "\(priceString) \(currency)"
+    case "left":
+        return "\(currency)\(priceString)"
+    default:
+        return "\(currency) \(priceString)"
     }
 }
 

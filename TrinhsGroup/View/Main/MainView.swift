@@ -36,10 +36,6 @@ struct MainView: View {
                 CheckOutView()
             }
             
-            if mainViewModel.showLoading {
-                LoadingView().ignoresSafeArea()
-            }
-            
             VStack(spacing: 0) {
                 content(for: selectedTab)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

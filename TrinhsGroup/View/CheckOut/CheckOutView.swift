@@ -15,9 +15,13 @@ struct CheckOutView: View {
     @State private var showSafari: Bool = false
     @State private var selectedPickupDateTime: Date?
     
-    // Computed property to check if submit button should be enabled
+    // Computed property: enable only when payments fetched and a method selected, and pickup time chosen
     private var isSubmitEnabled: Bool {
-        return mainViewModel.selectedPayment != nil && selectedPickupDateTime != nil
+        let availablePayments = mainViewModel.payments.filter { $0.enabled && $0.id != "stripe" }
+        let hasFetchedPayments = !availablePayments.isEmpty
+        let hasSelectedPayment = mainViewModel.selectedPayment != nil
+        let hasPickupTime = selectedPickupDateTime != nil
+        return hasFetchedPayments && hasSelectedPayment && hasPickupTime
     }
     
     // Format pickup datetime for API
@@ -104,7 +108,7 @@ struct CheckOutView: View {
                 .foregroundColor(.white)
                 .frame(height: 50)
                 .frame(maxWidth: .infinity)
-                .background(Color("ColorPrimary"))
+                .background((stripeManager.isPreparing || !isSubmitEnabled) ? Color.gray : Color("ColorPrimary"))
                 .cornerRadius(25)
         }
         .disabled(stripeManager.isPreparing || !isSubmitEnabled)
@@ -117,11 +121,27 @@ struct CheckOutView: View {
             ZStack {
                 Color.init(hex: "f9f9f9").edgesIgnoringSafeArea(.all)
                 VStack {
+                    HStack {
+                        Button(action: {
+                            // Dismiss checkout and go back to previous screen
+                            mainViewModel.presentedType = .none
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "chevron.left")
+                                Text("Back")
+                            }
+                            .foregroundColor(Color("ColorPrimary"))
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 15)
+                    .padding(.top, 10)
+
                     ScrollView {
                         VStack(alignment: .leading) {
                             Text("Select Payment").font(.headline)
 
-                            ForEach(mainViewModel.payments.filter { $0.enabled }) { item in
+                            ForEach(mainViewModel.payments.filter { $0.enabled && $0.id != "stripe" }) { item in
                                 PaymentItemView(item: item)
                                     .environmentObject(mainViewModel)
                             }
@@ -130,13 +150,29 @@ struct CheckOutView: View {
                             PickupDateTimeView(selectedDateTime: $selectedPickupDateTime)
                                 .padding(.top, 20)
                             
+                            // Subtotal (original, pre-discount), Discount 5%, and final Total
+                            let originalTotal = mainViewModel.total
+                            let discountValue = originalTotal * 0.05
+                            let finalTotal = max(0, originalTotal - discountValue)
+                            HStack {
+                                Text("Subtotal").foregroundColor(.gray)
+                                Spacer()
+                                Text(getPriceAndCurrencySymbol(price: originalTotal, currency: "$", currencyPosition: "right"))
+                            }
+                            .padding(.top, 15)
+                            HStack {
+                                Text("Discount (5%)").foregroundColor(.gray)
+                                Spacer()
+                                Text("-" + getPriceAndCurrencySymbol(price: discountValue, currency: "$", currencyPosition: "right"))
+                            }
+                            .padding(.top, 6)
+
                             HStack {
                                 Text("Total:").foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: mainViewModel.total, currency: "$", currencyPosition: "right"))
+                                Text(getPriceAndCurrencySymbol(price: finalTotal, currency: "$", currencyPosition: "right"))
                                     .bold()
                             }
-                            .padding(.top, 15)
                             if let msg = stripeManager.lastError {
                                 Text(msg).foregroundColor(.red).font(.footnote)
                             }
@@ -145,10 +181,17 @@ struct CheckOutView: View {
                     }
                     SubmitButton()
                 }
+                
+                if mainViewModel.showLoading {
+                    LoadingView().ignoresSafeArea()
+                }
             }
             .onAppear {
                 DispatchQueue.main.async {
-                    mainViewModel.onFetchPamyentMethods()
+                    mainViewModel.onFetchPaymentMethods()
+                }
+                if mainViewModel.selectedPayment?.id == "stripe" {
+                    mainViewModel.selectedPayment = nil
                 }
             }
             // Present Safari for the checkout
@@ -158,7 +201,6 @@ struct CheckOutView: View {
                         .ignoresSafeArea()
                 }
             }
-            // 2) Handle RETURN deep-link from Woo "Thank you" page
             .onOpenURL { url in
                 guard url.scheme == "trinhsgroup",
                       url.host == "checkout" else { return }

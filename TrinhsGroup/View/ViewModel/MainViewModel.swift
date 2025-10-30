@@ -53,6 +53,7 @@ class MainViewModel: ObservableObject {
     @Published var popularProducts = [Product]()
     @Published var favoriteProductIDs: Set<Int> = []
     @Published var favoriteProducts: [Product] = []
+    @Published var isCategoryProductsLoading: Bool = false
     
     var numberOfItems: Int {
         if items.count > 0 {
@@ -194,6 +195,13 @@ class MainViewModel: ObservableObject {
             }
             .store(in: &cancellableSet)
         
+        service.categoryProductsLoadingPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] isLoading in
+                self?.isCategoryProductsLoading = isLoading
+            }
+            .store(in: &cancellableSet)
+        
         service.orderPublisher
             .receive(on: RunLoop.main)
             .sink { order in
@@ -267,6 +275,9 @@ class MainViewModel: ObservableObject {
         // Use "pending" to represent "awaiting payment" (optional)
         let desiredStatus = "on-hold" // or keep "on-hold" if you prefer
 
+        // Calculate 5% discount on current total
+        let discountValue = total * 0.05
+        
         service.onCreateOrder(
             user: user,
             paymentMethod: id,
@@ -275,57 +286,13 @@ class MainViewModel: ObservableObject {
             status: desiredStatus,
             productOrders: productOrders,
             pickupDateTime: pickupDateTime,
+            discountValue: discountValue,
             completion: completion
         )
     }
 
-    func onFetchPamyentMethods() {
+    func onFetchPaymentMethods() {
         service.onFetchPaymentMethods()
-    }
-    
-    func fetchZones() {
-        self.zones.removeAll()
-
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/shipping/zones?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let data = data {
-                    if let decodedResponse = try? JSONDecoder().decode([Zone].self, from: data) {
-                        self.zones.append(contentsOf: decodedResponse)
-                        self.fetchShipMethods(id: self.zones[0].id)
-                    }
-                }
-                print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            }
-        }.resume()
-    }
-    
-    func fetchShipMethods(id: Int) {
-        self.shipMethods.removeAll()
-        
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/shipping/zones/1/methods?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-        
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            DispatchQueue.main.async {
-                if let data = data {
-                    if let decodedResponse = try? JSONDecoder().decode([ShipMethod].self, from: data) {
-                        self.shipMethods.append(contentsOf: decodedResponse)
-                    } else {
-                        self.shipMethods.append(ShipMethod.default)
-                    }
-                }
-                print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            }
-        }.resume()
     }
     
     func checkCouponCode(code: String) {

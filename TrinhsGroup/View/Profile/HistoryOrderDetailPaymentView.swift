@@ -20,52 +20,32 @@ struct HistoryOrderDetailPaymentView: View {
                 Spacer()
                 
                 Text(getPriceAndCurrencySymbol(price: order.subtotal, currency: "$", currencyPosition: "right"))
-                
             }
             .foregroundColor(.black)
             
-            //            HStack {
-            //                Text("Shipping( Flat Rate )")
-            //
-            //                Spacer()
-            //                
-            //                Text(getPriceAndCurrencySymbol(price: order.shipping_lines[0].total, currency: "$", currencyPosition: "right"))
-            //
-            //            }
-            //            .foregroundColor(.black)
-            
-            //            if order.discountTotal > 0 {
-            //                HStack {
-            //                    Text("Discount")
-            //
-            //                    Spacer()
-            //                    
-            //                    (
-            //                        Text("-")
-            //                            +
-            //                    Text(getPriceAndCurrencySymbol(price: order.discountTotal, currency: "$", currencyPosition: "right"))
-            //                    )
-            //
-            //                }
-            //                .foregroundColor(.black)
-            //            }
-            
+            if order.discount > 0 {
+                HStack {
+                    Text("Discount")
+
+                    Spacer()
+                    (
+                        Text("-")
+                            +
+                    Text(getPriceAndCurrencySymbol(price: order.discount, currency: "$", currencyPosition: "right"))
+                    )
+                }
+                .foregroundColor(.black)
+            }
             
             HStack {
                 Text("Total")
                     .fontWeight(.semibold)
                 
-                
                 Spacer()
+                
+                Text(getPriceAndCurrencySymbol(price: Double(order.total) ?? 0, currency: "$", currencyPosition: "right"))
             }
         }
-                
-//        Text(getPriceAndCurrencySymbol(price: order.total, currency: "$", currencyPosition: "right"))
-//        
-//            }
-//            .foregroundColor(.black)
-//        }
-//        .padding(.vertical)
     }
 }
 

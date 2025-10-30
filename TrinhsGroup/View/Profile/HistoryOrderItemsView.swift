@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct HistoryOrderItemsView: View {
-    
     var order: Order
     
     var body: some View {
@@ -17,9 +16,9 @@ struct HistoryOrderItemsView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             
-//            ForEach(order.lineItems) { item in
-//                HistoryOrderProductItemView(productOrder: item)
-//            }
+            ForEach(order.lineItems) { item in
+                HistoryOrderProductItemView(productOrder: item)
+            }
         }
     }
 }
