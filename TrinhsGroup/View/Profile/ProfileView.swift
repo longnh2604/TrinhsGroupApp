@@ -162,7 +162,8 @@ struct ProfileView: View {
                 )
                 .hidden()
             }
-        }.alert(isPresented: $showDialog, content: {
+        }
+        .alert(isPresented: $showDialog, content: {
             Alert(title: Text("Logout"),
                   message: Text("Are you sure want to logout"),
                   primaryButton: .default(Text("Yes")) {
@@ -172,6 +173,9 @@ struct ProfileView: View {
                   secondaryButton: .cancel()
             )
         })
+        .onAppear {
+            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+        }
     }
 }
 

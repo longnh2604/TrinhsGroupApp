@@ -173,9 +173,6 @@ extension APIClient {
                     let decodedResponse = try JSONDecoder().decode([Category].self, from: data)
                     DispatchQueue.main.async {
                         completion(true, decodedResponse, nil)
-//                        self.categories.append(contentsOf: decodedResponse)
-//                        self.selectedCategory = self.categories.first!
-//                        self.fetchSelectedCategoryProducts()
                     }
                 } catch DecodingError.keyNotFound(let key, let context) {
                     Swift.print("could not find key \(key) in JSON: \(context.debugDescription)")
@@ -216,18 +213,6 @@ extension APIClient {
                 print(error)
                 completion(false, nil, "")
             }
-            
-//            if let data = data {
-//
-//                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-//                    DispatchQueue.main.async {
-//                        completion(true, decodedResponse, nil)
-//                    }
-//                    return
-//                }
-//            }
-//            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-//            completion(false, nil, error?.localizedDescription)
         }.resume()
     }
     
@@ -247,6 +232,26 @@ extension APIClient {
         
         print(lineItems)
         
+        // Parse pickup datetime to separate date and time
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        dateFormatter.timeZone = TimeZone(identifier: "Australia/Sydney")
+        
+        var pickupDate = ""
+        var pickupTime = ""
+        
+        if let date = dateFormatter.date(from: pickupDateTime) {
+            let dateOnlyFormatter = DateFormatter()
+            dateOnlyFormatter.dateFormat = "Y-m-d"
+            dateOnlyFormatter.timeZone = TimeZone(identifier: "Australia/Sydney")
+            pickupDate = dateOnlyFormatter.string(from: date)
+            
+            let timeOnlyFormatter = DateFormatter()
+            timeOnlyFormatter.dateFormat = "H:i"
+            timeOnlyFormatter.timeZone = TimeZone(identifier: "Australia/Sydney")
+            pickupTime = timeOnlyFormatter.string(from: date)
+        }
+
         // prepare json data
         var json: [String: Any] = [
             "customer_id": user.id,
@@ -267,16 +272,21 @@ extension APIClient {
             ],
             "line_items": lineItems,
             "meta_data": [
+                // CodeRockz "Delivery & Pickup Date Time for WooCommerce" plugin fields
                 [
-                    "key": "pickup_datetime",
-                    "value": pickupDateTime
+                    "key": "_pi_delivery_date",
+                    "value": pickupDate
+                ],
+                [
+                    "key": "_pi_delivery_time", 
+                    "value": pickupTime
+                ],
+                [
+                    "key": "_pi_delivery_type",
+                    "value": "pickup"
                 ]
             ]
         ]
-        
-//        if coupon.id != Coupon.default.id {
-//            json["coupon_lines"] = [["code": coupon.code]]
-//        }
         
         let jsonData = try? JSONSerialization.data(withJSONObject: json)
         
@@ -341,7 +351,7 @@ extension APIClient {
         }
         let request = URLRequest(url: url)
         
-        URLSession.shared.dataTask(with: request) {data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
                 if let decodedResponse = try? JSONDecoder().decode([Order].self, from: data) {
                     DispatchQueue.main.async {

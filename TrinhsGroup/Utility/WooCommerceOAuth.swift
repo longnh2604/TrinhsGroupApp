@@ -31,6 +31,7 @@ enum WooCommerceEndpoint {
     case fetchProductsCategory(categoryID: Int)
     case fetchPaymentMethods
     case onCreateOrder
+    case fetchHistoryOrders(customerID: Int)
 
     func urlPath() -> String {
         switch self {
@@ -58,6 +59,8 @@ enum WooCommerceEndpoint {
             return "\(commonURL)/payment_gateways"
         case .onCreateOrder:
             return "\(commonURL)/orders"
+        case .fetchHistoryOrders(let customerID):
+            return "\(commonURL)/orders?customer=\(customerID)&page=1&per_page=100"
         }
     }
 }

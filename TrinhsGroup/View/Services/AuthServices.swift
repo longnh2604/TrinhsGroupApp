@@ -111,24 +111,7 @@ class AuthServices: AuthServicesProtocol {
     }
     
 
-    func updateUser(user: User, password: String) {
-//        self.isLoading.toggle()
-//        let params = ["email" : email]
-//        api.request(endpoint: .getUserInfo, method: .GET, params: params) { (result: Result<[User], Error>) in
-//            DispatchQueue.main.async {
-//                self.isLoading.toggle()
-//                switch result {
-//                case .success(let data):
-//                    guard let user = data.first else { return }
-//                    print(user)
-//                    self.user = user
-//                case .failure(let error):
-//                    print("Authentication failed: \(error.localizedDescription)")
-//                    self.error = error.localizedDescription
-//                }
-//            }
-//        }
-        
+    func updateUser(user: User, password: String) {   
         self.isLoading.toggle()
         APIClient.shared.onUpdateUser(user: user, password: password) { success, data, error in
             if success {
