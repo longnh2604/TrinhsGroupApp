@@ -15,6 +15,10 @@ struct ProductDetailsCard: View {
     @State var product: Product
     @State var index = 0
     @State private var isAdded = false
+    @State private var productNote: String = ""
+    @State private var noteHeight: CGFloat = 60
+    @FocusState private var isNoteFocused: Bool
+    @State private var keyboardHeight: CGFloat = 0
     
     var topInset: CGFloat {
         UIApplication.shared.connectedScenes
@@ -34,6 +38,7 @@ struct ProductDetailsCard: View {
                 }
             }
             .aspectRatio(4/3, contentMode: .fit)
+            .frame(maxWidth: .infinity)
             .background(Color.black.opacity(0.05))
             .clipped()
             
@@ -47,6 +52,7 @@ struct ProductDetailsCard: View {
             .padding(.trailing, 12)
             .padding(.bottom, 12)
         }
+        .frame(maxWidth: .infinity)
     }
     
     fileprivate func AddToCartButton() -> some View {
@@ -61,10 +67,23 @@ struct ProductDetailsCard: View {
                         newPrice += Double(addon.value)
                     }
                 }
+                
+                // Add product note to meta_data if not empty
+                if !productNote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    newProduct.meta_data.append(ProductMetaData(
+                        id: 0,
+                        key: "_note",
+                        value: .string(productNote.trimmingCharacters(in: .whitespacesAndNewlines))
+                    ))
+                }
+                
                 newProduct.price = Double(newPrice)
                 newProduct.regular_price = Double(newPrice)
-                newProduct.meta_data = newProduct.meta_data.filter({ return !$0.key.contains("_") })
+                newProduct.meta_data = newProduct.meta_data.filter({ return !$0.key.contains("_") || $0.key == "_note" })
                 mainViewModel.add(item: newProduct)
+                
+                // Reset note after adding to cart
+                productNote = ""
             }
             // Animation trigger
             withAnimation {
@@ -100,13 +119,16 @@ struct ProductDetailsCard: View {
         ZStack(alignment: .topTrailing) {
             Color.white.ignoresSafeArea()
             
-            VStack {
-                ScrollView {
-                    ZStack {
-                        Constants.AppColor.lightGrayColor
-                            .edgesIgnoringSafeArea(.all)
-                        VStack(alignment: .leading) {
+            VStack(spacing: 0) {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        ZStack {
+                            Constants.AppColor.lightGrayColor
+                                .edgesIgnoringSafeArea(.all)
+                            VStack(alignment: .leading, spacing: 0) {
                             ImageSlider()
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, topInset)
                             
                             VStack(alignment: .leading) {
                                 HStack {
@@ -166,46 +188,112 @@ struct ProductDetailsCard: View {
                             .padding(.bottom, 5)
                             .background(Color.white)
                             
-                            VStack(alignment: .leading) {
-                                Text("Product Details")
+                            // Product Note Section
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Special Instructions / Note")
                                     .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
                                     .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    .padding(.top, 10)
+                                    .padding(.top, 15)
                                     .padding(.horizontal, 15)
                                 
-                                Text(product.description.decodingHTMLEntities())
-                                    .font(.custom(Constants.AppFont.lightFont, size: 13))
-                                    .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    .padding(.vertical, 8)
-                                    .lineSpacing(2)
-                                    .padding(.horizontal, 15)
-                                    .lineLimit(nil)
+                                ZStack(alignment: .topLeading) {
+                                    if productNote.isEmpty {
+                                        Text("Add any special instructions or notes for this product...")
+                                            .font(.custom(Constants.AppFont.lightFont, size: 14))
+                                            .foregroundColor(.gray.opacity(0.6))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 12)
+                                    }
+                                    
+                                    TextEditor(text: $productNote)
+                                        .font(.custom(Constants.AppFont.lightFont, size: 14))
+                                        .foregroundColor(Constants.AppColor.secondaryBlack)
+                                        .frame(minHeight: 100, maxHeight: 200)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.white)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                        )
+                                        .focused($isNoteFocused)
+                                        .onChange(of: productNote) { newValue in
+                                            // Auto-expand text view based on content
+                                            let lines = newValue.components(separatedBy: .newlines).count
+                                            noteHeight = min(max(100, CGFloat(lines * 20) + 40), 200)
+                                        }
+                                        .onChange(of: isNoteFocused) { focused in
+                                            if focused {
+                                                // Scroll to note section when focused
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                                        proxy.scrollTo("noteSection", anchor: .center)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                }
+                                .padding(.horizontal, 15)
+                                .padding(.bottom, 10)
+                                
+                                // Dismiss keyboard button (shown when keyboard is visible)
+                                if isNoteFocused || keyboardHeight > 0 {
+                                    HStack {
+                                        Spacer()
+                                        Button(action: {
+                                            isNoteFocused = false
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "keyboard.chevron.compact.down")
+                                                Text("Done")
+                                            }
+                                            .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(Color("ColorPrimary"))
+                                            .cornerRadius(8)
+                                        }
+                                        .padding(.horizontal, 15)
+                                        .padding(.bottom, 5)
+                                    }
+                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                                }
                             }
+                            .id("noteSection")
                             .frame(minWidth: 0, maxWidth: .infinity)
                             .background(Color.white)
-                            .padding(.top, -3)
+                            .padding(.top, 5)
+                            .padding(.bottom, keyboardHeight > 0 ? keyboardHeight - 60 : 0)
                         }
+                    }
                     }
                 }
                 
                 AddToCartButton()
             }
-            .padding(.top, topInset)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             
-            // Close button at top right
-            Button(action: {
-                mainViewModel.presentedType = .none
-            }) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.black)
-                    .padding()
-                    .background(Color.white.opacity(0.8))
-                    .clipShape(Circle())
-                    .shadow(radius: 3)
+            // Close button fixed at top right - doesn't scroll
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        mainViewModel.presentedType = .none
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+                            .padding()
+                            .background(Color.white.opacity(0.8))
+                            .clipShape(Circle())
+                            .shadow(radius: 3)
+                    }
+                    .padding(.top, topInset + 8)
+                    .padding(.trailing, 8)
+                }
+                Spacer()
             }
-            .padding(.top, topInset + 8)
-            .padding(.trailing, 8)
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -218,6 +306,18 @@ struct ProductDetailsCard: View {
 
             // init favorite state from MainViewModel
             isFavorite = mainViewModel.isFavorite(productId: product.id)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    keyboardHeight = keyboardFrame.height
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                keyboardHeight = 0
+            }
         }
     }
 }

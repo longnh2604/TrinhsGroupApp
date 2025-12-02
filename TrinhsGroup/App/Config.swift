@@ -28,5 +28,5 @@ var APP_DESCRIPTION = "Trinhsgroup App is the mobile app order for Trinhsgroup.c
 var DEVELOPER = "Trinhsgroup"
 var COMPABILITY = "iOS 13 or above"
 var WEBSITE_LABEL = "Trinhsgroup"
-var WEBSITE_LINK = "https://trinhsgroup.com.au"
+var WEBSITE_LINK = "https://trinhsgroup.au"
 var VERSION = "1.0.0"

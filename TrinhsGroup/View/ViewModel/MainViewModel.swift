@@ -207,8 +207,7 @@ class MainViewModel: ObservableObject {
             .sink { order in
                 if order.id != Order.default.id {
                     self.receivedOrder = order
-                    self.presentedType = .orderReceived
-                    self.reset()
+//                    self.reset()
                 }
             }
             .store(in: &cancellableSet)
@@ -272,8 +271,15 @@ class MainViewModel: ObservableObject {
             return
         }
 
-        // Use "pending" to represent "awaiting payment" (optional)
-        let desiredStatus = "on-hold" // or keep "on-hold" if you prefer
+        // Set order status based on payment method
+        // Stripe payment (credit card) -> pending (awaiting payment)
+        // Other payment methods (cash on pickup, etc.) -> on-hold
+        let desiredStatus: String
+        if id.lowercased() == "stripe" {
+            desiredStatus = "pending"
+        } else {
+            desiredStatus = "on-hold"
+        }
 
         // Calculate 5% discount on current total
         let discountValue = total * 0.05

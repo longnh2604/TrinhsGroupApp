@@ -32,6 +32,7 @@ enum WooCommerceEndpoint {
     case fetchPaymentMethods
     case onCreateOrder
     case fetchHistoryOrders(customerID: Int)
+    case getStripePaymentIntent(orderID: Int)
 
     func urlPath() -> String {
         switch self {
@@ -61,6 +62,8 @@ enum WooCommerceEndpoint {
             return "\(commonURL)/orders"
         case .fetchHistoryOrders(let customerID):
             return "\(commonURL)/orders?customer=\(customerID)&page=1&per_page=100"
+        case .getStripePaymentIntent(let orderID):
+            return "\(commonURL)/orders/\(orderID)/stripe/payment-intent"
         }
     }
 }
@@ -73,9 +76,9 @@ extension String {
 }
 
 struct WooCommerceAPI {
-    private let consumerKey = "ck_d1cac0d2dbd173bb0e63c485cdf097a563ec6694"
-    private let consumerSecret = "cs_213b91a11dae9aff0edbd0133e9b50155f82bd25"
-    private let storeURL = "https://trinhsgroup.com.au"
+    private let consumerKey = "ck_7a7ff2a5389700b8bff6f7c113882899a8a29f07"
+    private let consumerSecret = "cs_2aed31668184fb02b3590c69eb96c4686ba7038e"
+    private let storeURL = "https://trinhsgroup.au"
 
     /// Generate OAuth signature
     private func generateOAuthSignature(httpMethod: HTTPMethod, endpoint: WooCommerceEndpoint, params: [String: String]) -> String {
@@ -213,37 +216,70 @@ struct WooCommerceAPI {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
 
-        print("Final Request URL: \(request.url?.absoluteString ?? "Invalid URL")")
+        print("🌐 Request URL: \(request.url?.absoluteString ?? "Invalid URL")")
+        print("📤 Request Method: \(method.rawValue)")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📥 Response Status Code: \(httpResponse.statusCode)")
+                print("📋 Response Headers: \(httpResponse.allHeaderFields)")
+            }
+            
             if let error = error {
+                print("❌ Network Error: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
 
             guard let data = data else {
+                print("❌ No data received")
                 completion(.failure(NSError(domain: "No data", code: 500, userInfo: nil)))
                 return
             }
 
+            // Print raw JSON response for debugging
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("Received JSON: \(jsonString)")
+                print("📦 Raw JSON Response (\(data.count) bytes):")
+                print(jsonString)
+            } else {
+                print("⚠️ Response data is not valid UTF-8 string")
             }
             
             do {
                 let decodedData = try JSONDecoder().decode(T.self, from: data)
+                print("✅ Successfully decoded response")
                 DispatchQueue.main.async {
                     completion(.success(decodedData))
                 }
-            } catch {
+            } catch let decodingError {
+                print("❌ Decoding Error: \(decodingError)")
+                print("🔍 Error details:")
+                if let decodingError = decodingError as? DecodingError {
+                    switch decodingError {
+                    case .typeMismatch(let type, let context):
+                        print("  Type mismatch: expected \(type) at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+                    case .valueNotFound(let type, let context):
+                        print("  Value not found: \(type) at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+                    case .keyNotFound(let key, let context):
+                        print("  Key not found: '\(key.stringValue)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+                    case .dataCorrupted(let context):
+                        print("  Data corrupted at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+                        print("  Error: \(context.debugDescription)")
+                    @unknown default:
+                        print("  Unknown decoding error")
+                    }
+                }
+                
                 // Try to decode WooCommerce error response
                 if let wooError = try? JSONDecoder().decode(WooErrorResponse.self, from: data) {
+                    print("📋 WooCommerce Error Response decoded")
                     DispatchQueue.main.async {
                         completion(.failure(wooError))
                     }
                 } else {
                     DispatchQueue.main.async {
-                        completion(.failure(error)) // fallback: raw error
+                        completion(.failure(decodingError))
                     }
                 }
             }

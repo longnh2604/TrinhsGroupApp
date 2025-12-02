@@ -221,13 +221,48 @@ class MainServices: MainServicesProtocol {
                 self.isLoading.toggle()
                 switch result {
                 case .success(let data):
-                    print("All payments: \(data)")
+                    print("✅ Payment methods fetched successfully")
+                    print("📦 Total payment methods received: \(data.count)")
+                    print("📋 All payments: \(data)")
+                    
                     // Filter to get only enabled payments
-                    self.payments = data.filter { $0.enabled }
-                    print("Enabled payments: \(self.payments)")
+                    let enabledPayments = data.filter { $0.enabled }
+                    print("✅ Enabled payments count: \(enabledPayments.count)")
+                    print("📋 Enabled payments: \(enabledPayments)")
+                    
+                    // Log each payment method details
+                    for payment in enabledPayments {
+                        print("  - ID: \(payment.id), Title: \(payment.title), Enabled: \(payment.enabled)")
+                    }
+                    
+                    self.payments = enabledPayments
+                    
+                    if enabledPayments.isEmpty {
+                        print("⚠️ Warning: No enabled payment methods found!")
+                        self.error = "No payment methods available"
+                    }
                 case .failure(let error):
-                    print("Error failed: \(error.localizedDescription)")
+                    print("❌ Error fetching payment methods: \(error.localizedDescription)")
+                    
+                    // Try to get more details about the error
+                    if let decodingError = error as? DecodingError {
+                        print("🔍 Decoding error details:")
+                        switch decodingError {
+                        case .typeMismatch(let type, let context):
+                            print("  Type mismatch: \(type) at \(context.codingPath)")
+                        case .valueNotFound(let type, let context):
+                            print("  Value not found: \(type) at \(context.codingPath)")
+                        case .keyNotFound(let key, let context):
+                            print("  Key not found: \(key.stringValue) at \(context.codingPath)")
+                        case .dataCorrupted(let context):
+                            print("  Data corrupted at \(context.codingPath)")
+                        @unknown default:
+                            print("  Unknown decoding error")
+                        }
+                    }
+                    
                     self.error = error.localizedDescription
+                    self.payments = [] // Clear payments on error
                 }
             }
         }

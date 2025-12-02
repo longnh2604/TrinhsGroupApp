@@ -257,13 +257,30 @@ struct ItemCellTypeThree: View {
                         }
                     }
                     
-                    if product.meta_data.count > 0 {
+                    // Display product note separately if exists
+                    if let noteMeta = product.meta_data.first(where: { $0.key == "_note" }) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Note:")
+                                .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
+                                .foregroundColor(Constants.AppColor.secondaryBlack)
+                            Text(noteMeta.value.stringValue)
+                                .font(.custom(Constants.AppFont.regularFont, size: 11))
+                                .foregroundColor(Constants.AppColor.secondaryBlack)
+                                .lineLimit(3)
+                                .padding(.leading, 8)
+                        }
+                        .padding(.bottom, 4)
+                    }
+                    
+                    // Display other meta_data (addons) excluding note
+                    let addons = product.meta_data.filter { $0.key != "_note" }
+                    if addons.count > 0 {
                         Text ("Addition:")
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.secondaryBlack)
                             .padding(.bottom, 4)
                         
-                        ForEach(product.meta_data, id:\.key) { meta in
+                        ForEach(addons, id:\.key) { meta in
                             HStack {
                                 Text(meta.key)
                                 if let value = Int(meta.value.stringValue), value > 0 {
