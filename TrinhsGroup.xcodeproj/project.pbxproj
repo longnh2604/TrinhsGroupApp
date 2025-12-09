@@ -17,6 +17,7 @@
 		2F6079492D95051D00874FB5 /* WooCommerceOAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */; };
 		64C8D3FB2E3C7DBF006ECB89 /* ProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */; };
 		64C8D3FD2E3CA099006ECB89 /* ProductDetailsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C8D3FC2E3CA092006ECB89 /* ProductDetailsCard.swift */; };
+		64FC0B852EDFD8F000768BF8 /* OptimizedKFImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */; };
 		F5AD91C0DB3042398B88C5B8 /* PickupDateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */; };
 		F96BFBC5D9F43C727671C840 /* Pods_TrinhsGroup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7805CBC834CE8193C51E980E /* Pods_TrinhsGroup.framework */; };
 		FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */; };
@@ -132,6 +133,7 @@
 		56A9769C3DFD635DE9C155EF /* Pods-TrinhsGroup.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.debug.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.debug.xcconfig"; sourceTree = "<group>"; };
 		64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCard.swift; sourceTree = "<group>"; };
 		64C8D3FC2E3CA092006ECB89 /* ProductDetailsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailsCard.swift; sourceTree = "<group>"; };
+		64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizedKFImage.swift; sourceTree = "<group>"; };
 		6CB25BDAD4975A68FEBA98F4 /* Pods-TrinhsGroup.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.release.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.release.xcconfig"; sourceTree = "<group>"; };
 		7805CBC834CE8193C51E980E /* Pods_TrinhsGroup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrinhsGroup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupDateTimeView.swift; sourceTree = "<group>"; };
@@ -504,6 +506,7 @@
 		FD8EAF122872D77B004F9ED0 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */,
 				FD8EAF132872D789004F9ED0 /* LoadingView.swift */,
 				FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */,
 				FD6733AD287426AE0007F354 /* PagingView.swift */,
@@ -774,6 +777,7 @@
 				FD9A2230287571B7009FDD65 /* ShippingOrderModel.swift in Sources */,
 				FD8EAF1D2872DD78004F9ED0 /* MainViewModel.swift in Sources */,
 				FD6733A02874236B0007F354 /* NewNotificationsView.swift in Sources */,
+				64FC0B852EDFD8F000768BF8 /* OptimizedKFImage.swift in Sources */,
 				FD9A22192875661D009FDD65 /* ItemDetailsView.swift in Sources */,
 				FDB69C992877F17D00878117 /* EventModel.swift in Sources */,
 				22EC20C12DACC36F0032C77B /* MenuView.swift in Sources */,
@@ -948,7 +952,7 @@
 				CODE_SIGN_ENTITLEMENTS = TrinhsGroup/TrinhsGroup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
 				DEVELOPMENT_TEAM = 5LB67CRSF8;
 				ENABLE_PREVIEWS = YES;
@@ -987,7 +991,7 @@
 				CODE_SIGN_ENTITLEMENTS = TrinhsGroup/TrinhsGroup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
 				DEVELOPMENT_TEAM = 5LB67CRSF8;
 				ENABLE_PREVIEWS = YES;

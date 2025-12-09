@@ -16,10 +16,13 @@ struct ImageSliderView: View {
     var body: some View {
         PagingView(index: $index.animation(), maxIndex: firestoreManager.events.count - 1) {
             ForEach(firestoreManager.events) { event in
-                KFImage(URL(string: event.imgURL))
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: getRect().width, height: getRect().width / 2)
+                OptimizedKFImage(
+                    url: URL(string: event.imgURL),
+                    width: getRect().width,
+                    height: getRect().width / 2,
+                    contentMode: .fill,
+                    cornerRadius: 0
+                )
             }
         }
         .aspectRatio(contentMode: .fill)

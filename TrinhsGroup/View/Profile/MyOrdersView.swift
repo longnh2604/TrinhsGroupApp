@@ -54,25 +54,57 @@ struct MyOrdersView: View {
                     HomeNavigationBarView(title: "Menu", showNotificationIcon: false)
                         .environmentObject(mainViewModel)
                     
-                    List {
-                        ForEach(filteredOrders) { order in
-                            OrderHistoryItemView(order: order)
-                                .padding(.horizontal)
-                                .padding(.bottom)
-                                .environmentObject(mainViewModel)
-                                .onTapGesture {
-                                    withAnimation(.easeOut){
-                                        selectedOrder = order
-                                        historyViewModel.showHistoryOrderDetail.toggle()
-                                    }
+                    if filteredOrders.isEmpty && filter == .todayOnly {
+                        // Empty state for today's orders
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                Spacer()
+                                    .frame(height: 100)
+                                
+                                Image(systemName: "cart.badge.plus")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.gray.opacity(0.5))
+                                
+                                VStack(spacing: 12) {
+                                    Text("You don't have any orders today")
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("If you'd like to order, don't hesitate to add items to your cart. We're happy and eager to serve you with the best care possible.")
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 40)
                                 }
+                                
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                        .listRowInsets(EdgeInsets())
+                        .refreshable {
+                            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+                        }
+                    } else {
+                        List {
+                            ForEach(filteredOrders) { order in
+                                OrderHistoryItemView(order: order)
+                                    .padding(.horizontal)
+                                    .padding(.bottom)
+                                    .environmentObject(mainViewModel)
+                                    .onTapGesture {
+                                        withAnimation(.easeOut){
+                                            selectedOrder = order
+                                            historyViewModel.showHistoryOrderDetail.toggle()
+                                        }
+                                    }
+                            }
+                            .listRowInsets(EdgeInsets())
+                        }
+                        .refreshable {
+                            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+                        }
+                        .padding(.top)
                     }
-                    .refreshable {
-                        historyViewModel.fetchOrders(customerId: authViewModel.user.id)
-                    }
-                    .padding(.top)
                 }
                 
                 if historyViewModel.showLoading {

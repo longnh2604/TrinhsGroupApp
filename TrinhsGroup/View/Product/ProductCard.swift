@@ -15,29 +15,18 @@ struct ProductCard: View {
 
     var body: some View {
         HStack {
-            if let src = product.images.first?.src, !src.isEmpty, let url = URL(string: src) {
-                KFImage(url)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                    .clipped()
-            } else {
-                Image(AppAssets.noimage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                    .clipped()
-            }
+            OptimizedKFImage(
+                url: product.images.first.flatMap { image in URL(string: image.src) },
+                width: 80,
+                height: 80,
+                contentMode: .fill,
+                cornerRadius: 10,
+                placeholder: Image(AppAssets.noimage)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(product.name)

@@ -54,6 +54,7 @@ class MainViewModel: ObservableObject {
     @Published var favoriteProductIDs: Set<Int> = []
     @Published var favoriteProducts: [Product] = []
     @Published var isCategoryProductsLoading: Bool = false
+    @Published var categoryToNavigate: Category? = nil // For navigation from HomeView to MenuView
     
     var numberOfItems: Int {
         if items.count > 0 {

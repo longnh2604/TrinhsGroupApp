@@ -66,9 +66,30 @@ struct MenuView: View {
                 }
             }
             .onAppear {
-                if let first = mainViewModel.categories.first {
+                // Check if there's a category to navigate to (from HomeView)
+                if let categoryToNavigate = mainViewModel.categoryToNavigate {
+                    selectedCategory = categoryToNavigate
+                    mainViewModel.selectedCategory = categoryToNavigate
+                    mainViewModel.onFetchSelectedCategoryProducts(id: categoryToNavigate.id)
+                    // Clear the navigation trigger after processing
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        mainViewModel.categoryToNavigate = nil
+                    }
+                } else if let first = mainViewModel.categories.first {
                     selectedCategory = first
                     mainViewModel.onFetchSelectedCategoryProducts(id: first.id)
+                }
+            }
+            .onChange(of: mainViewModel.categoryToNavigate) { category in
+                // Handle category navigation from HomeView
+                if let category = category {
+                    selectedCategory = category
+                    mainViewModel.selectedCategory = category
+                    mainViewModel.onFetchSelectedCategoryProducts(id: category.id)
+                    // Clear the navigation trigger after processing
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        mainViewModel.categoryToNavigate = nil
+                    }
                 }
             }
             .onChange(of: selectedCategory) { newValue in
@@ -92,18 +113,14 @@ struct CategorySelectorView: View {
                                 .stroke(selectedCategory.id == category.id ? Color.red : Color.clear, lineWidth: 3)
                                 .frame(width: 66, height: 66)
 
-                            if let src = category.image?.src, !src.isEmpty, let url = URL(string: src) {
-                                KFImage(url)
-                                    .resizable()
-                                    .cacheOriginalImage()
-                                    .frame(width: 60, height: 60)
-                                    .clipShape(Circle())
-                            } else {
-                                Image(AppAssets.noimage)
-                                    .resizable()
-                                    .frame(width: 60, height: 60)
-                                    .clipShape(Circle())
-                            }
+                            OptimizedKFImage(
+                                url: category.image.flatMap { image in URL(string: image.src) },
+                                width: 60,
+                                height: 60,
+                                contentMode: .fill,
+                                cornerRadius: 30,
+                                placeholder: Image(AppAssets.noimage)
+                            )
                         }
                         .padding(.top, 8)
 

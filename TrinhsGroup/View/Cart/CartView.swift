@@ -16,12 +16,28 @@ struct CartView: View {
     }
     
     @State var isShowPromoCodeView : Bool = false
+    @State var showMondayAlert: Bool = false
     var discount = 0
     var deliveryCharges = 0
     
+    /// Check if today is Monday in Australia timezone
+    private func isMondayInAustralia() -> Bool {
+        let tz = TimeZone(identifier: "Australia/Sydney") ?? .current
+        var calendar = Calendar.current
+        calendar.timeZone = tz
+        let weekday = calendar.component(.weekday, from: Date())
+        // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+        return weekday == 2
+    }
+    
     fileprivate func CheckOutButton() -> some View {
         Button(action: {
-            mainViewModel.presentedType = .checkOut
+            // Check if today is Monday in Australia
+            if isMondayInAustralia() {
+                showMondayAlert = true
+            } else {
+                mainViewModel.presentedType = .checkOut
+            }
         }) {
             Text("")
                 .font(.custom(Constants.AppFont.boldFont, size: 15))
@@ -38,6 +54,11 @@ struct CartView: View {
                 .foregroundColor(.white)
                 .padding(.top, -10)
         )
+        .alert("Notice", isPresented: $showMondayAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("We sincerely apologize and thank you for your understanding. We are closed on Mondays. We appreciate your understanding and hope you will continue to support us on other days of the week.")
+        }
     }
     
     fileprivate func NavigationBarView() -> some View {
@@ -226,21 +247,14 @@ struct ItemCellTypeThree: View {
         
         ZStack() {
             HStack(alignment: .top) {
-                Group{
-                    if product.images.count > 0 {
-                        KFImage(URL(string:product.images[0].src))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } else {
-                        Image(systemName: "photo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 60, height: 60)
-                            .foregroundColor(Color("ColorGray"))
-                    }
-                }
-                .frame(width: 90, height: 120)
-                .cornerRadius(1)
+                OptimizedKFImage(
+                    url: product.images.first.flatMap { image in URL(string: image.src) },
+                    width: 90,
+                    height: 120,
+                    contentMode: .fill,
+                    cornerRadius: 1,
+                    placeholder: Image(systemName: "photo")
+                )
                 VStack(alignment: .leading) {
                     HStack(alignment: .top) {
                         Text(product.name.decodingHTMLEntities())

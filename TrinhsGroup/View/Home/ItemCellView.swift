@@ -46,22 +46,14 @@ struct ItemCellView: View {
     var body: some View {
         ZStack {
             VStack(alignment: .leading) {
-                Group {
-                    if product.images.count > 0 {
-                        KFImage(URL(string:product.images[0].src))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    }else{
-                        Image(systemName: "photo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(Color("ColorGray"))
-                    }
-                }
-                .frame(width: UIScreen.main.bounds.width / 2 - 40, height: 190)
-                .padding(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .cornerRadius(1)
+                OptimizedKFImage(
+                    url: product.images.first.flatMap { image in URL(string: image.src) },
+                    width: UIScreen.main.bounds.width / 2 - 40,
+                    height: 190,
+                    contentMode: .fill,
+                    cornerRadius: 1,
+                    placeholder: Image(systemName: "photo")
+                )
                 .overlay(
                     FavoriteButton()
                         .padding(5), alignment: .bottomTrailing)

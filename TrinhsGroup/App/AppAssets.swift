@@ -11,6 +11,7 @@ struct AppAssets {
     static let splash: String                       = "ic_splash"
     static let logo: String                         = "ic_logo"
     static let promotions: String                   = "ic_promotions"
+    static let promotionsNew: String                = "ic_promotions_new"
     static let banhmi_cate: String                  = "ic_banhmi_categories"
     static let batter_cate: String                  = "ic_batter_categories"
     static let chefspecial_cate: String             = "ic_chefspecial_categories"

@@ -31,10 +31,10 @@ struct ProductDetailsCard: View {
         ZStack(alignment: .bottomTrailing) {
             PagingView(index: $index.animation(), maxIndex: product.images.count - 1) {
                 ForEach(product.images) { image in
-                    KFImage(URL(string:image.src))
-                        .resizable()
-                        .scaledToFill()
-                        .clipped()
+                    OptimizedKFImage(
+                        url: URL(string: image.src),
+                        contentMode: .fill
+                    )
                 }
             }
             .aspectRatio(4/3, contentMode: .fit)

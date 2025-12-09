@@ -11,6 +11,7 @@ import CoreData
 import Firebase
 import Stripe
 import netfox
+import Kingfisher
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     
@@ -19,6 +20,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     let gcmMessageIDKey = "gcm.message_id"
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Configure Kingfisher cache for better performance
+        configureKingfisherCache()
+        
         // Debug
         #if DEBUG
         NFX.sharedInstance().start()
@@ -111,6 +115,21 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 //        UserDefaultsManager.save(AppNotification(title: (data["title"] as? String) ?? "", content: (data["body"] as? String) ?? ""))
 //        UserDefaultsManager.saveNew(AppNotification(title: (data["title"] as? String) ?? "", content: (data["body"] as? String) ?? ""))
 //        notifications = UserDefaultsManager.loadNew().count
+    }
+    
+    /// Configure Kingfisher image cache for optimal performance
+    fileprivate func configureKingfisherCache() {
+        // Set cache expiration to 7 days
+        let cache = ImageCache.default
+        cache.diskStorage.config.expiration = .days(7)
+        cache.memoryStorage.config.expiration = .seconds(300) // 5 minutes in memory
+        
+        // Set maximum cache size (100 MB disk, 50 MB memory)
+        cache.diskStorage.config.sizeLimit = 100 * 1024 * 1024 // 100 MB
+        cache.memoryStorage.config.totalCostLimit = 50 * 1024 * 1024 // 50 MB
+        
+        // Enable automatic cache cleanup
+        cache.cleanExpiredCache()
     }
     
     fileprivate func updateFCMToken() {

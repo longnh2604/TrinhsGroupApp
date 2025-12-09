@@ -20,26 +20,12 @@ struct MainView: View {
             Constants.AppColor.lightGrayColor
                 .edgesIgnoringSafeArea(.all)
             
-            
-            
-            if mainViewModel.presentedType == .cart {
-                CartView()
-            } else if mainViewModel.presentedType == .productDetail {
-                if let product = mainViewModel.selectedProduct {
-                    ProductDetailsCard(product: product)
-                        .environmentObject(mainViewModel)
-                        .environmentObject(firestoreManager)
-                        .ignoresSafeArea()
-                        .zIndex(2)
-                }
-            } else if mainViewModel.presentedType == .checkOut {
-                CheckOutView()
-            }
-            
             VStack(spacing: 0) {
                 content(for: selectedTab)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.keyboard)
+                
+                Spacer()
 
                 CustomTabBar(selectedTab: $selectedTab)
             }
@@ -49,7 +35,7 @@ struct MainView: View {
         }
         .navigationBarBackButtonHidden(true)
         .task {
-            // Initial bootstrapping
+            // Initial bootstrapping - only run once
             authViewModel.onGetUser()
             mainViewModel.onFetchCategories()
             mainViewModel.onFetchPopularProducts()
@@ -63,6 +49,12 @@ struct MainView: View {
             }
             // Also reset order detail overlay when switching tabs
             historyViewModel.showHistoryOrderDetail = false
+        }
+        .onChange(of: mainViewModel.categoryToNavigate) { category in
+            // Navigate to Menu tab (index 1) when category is selected from HomeView
+            if category != nil {
+                selectedTab = 1
+            }
         }
     }
 }
@@ -92,19 +84,22 @@ private extension MainView {
         switch mainViewModel.presentedType {
         case .cart:
             CartView()
+                .zIndex(2)
         case .productDetail:
             if let product = mainViewModel.selectedProduct {
                 ProductDetailsCard(product: product)
+                    .environmentObject(mainViewModel)
+                    .environmentObject(firestoreManager)
+                    .ignoresSafeArea()
+                    .zIndex(2)
             }
         case .checkOut:
             CheckOutView()
+                .zIndex(2)
         case .orderReceived:
             OrderReceivedView()
-        case .none:
-            EmptyView()
-        case .editUserInfo:
-            EmptyView()
-        case .orderHistory:
+                .zIndex(2)
+        case .none, .editUserInfo, .orderHistory:
             EmptyView()
         }
     }

@@ -31,16 +31,16 @@ struct HomeView: View {
                                     .padding(.horizontal)
                                 
                                 TabView {
-                                    ForEach(0..<3) { _ in
-                                        Image(AppAssets.promotions)
+                                    ForEach([AppAssets.promotionsNew, AppAssets.promotions], id: \.self) { assetName in
+                                        Image(assetName)
                                             .resizable()
-                                            .scaledToFill()
-                                            .frame(height: 150)
+                                            .scaledToFit()
+                                            .frame(height: 220)
                                             .cornerRadius(15)
                                             .padding(.horizontal)
                                     }
                                 }
-                                .frame(height: 150)
+                                .frame(height: 220)
                                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
                             }
                             
@@ -51,24 +51,24 @@ struct HomeView: View {
                                     .padding(.horizontal)
                                 
                                 ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 20) {
+                                    LazyHStack(spacing: 20) {
                                         ForEach(mainViewModel.categories, id: \.id) { category in
                                             VStack {
-                                                if let src = category.image?.src, !src.isEmpty, let url = URL(string: src) {
-                                                    KFImage(url)
-                                                        .resizable()
-                                                        .cacheOriginalImage()
-                                                        .frame(width: 60, height: 60)
-                                                        .clipShape(Circle())
-                                                } else {
-                                                    Image(AppAssets.noimage)
-                                                        .resizable()
-                                                        .frame(width: 60, height: 60)
-                                                        .clipShape(Circle())
-                                                }
+                                                OptimizedKFImage(
+                                                    url: category.image.flatMap { image in URL(string: image.src) },
+                                                    width: 60,
+                                                    height: 60,
+                                                    contentMode: .fill,
+                                                    cornerRadius: 30,
+                                                    placeholder: Image(AppAssets.noimage)
+                                                )
                                                 
                                                 Text(category.name)
                                                     .font(.caption)
+                                            }
+                                            .onTapGesture {
+                                                // Set category to navigate and trigger tab switch
+                                                mainViewModel.categoryToNavigate = category
                                             }
                                         }
                                     }
@@ -83,7 +83,7 @@ struct HomeView: View {
                                         .font(.headline)
                                         .padding(.horizontal)
                                     
-                                    VStack(spacing: 16) {
+                                    LazyVStack(spacing: 16) {
                                         ForEach(mainViewModel.popularProducts, id: \.id) { product in
                                             ProductCard(product: product) { selectedProduct in
                                                 mainViewModel.add(item: selectedProduct)

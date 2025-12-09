@@ -140,6 +140,8 @@ struct CheckOutView: View {
                 // Handle successful order creation
                 if let orderId = orderId {
                     print("Order created successfully with ID: \(orderId)")
+                    mainViewModel.reset()
+                    mainViewModel.presentedType = .orderReceived
                 } else {
                     print("Failed to create order")
                     // TODO: Show error message to user
