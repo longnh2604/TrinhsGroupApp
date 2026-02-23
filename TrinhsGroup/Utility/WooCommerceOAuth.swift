@@ -22,6 +22,7 @@ enum WooCommerceEndpoint {
     case forgotPassword
     case customers
     case createCustomer
+    case specificCustomer(customerID: Int)
     case products
     case specificOrder(orderID: Int)
     case specificProduct(productID: Int)
@@ -42,6 +43,8 @@ enum WooCommerceEndpoint {
             return "/wp-login.php?action=lostpassword"
         case .createCustomer, .customers:
             return "/wp-json/wc/v3/customers"
+        case .specificCustomer(let customerID):
+            return "/wp-json/wc/v3/customers/\(customerID)"
         case .products:
             return "/wp-json/wc/v3/products"
         case .specificOrder(let orderID):

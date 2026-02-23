@@ -14,10 +14,16 @@ struct MyOrdersView: View {
     }
     
     var filter: OrdersFilter = .todayOnly
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var historyViewModel: HistoryViewModel
     @State var selectedOrder: Order = Order.default
+    
+    // Show back button when navigated from Profile (pastOnly filter)
+    private var showBackButton: Bool {
+        filter == .pastOnly
+    }
     
     private var filteredOrders: [Order] {
         let tz = TimeZone(identifier: "Australia/Sydney") ?? .current
@@ -45,14 +51,46 @@ struct MyOrdersView: View {
     }
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
-                
-                VStack {
+        ZStack {
+            Color.init(hex: "f9f9f9")
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                // Custom Navigation Bar with back button for Profile navigation
+                if showBackButton {
+                    HStack {
+                        Button(action: { dismiss() }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("Back")
+                                    .font(.body)
+                            }
+                            .foregroundColor(.accentColor)
+                        }
+                        
+                        Spacer()
+                        
+                        Text("My Orders")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        // Placeholder for symmetry
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .opacity(0)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(Color(hex: "f9f9f9"))
+                } else {
                     HomeNavigationBarView(title: "Menu", showNotificationIcon: false)
                         .environmentObject(mainViewModel)
+                }
                     
                     if filteredOrders.isEmpty && filter == .todayOnly {
                         // Empty state for today's orders
@@ -111,13 +149,10 @@ struct MyOrdersView: View {
                     LoadingView().ignoresSafeArea()
                 }
                 
-                if historyViewModel.showHistoryOrderDetail {
-                    HistoryOrderDetailView(order: selectedOrder)
-                        .environmentObject(historyViewModel)
-                }
+            if historyViewModel.showHistoryOrderDetail {
+                HistoryOrderDetailView(order: selectedOrder)
+                    .environmentObject(historyViewModel)
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
-            .navigationBarHidden(true)
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
