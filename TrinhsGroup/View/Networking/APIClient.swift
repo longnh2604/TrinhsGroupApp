@@ -24,6 +24,12 @@ class APIClient {
         URLCache.shared = cache
     }
     
+    /// Clear all cached URL responses to force fresh data
+    static func clearCache() {
+        URLCache.shared.removeAllCachedResponses()
+        print("🗑️ URL Cache cleared")
+    }
+    
     // Helper function to convert AnyCodableValue to JSON-serializable value
     private func convertAnyCodableValueToJSON(_ value: AnyCodableValue) -> Any {
         switch value {
@@ -278,7 +284,7 @@ extension APIClient {
                     "value": pickupDate
                 ],
                 [
-                    "key": "_pi_delivery_time", 
+                    "key": "_pi_delivery_time",
                     "value": pickupTime
                 ],
                 [

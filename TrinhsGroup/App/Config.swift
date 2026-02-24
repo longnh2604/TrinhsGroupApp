@@ -18,7 +18,7 @@ var ONBOARD_DATA: [Onboard] = [
     Onboard(title: "Payment Method", headline: "Multiple Payment method like bank transfer, payid", image: "onboard-3", gradientColors: [Color("ColorRed"), Color("ColorRed")])
 ]
 
-let WOOCOMMERCE_URL = ""
+let WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
 let CONSUMER_KEY = ""
 let CONSUMER_SECRET_KEY = ""
 

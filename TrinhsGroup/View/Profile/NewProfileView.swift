@@ -18,6 +18,11 @@ struct NewProfileView: View {
     @State private var showRewardsCenter = false
     @State private var pushNotificationsEnabled = true
     
+    // Redeem confirmation state
+    @State private var showRedeemConfirmation = false
+    @State private var pendingRedeemAmount: Int = 0
+    @State private var pendingRedeemPoints: Int = 0
+    
     // Sample vouchers - replace with real data
     @State private var vouchers: [VoucherItem] = [
         VoucherItem(id: "1", amount: 20, code: "RW123-ABCD1234", status: .active, expiresAt: Date().addingTimeInterval(86400 * 30)),
@@ -114,6 +119,51 @@ struct NewProfileView: View {
             } message: {
                 Text("Are you sure you want to logout?")
             }
+            // Redeem confirmation alert
+            .alert("Redeem Points", isPresented: $showRedeemConfirmation) {
+                Button("Cancel", role: .cancel) {
+                    pendingRedeemAmount = 0
+                    pendingRedeemPoints = 0
+                }
+                Button("Redeem", role: .destructive) {
+                    confirmRedeem()
+                }
+            } message: {
+                Text("Are you sure you want to redeem \(pendingRedeemPoints) points for a $\(pendingRedeemAmount) voucher?\n\nThis action cannot be undone.")
+            }
+            // Redeem success alert
+            .alert("Voucher Created!", isPresented: $pointsViewModel.showRedeemSuccess) {
+                Button("OK", role: .cancel) {
+                    // Add the new voucher to the list
+                    if let response = pointsViewModel.lastRedeemResponse {
+                        let newVoucher = VoucherItem(
+                            id: response.couponCode,
+                            amount: Int(response.amount),
+                            code: response.couponCode,
+                            status: .active,
+                            expiresAt: response.expirationDate
+                        )
+                        vouchers.insert(newVoucher, at: 0)
+                    }
+                    pointsViewModel.clearSuccess()
+                    // Refresh points from server to ensure UI is in sync
+                    pointsViewModel.fetchPoints(userId: authViewModel.user.id)
+                }
+            } message: {
+                if let response = pointsViewModel.lastRedeemResponse {
+                    Text("Your voucher code is:\n\(response.couponCode)\n\nValue: $\(Int(response.amount))\nRemaining points: \(Int(response.balance))")
+                } else {
+                    Text("Your voucher has been created successfully!")
+                }
+            }
+            // Redeem error alert
+            .alert("Redemption Failed", isPresented: $pointsViewModel.showRedeemError) {
+                Button("OK", role: .cancel) {
+                    pointsViewModel.clearError()
+                }
+            } message: {
+                Text(pointsViewModel.message)
+            }
             .sheet(isPresented: $showAccountCenter) {
                 AccountCenterView()
                     .environmentObject(authViewModel)
@@ -143,6 +193,9 @@ struct NewProfileView: View {
     // MARK: - Helper Methods
     
     private func loadData() {
+        // Clear cache to ensure fresh data
+        APIClient.clearCache()
+        
         historyViewModel.fetchOrders(customerId: authViewModel.user.id)
         pointsViewModel.fetchPoints(userId: authViewModel.user.id)
     }
@@ -159,8 +212,26 @@ struct NewProfileView: View {
     }
     
     private func handleRedeem(amount: Int, points: Int) {
-        // TODO: Implement redeem API call
-        print("Redeeming $\(amount) for \(points) points")
+        // Check if user has enough points
+        guard pointsViewModel.canRedeem(points: points) else {
+            pointsViewModel.message = "You need \(points) points to redeem a $\(amount) voucher."
+            pointsViewModel.showRedeemError = true
+            return
+        }
+        
+        // Set pending redeem info and show confirmation
+        pendingRedeemAmount = amount
+        pendingRedeemPoints = points
+        showRedeemConfirmation = true
+    }
+    
+    private func confirmRedeem() {
+        // Call the redeem API
+        pointsViewModel.redeemPoints(userId: authViewModel.user.id, points: pendingRedeemPoints)
+        
+        // Reset pending state
+        pendingRedeemAmount = 0
+        pendingRedeemPoints = 0
     }
     
     private func handleLogout() {

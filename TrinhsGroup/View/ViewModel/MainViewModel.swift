@@ -263,6 +263,7 @@ class MainViewModel: ObservableObject {
         user: User,
         productOrders: [ProductOrder],
         pickupDateTime: String,
+        couponCode: String? = nil,
         completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
     ) {
         guard let id = selectedPayment?.id,
@@ -294,6 +295,7 @@ class MainViewModel: ObservableObject {
             productOrders: productOrders,
             pickupDateTime: pickupDateTime,
             discountValue: discountValue,
+            couponCode: couponCode,
             completion: completion
         )
     }

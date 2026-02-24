@@ -11,10 +11,13 @@ struct CheckOutView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
     @StateObject var stripeManager = StripeManager()
+    @StateObject var pointsViewModel = PointsViewModel()
     @State private var checkoutURL: URL?
     @State private var showSafari: Bool = false
     @State private var selectedPickupDateTime: Date?
     @State private var currentStripeOrderId: Int? = nil
+    @State private var selectedVoucher: VoucherResponse? = nil
+    @State private var showVoucherPicker: Bool = false
     
     // Computed property: enable only when payments fetched and a method selected, and pickup time chosen
     private var isSubmitEnabled: Bool {
@@ -57,7 +60,8 @@ struct CheckOutView: View {
                 mainViewModel.onCreateOrder(
                     user: authViewModel.user,
                     productOrders: productOrders,
-                    pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime)
+                    pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime),
+                    couponCode: selectedVoucher?.code
                 ) { orderId, paymentURLString in
                     // Handle Stripe payment flow
                     guard let orderId = orderId else {
@@ -84,6 +88,16 @@ struct CheckOutView: View {
                                         // Payment successful - navigate to order received
                                         print("Payment completed successfully")
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            // Clear selected voucher (it's now used)
+                                            selectedVoucher = nil
+                                            
+                                            // Clear cache to force fresh data
+                                            APIClient.clearCache()
+                                            
+                                            // Refresh data to get updated vouchers and points
+                                            pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
+                                            pointsViewModel.fetchPoints(userId: authViewModel.user.id)
+                                            
                                             mainViewModel.reset()
                                             mainViewModel.presentedType = .orderReceived
                                         }
@@ -133,13 +147,25 @@ struct CheckOutView: View {
                 )
             }
             mainViewModel.onCreateOrder(
-                user: authViewModel.user, 
+                user: authViewModel.user,
                 productOrders: productOrders,
-                pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime)
+                pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime),
+                couponCode: selectedVoucher?.code
             ) { orderId, paymentURL in
                 // Handle successful order creation
                 if let orderId = orderId {
                     print("Order created successfully with ID: \(orderId)")
+                    
+                    // Clear selected voucher (it's now used)
+                    selectedVoucher = nil
+                    
+                    // Clear cache to force fresh data
+                    APIClient.clearCache()
+                    
+                    // Refresh data to get updated vouchers and points
+                    pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
+                    pointsViewModel.fetchPoints(userId: authViewModel.user.id)
+                    
                     mainViewModel.reset()
                     mainViewModel.presentedType = .orderReceived
                 } else {
@@ -195,22 +221,44 @@ struct CheckOutView: View {
                             PickupDateTimeView(selectedDateTime: $selectedPickupDateTime)
                                 .padding(.top, 20)
                             
-                            // Subtotal (original, pre-discount), Discount 5%, and final Total
+                            // Voucher Selection Section
+                            VoucherSelectionView(
+                                vouchers: pointsViewModel.availableVouchers,
+                                selectedVoucher: $selectedVoucher,
+                                isLoading: pointsViewModel.isLoadingVouchers
+                            )
+                            .padding(.top, 20)
+                            
+                            // Subtotal (original, pre-discount), Discount 5%, Voucher Discount, and final Total
                             let originalTotal = mainViewModel.total
                             let discountValue = originalTotal * 0.05
-                            let finalTotal = max(0, originalTotal - discountValue)
+                            let voucherDiscount = selectedVoucher?.amount ?? 0
+                            let finalTotal = max(0, originalTotal - discountValue - voucherDiscount)
+                            
                             HStack {
                                 Text("Subtotal").foregroundColor(.gray)
                                 Spacer()
                                 Text(getPriceAndCurrencySymbol(price: originalTotal, currency: "$", currencyPosition: "right"))
                             }
                             .padding(.top, 15)
+                            
                             HStack {
                                 Text("Discount (5%)").foregroundColor(.gray)
                                 Spacer()
                                 Text("-" + getPriceAndCurrencySymbol(price: discountValue, currency: "$", currencyPosition: "right"))
                             }
                             .padding(.top, 6)
+                            
+                            // Show voucher discount if voucher is selected
+                            if let voucher = selectedVoucher {
+                                HStack {
+                                    Text("Voucher (\(voucher.code))").foregroundColor(.green)
+                                    Spacer()
+                                    Text("-" + getPriceAndCurrencySymbol(price: voucher.amount, currency: "$", currencyPosition: "right"))
+                                        .foregroundColor(.green)
+                                }
+                                .padding(.top, 6)
+                            }
 
                             HStack {
                                 Text("Total:").foregroundColor(.gray)
@@ -234,6 +282,8 @@ struct CheckOutView: View {
             .onAppear {
                 DispatchQueue.main.async {
                     mainViewModel.onFetchPaymentMethods()
+                    // Fetch user's available vouchers
+                    pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
                 }
             }
             // Present Safari for the checkout

@@ -27,6 +27,7 @@ struct CartView: View {
         calendar.timeZone = tz
         let weekday = calendar.component(.weekday, from: Date())
         // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+        return false
         return weekday == 2
     }
     

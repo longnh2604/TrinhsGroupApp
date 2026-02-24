@@ -34,6 +34,10 @@ enum WooCommerceEndpoint {
     case onCreateOrder
     case fetchHistoryOrders(customerID: Int)
     case getStripePaymentIntent(orderID: Int)
+    case redeemPoints  // Custom myCred endpoint
+    case userVouchers(userID: Int)  // Fetch user's available vouchers (custom endpoint)
+    case wcCoupons  // WooCommerce coupons API
+    case wcCouponByCode(code: String)  // Get specific coupon by code
 
     func urlPath() -> String {
         switch self {
@@ -67,6 +71,14 @@ enum WooCommerceEndpoint {
             return "\(commonURL)/orders?customer=\(customerID)&page=1&per_page=100"
         case .getStripePaymentIntent(let orderID):
             return "\(commonURL)/orders/\(orderID)/stripe/payment-intent"
+        case .redeemPoints:
+            return "/wp-json/bu/v1/redeem"
+        case .userVouchers(let userID):
+            return "/wp-json/bu/v1/vouchers?user_id=\(userID)"
+        case .wcCoupons:
+            return "\(commonURL)/coupons"
+        case .wcCouponByCode(let code):
+            return "\(commonURL)/coupons?code=\(code)"
         }
     }
 }
@@ -172,7 +184,7 @@ struct WooCommerceAPI {
 //            if let jsonString = String(data: data, encoding: .utf8) {
 //                print("Received JSON: \(jsonString)")
 //            }
-//            
+//
 //            do {
 //                let decodedData = try JSONDecoder().decode(T.self, from: data)
 //                DispatchQueue.main.async {
@@ -195,9 +207,24 @@ struct WooCommerceAPI {
     ) {
         // Build URL with query parameters
         var components = URLComponents(string: "\(storeURL)\(endpoint.urlPath())")!
-        if !params.isEmpty {
-            components.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+        
+        // Add existing params
+        var queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+        
+        // Add cache-busting timestamp for GET requests to prevent stale data
+        if method == .GET {
+            queryItems.append(URLQueryItem(name: "_", value: String(Int(Date().timeIntervalSince1970 * 1000))))
         }
+        
+        if !queryItems.isEmpty {
+            // Merge with existing query items if URL already has them
+            if components.queryItems != nil {
+                components.queryItems?.append(contentsOf: queryItems)
+            } else {
+                components.queryItems = queryItems
+            }
+        }
+        
         guard let url = components.url else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
             return
@@ -205,6 +232,9 @@ struct WooCommerceAPI {
 
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
+        
+        // Disable caching to always get fresh data
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
 
         // Basic Auth header
         let loginString = "\(consumerKey):\(consumerSecret)"
@@ -212,6 +242,10 @@ struct WooCommerceAPI {
             let base64LoginString = loginData.base64EncodedString()
             request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
         }
+        
+        // Add no-cache headers
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
 
         // Set body if needed
         if let body = body {
@@ -357,6 +391,118 @@ struct WooCommerceAPI {
             
             DispatchQueue.main.async {
                 completion(.success(true))
+            }
+        }.resume()
+    }
+    
+    /// Request without authentication - for custom WordPress REST API endpoints
+    /// that have permission_callback set to __return_true
+    func requestWithoutAuth<T: Decodable>(
+        endpoint: WooCommerceEndpoint,
+        method: HTTPMethod,
+        params: [String: String] = [:],
+        body: [String: Any]? = nil,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
+        // Build URL with query parameters
+        var components = URLComponents(string: "\(storeURL)\(endpoint.urlPath())")!
+        
+        // Add existing params
+        var queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+        
+        // Add cache-busting timestamp for GET requests to prevent stale data
+        if method == .GET {
+            queryItems.append(URLQueryItem(name: "_", value: String(Int(Date().timeIntervalSince1970 * 1000))))
+        }
+        
+        if !queryItems.isEmpty {
+            if components.queryItems != nil {
+                components.queryItems?.append(contentsOf: queryItems)
+            } else {
+                components.queryItems = queryItems
+            }
+        }
+        
+        guard let url = components.url else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        
+        // Disable caching to always get fresh data
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        
+        // NO Authorization header - this is for public/custom endpoints
+        
+        // Add no-cache headers
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        // Set body if needed
+        if let body = body {
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+
+        print("🌐 Request URL (No Auth): \(request.url?.absoluteString ?? "Invalid URL")")
+        print("📤 Request Method: \(method.rawValue)")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📥 Response Status Code: \(httpResponse.statusCode)")
+            }
+            
+            if let error = error {
+                print("❌ Network Error: \(error.localizedDescription)")
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received")
+                completion(.failure(NSError(domain: "No data", code: 500, userInfo: nil)))
+                return
+            }
+
+            // Print raw JSON response for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📦 Raw JSON Response (\(data.count) bytes):")
+                print(jsonString)
+            }
+            
+            do {
+                let decodedData = try JSONDecoder().decode(T.self, from: data)
+                print("✅ Successfully decoded response")
+                DispatchQueue.main.async {
+                    completion(.success(decodedData))
+                }
+            } catch let decodingError {
+                print("❌ Decoding Error: \(decodingError)")
+                
+                // Try to decode custom error response
+                if let customError = try? JSONDecoder().decode(RedeemErrorResponse.self, from: data) {
+                    print("📋 Custom Error Response: \(customError.error)")
+                    let error = NSError(
+                        domain: "RedeemError",
+                        code: 400,
+                        userInfo: [NSLocalizedDescriptionKey: customError.error]
+                    )
+                    DispatchQueue.main.async {
+                        completion(.failure(error))
+                    }
+                } else if let wooError = try? JSONDecoder().decode(WooErrorResponse.self, from: data) {
+                    print("📋 WooCommerce Error Response decoded")
+                    DispatchQueue.main.async {
+                        completion(.failure(wooError))
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        completion(.failure(decodingError))
+                    }
+                }
             }
         }.resume()
     }

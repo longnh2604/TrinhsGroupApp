@@ -202,11 +202,12 @@ struct RewardsQuickCard: View {
     var onSeeAllTap: () -> Void
     var onRedeemTap: (Int, Int) -> Void // (amount, pointsCost)
     
+    // 1 point = $1, so 10 points = $10 voucher
     private let redeemOptions: [(amount: Int, points: Int)] = [
-        (10, 100),
-        (20, 200),
-        (50, 500),
-        (100, 1000)
+        (10, 10),
+        (20, 20),
+        (50, 50),
+        (100, 100)
     ]
     
     var body: some View {

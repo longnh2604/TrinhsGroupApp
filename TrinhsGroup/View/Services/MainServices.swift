@@ -121,6 +121,7 @@ class MainServices: MainServicesProtocol {
         productOrders: [ProductOrder],
         pickupDateTime: String,
         discountValue: Double,
+        couponCode: String? = nil,
         completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
     ) {
         self.isLoading = true
@@ -197,6 +198,14 @@ class MainServices: MainServicesProtocol {
                 "total": String(format: "-%.2f", discountValue)
             ]]
             json["fee_lines"] = feeLines
+        }
+        
+        // Apply voucher coupon code if provided
+        if let couponCode = couponCode, !couponCode.isEmpty {
+            let couponLines: [[String: Any]] = [[
+                "code": couponCode
+            ]]
+            json["coupon_lines"] = couponLines
         }
 
         api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
