@@ -7,6 +7,10 @@
 //
 
 import SwiftUI
+import PhotosUI
+import Photos
+import AVFoundation
+import UIKit
 
 // MARK: - Voucher Item Model
 struct VoucherItem: Identifiable {
@@ -298,6 +302,16 @@ struct ProfileView: View {
     @State private var showAccountCenter = false
     @State private var showRewardsCenter = false
     @State private var pushNotificationsEnabled = true
+    @State private var showAvatarActionSheet = false
+    @State private var showCameraPicker = false
+    @State private var showDeleteAvatarConfirmation = false
+    @State private var showAvatarErrorAlert = false
+    @State private var avatarErrorMessage = ""
+    @State private var photoPickerItem: PhotosPickerItem?
+    @State private var showPhotoPicker = false
+    @State private var localAvatarPreview: UIImage?
+    @State private var isAvatarUpdating = false
+    @State private var avatarRefreshToken = UUID()
     
     // Redeem confirmation state
     @State private var showRedeemConfirmation = false
@@ -415,51 +429,103 @@ struct ProfileView: View {
             } message: {
                 Text(pointsViewModel.message)
             }
+            .confirmationDialog("Cập nhật ảnh đại diện", isPresented: $showAvatarActionSheet, titleVisibility: .visible) {
+                Button("Chọn từ thư viện") {
+                    presentPhotoLibrary()
+                }
+                Button("Chụp ảnh mới") {
+                    presentCamera()
+                }
+                if localAvatarPreview != nil || !(authViewModel.user.avatar_url ?? "").isEmpty {
+                    Button("Xóa ảnh đại diện", role: .destructive) {
+                        showDeleteAvatarConfirmation = true
+                    }
+                }
+                Button("Hủy", role: .cancel) { }
+            } message: {
+                Text("Chọn cách cập nhật avatar của bạn")
+            }
+            .photosPicker(isPresented: $showPhotoPicker, selection: $photoPickerItem, matching: .images)
+            .onChange(of: photoPickerItem) { item in
+                guard let item else { return }
+                Task {
+                    await handlePickedPhoto(item)
+                }
+            }
+            .sheet(isPresented: $showCameraPicker) {
+                AvatarCameraPicker { image in
+                    Task {
+                        await MainActor.run {
+                            showCameraPicker = false
+                        }
+                        await uploadAvatarImage(image)
+                    }
+                }
+                .ignoresSafeArea()
+            }
+            .alert("Xóa ảnh đại diện", isPresented: $showDeleteAvatarConfirmation) {
+                Button("Hủy", role: .cancel) { }
+                Button("Xóa", role: .destructive) {
+                    deleteAvatar()
+                }
+            } message: {
+                Text("Avatar sẽ được đưa về ảnh mặc định.")
+            }
+            .alert("Avatar", isPresented: $showAvatarErrorAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(avatarErrorMessage)
+            }
         }
     }
     
     // MARK: - User Identity Card
     private var userIdentityCard: some View {
-        Button(action: { authViewModel.showEditProfile = true }) {
-            HStack(spacing: ProfileDesign.Spacing.md) {
-                // Avatar with gradient border
-                avatarView
-                
-                // User info
-                VStack(alignment: .leading, spacing: ProfileDesign.Spacing.xs) {
-                    Text(authViewModel.user.username.isEmpty ? "Guest User" : authViewModel.user.username)
-                        .font(ProfileDesign.Typography.headline)
-                        .foregroundColor(ProfileDesign.Colors.textPrimary)
-                        .lineLimit(1)
+        HStack(spacing: ProfileDesign.Spacing.md) {
+            avatarView
+            
+            Button(action: { authViewModel.showEditProfile = true }) {
+                HStack(spacing: ProfileDesign.Spacing.md) {
+                    VStack(alignment: .leading, spacing: ProfileDesign.Spacing.xs) {
+                        Text(authViewModel.user.username.isEmpty ? "Guest User" : authViewModel.user.username)
+                            .font(ProfileDesign.Typography.headline)
+                            .foregroundColor(ProfileDesign.Colors.textPrimary)
+                            .lineLimit(1)
+                        
+                        Text(authViewModel.user.email.isEmpty ? "Not logged in" : authViewModel.user.email)
+                            .font(ProfileDesign.Typography.subheadline)
+                            .foregroundColor(ProfileDesign.Colors.textSecondary)
+                            .lineLimit(1)
+                        
+                        pointsPill
+                    }
                     
-                    Text(authViewModel.user.email.isEmpty ? "Not logged in" : authViewModel.user.email)
-                        .font(ProfileDesign.Typography.subheadline)
-                        .foregroundColor(ProfileDesign.Colors.textSecondary)
-                        .lineLimit(1)
+                    Spacer()
                     
-                    // Points pill only
-                    pointsPill
+                    Image(systemName: ProfileDesign.Icons.chevronRight)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(ProfileDesign.Colors.textTertiary)
                 }
-                
-                Spacer()
-                
-                Image(systemName: ProfileDesign.Icons.chevronRight)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(ProfileDesign.Colors.textTertiary)
+                .contentShape(Rectangle())
             }
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
         }
-        .buttonStyle(CardPressStyle())
         .profileCard(padding: ProfileDesign.Spacing.md, cornerRadius: ProfileDesign.Radius.xl)
     }
     
     private var avatarView: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             Circle()
-                .stroke(ProfileDesign.Colors.avatarBorderGradient, lineWidth: 3)
+                .strokeBorder(ProfileDesign.Colors.avatarBorderGradient, lineWidth: 3)
                 .frame(width: 78, height: 78)
             
-            if let urlString = authViewModel.user.avatar_url, let url = URL(string: urlString) {
+            if let localAvatarPreview {
+                Image(uiImage: localAvatarPreview)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 72, height: 72)
+                    .clipShape(Circle())
+            } else if let url = avatarDisplayURL {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
@@ -475,6 +541,31 @@ struct ProfileView: View {
             } else {
                 defaultAvatarImage
             }
+            
+            Button(action: { showAvatarActionSheet = true }) {
+                ZStack {
+                    Circle()
+                        .fill(ProfileDesign.Colors.primary)
+                        .frame(width: 28, height: 28)
+                    if isAvatarUpdating {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                            .scaleEffect(0.7)
+                    } else {
+                        Image(systemName: ProfileDesign.Icons.camera)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .overlay(
+                    Circle()
+                        .stroke(Color.white, lineWidth: 2)
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(isAvatarUpdating)
+            .offset(x: 2, y: 2)
         }
     }
     
@@ -873,7 +964,128 @@ struct ProfileView: View {
     }
     
     // MARK: - Helper Methods
-    
+
+    private var avatarDisplayURL: URL? {
+        guard let avatar = authViewModel.user.avatar_url, !avatar.isEmpty else {
+            return nil
+        }
+
+        let separator = avatar.contains("?") ? "&" : "?"
+        return URL(string: "\(avatar)\(separator)app_avatar_refresh=\(avatarRefreshToken.uuidString)")
+    }
+
+    @MainActor
+    private func handlePickedPhoto(_ item: PhotosPickerItem) async {
+        do {
+            guard let data = try await item.loadTransferable(type: Data.self) else {
+                showAvatarError("Không thể đọc ảnh từ thư viện.")
+                photoPickerItem = nil
+                return
+            }
+
+            guard let image = UIImage(data: data) else {
+                showAvatarError("Ảnh không hợp lệ hoặc không được hỗ trợ.")
+                photoPickerItem = nil
+                return
+            }
+
+            photoPickerItem = nil
+            await uploadAvatarImage(image)
+        } catch {
+            photoPickerItem = nil
+            showAvatarError(error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    private func uploadAvatarImage(_ image: UIImage) async {
+        guard !isAvatarUpdating else { return }
+        isAvatarUpdating = true
+
+        authViewModel.onUpdateAvatar(image: image) { result in
+            switch result {
+            case .success:
+                localAvatarPreview = image
+                avatarRefreshToken = UUID()
+                authViewModel.onGetUser()
+            case .failure(let error):
+                showAvatarError(error.localizedDescription)
+            }
+            isAvatarUpdating = false
+        }
+    }
+
+    private func deleteAvatar() {
+        guard !isAvatarUpdating else { return }
+        isAvatarUpdating = true
+
+        authViewModel.onRemoveAvatar { result in
+            switch result {
+            case .success:
+                localAvatarPreview = nil
+                avatarRefreshToken = UUID()
+                authViewModel.onGetUser()
+            case .failure(let error):
+                showAvatarError(error.localizedDescription)
+            }
+            isAvatarUpdating = false
+        }
+    }
+
+    private func presentPhotoLibrary() {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        switch status {
+        case .authorized, .limited:
+            showPhotoPicker = true
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
+                DispatchQueue.main.async {
+                    if newStatus == .authorized || newStatus == .limited {
+                        showPhotoPicker = true
+                    } else {
+                        showAvatarError("Ứng dụng chưa được cấp quyền Thư viện ảnh. Vui lòng bật quyền trong Settings.")
+                    }
+                }
+            }
+        case .denied, .restricted:
+            showAvatarError("Ứng dụng chưa được cấp quyền Thư viện ảnh. Vui lòng bật quyền trong Settings.")
+        @unknown default:
+            showAvatarError("Không thể truy cập Thư viện ảnh trên thiết bị này.")
+        }
+    }
+
+    private func presentCamera() {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            showAvatarError("Thiết bị này không hỗ trợ camera.")
+            return
+        }
+
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        switch status {
+        case .authorized:
+            showCameraPicker = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        showCameraPicker = true
+                    } else {
+                        showAvatarError("Ứng dụng chưa được cấp quyền Camera. Vui lòng bật quyền trong Settings.")
+                    }
+                }
+            }
+        case .denied, .restricted:
+            showAvatarError("Ứng dụng chưa được cấp quyền Camera. Vui lòng bật quyền trong Settings.")
+        @unknown default:
+            showAvatarError("Không thể truy cập camera trên thiết bị này.")
+        }
+    }
+
+    private func showAvatarError(_ message: String) {
+        avatarErrorMessage = message
+        showAvatarErrorAlert = true
+    }
+
     private func loadData() {
         // Clear cache to ensure fresh data
         APIClient.clearCache()
@@ -906,8 +1118,7 @@ struct ProfileView: View {
     }
     
     private func handleLogout() {
-        authViewModel.user = .empty
-        authViewModel.isLogin = false
+        authViewModel.logout()
     }
     
     private func openContactSupport() {
@@ -924,6 +1135,48 @@ struct ProfileView: View {
     
     private func openPrivacy() {
         // TODO: Implement privacy
+    }
+}
+
+private struct AvatarCameraPicker: UIViewControllerRepresentable {
+    let onImagePicked: (UIImage) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.allowsEditing = true
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) { }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onImagePicked: onImagePicked)
+    }
+
+    final class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let onImagePicked: (UIImage) -> Void
+
+        init(onImagePicked: @escaping (UIImage) -> Void) {
+            self.onImagePicked = onImagePicked
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
+        }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
+        ) {
+            let image = (info[.editedImage] ?? info[.originalImage]) as? UIImage
+            picker.dismiss(animated: true)
+
+            if let image {
+                onImagePicked(image)
+            }
+        }
     }
 }
 

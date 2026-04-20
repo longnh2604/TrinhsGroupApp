@@ -22,5 +22,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Ứng dụng cần quyền Camera để chụp ảnh đại diện.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ứng dụng cần quyền Thư viện ảnh để chọn ảnh đại diện.</string>
 </dict>
 </plist>

@@ -235,8 +235,7 @@ struct NewProfileView: View {
     }
     
     private func handleLogout() {
-        authViewModel.user = .empty
-        authViewModel.isLogin = false
+        authViewModel.logout()
     }
     
     private func openContactSupport() {

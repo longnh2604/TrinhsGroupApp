@@ -67,7 +67,7 @@ struct AvatarView: View {
         ZStack {
             // Gradient border ring
             Circle()
-                .stroke(ProfileDesign.Colors.avatarBorderGradient, lineWidth: 3)
+                .strokeBorder(ProfileDesign.Colors.avatarBorderGradient, lineWidth: 3)
                 .frame(width: size + 6, height: size + 6)
             
             // Avatar image

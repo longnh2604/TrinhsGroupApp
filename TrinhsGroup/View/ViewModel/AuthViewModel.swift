@@ -8,10 +8,15 @@
 import SwiftUI
 import SwiftyJSON
 import Combine
+import UIKit
 
 class AuthViewModel: ObservableObject {
     
     @AppStorage("isLogin") var isLogin : Bool = false
+    @AppStorage("authJWTToken") private var persistedJWTToken: String = ""
+    @AppStorage("authUserEmail") private var persistedAuthEmail: String = ""
+    @AppStorage("authUsername") private var persistedAuthUsername: String = ""
+    @AppStorage("authDisplayName") private var persistedAuthDisplayName: String = ""
     @Published var user : User = .empty
     @Published var authUser: UserAuth?
     @Published var username = ""
@@ -30,6 +35,7 @@ class AuthViewModel: ObservableObject {
     
     init(service: AuthServices = AuthServices()) {
         self.service = service
+        restorePersistedAuthSession()
         self.bindingData()
     }
     
@@ -56,6 +62,7 @@ class AuthViewModel: ObservableObject {
             .store(in: &cancellableSet)
         
         service.loginPublisher
+            .dropFirst()
             .receive(on: RunLoop.main)
             .sink { isLogined in
                 self.isLogin = isLogined
@@ -91,9 +98,16 @@ class AuthViewModel: ObservableObject {
             .store(in: &cancellableSet)
         
         service.authenticatePublisher
+            .dropFirst()
             .receive(on: RunLoop.main)
             .sink { authUser in
                 self.authUser = authUser
+                if let authUser {
+                    self.persistedJWTToken = authUser.token
+                    self.persistedAuthEmail = authUser.email
+                    self.persistedAuthUsername = authUser.username
+                    self.persistedAuthDisplayName = authUser.displayName
+                }
             }
             .store(in: &cancellableSet)
     }
@@ -107,9 +121,6 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onAuthUser() {
-        email = "Test02@abc.com"
-        password = "abc123"
-
         if email.isEmpty || password.isEmpty {
             message = "Please fill all data"
             return
@@ -130,11 +141,136 @@ class AuthViewModel: ObservableObject {
     }
     
     public func onGetUser() {
-        guard let user = authUser else { return }
-        service.fetchingUserInfo(email: user.email)
+        restorePersistedAuthSession()
+
+        let emailToFetch = authUser?.email.nonEmptyValue
+            ?? user.email.nonEmptyValue
+            ?? persistedAuthEmail.nonEmptyValue
+
+        guard let emailToFetch else { return }
+        service.fetchingUserInfo(email: emailToFetch)
     }
     
     public func onForgotPassword(email: String) {
         service.onForgotPassword(email: email)
+    }
+
+    public func onUpdateAvatar(
+        image: UIImage,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        restorePersistedAuthSession()
+
+        guard let token = resolvedJWTToken() else {
+            let error = NSError(
+                domain: "AuthViewModel",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để cập nhật avatar."]
+            )
+            message = error.localizedDescription
+            completion(.failure(error))
+            return
+        }
+
+        guard let imageData = image.jpegData(compressionQuality: 0.85) else {
+            let error = NSError(
+                domain: "AuthViewModel",
+                code: 422,
+                userInfo: [NSLocalizedDescriptionKey: "Không thể xử lý ảnh đã chọn."]
+            )
+            message = error.localizedDescription
+            completion(.failure(error))
+            return
+        }
+
+        let fileName = "avatar-\(user.id)-\(Int(Date().timeIntervalSince1970)).jpg"
+        service.updateAvatar(jwtToken: token, imageData: imageData, fileName: fileName, mimeType: "image/jpeg") { [weak self] result in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let avatarURL):
+                    if !avatarURL.isEmpty {
+                        self.user.avatar_url = avatarURL
+                    }
+                    completion(.success(()))
+                case .failure(let error):
+                    self.message = error.localizedDescription
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    public func onRemoveAvatar(
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        restorePersistedAuthSession()
+
+        guard let token = resolvedJWTToken() else {
+            let error = NSError(
+                domain: "AuthViewModel",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xóa avatar."]
+            )
+            message = error.localizedDescription
+            completion(.failure(error))
+            return
+        }
+
+        service.removeAvatar(jwtToken: token) { [weak self] result in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.user.avatar_url = nil
+                    completion(.success(()))
+                case .failure(let error):
+                    self.message = error.localizedDescription
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    public func logout() {
+        authUser = nil
+        user = .empty
+        isLogin = false
+        persistedJWTToken = ""
+        persistedAuthEmail = ""
+        persistedAuthUsername = ""
+        persistedAuthDisplayName = ""
+        password = ""
+    }
+
+    private func restorePersistedAuthSession() {
+        guard authUser == nil else { return }
+        guard let token = persistedJWTToken.nonEmptyValue,
+              let email = persistedAuthEmail.nonEmptyValue else {
+            return
+        }
+
+        authUser = UserAuth(
+            token: token,
+            email: email,
+            username: persistedAuthUsername,
+            displayName: persistedAuthDisplayName
+        )
+    }
+
+    private func resolvedJWTToken() -> String? {
+        if let token = authUser?.token.nonEmptyValue {
+            return token
+        }
+        if let token = persistedJWTToken.nonEmptyValue {
+            return token
+        }
+        return nil
+    }
+}
+
+private extension String {
+    var nonEmptyValue: String? {
+        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : self
     }
 }
