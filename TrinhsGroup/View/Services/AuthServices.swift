@@ -236,13 +236,13 @@ private enum WordPressAvatarAPIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid WordPress avatar endpoint URL."
+            return L10n.Error.invalidAvatarURL.localized
         case .missingResponse:
-            return "No response from WordPress server."
+            return L10n.Error.missingResponse.localized
         case .unauthorized:
-            return "Avatar update requires a valid login token. Please sign in again."
+            return L10n.Error.avatarUnauthorized.localized
         case .imageDataMissing:
-            return "Image data is missing."
+            return L10n.Error.imageDataMissing.localized
         case .unsupportedServer(let message):
             return message
         }
@@ -341,9 +341,7 @@ private final class WordPressAvatarAPI {
                             if (fallbackError as NSError).code == 401 || (fallbackError as NSError).code == 403 {
                                 completion(.failure(fallbackError))
                             } else {
-                                completion(.failure(WordPressAvatarAPIError.unsupportedServer("""
-                                WordPress server chưa hỗ trợ cập nhật avatar qua REST cho user hiện tại. Hãy triển khai endpoint `/wp-json/woo-tools-app/v1/avatar` hoặc register user meta `avatar_attachment_id` trên `/wp/v2/users/me`.
-                                """)))
+                                completion(.failure(WordPressAvatarAPIError.unsupportedServer(L10n.Error.unsupportedAvatarUpdate.localized)))
                             }
                         }
                     }
@@ -377,9 +375,7 @@ private final class WordPressAvatarAPI {
                             if (fallbackError as NSError).code == 401 || (fallbackError as NSError).code == 403 {
                                 completion(.failure(fallbackError))
                             } else {
-                                completion(.failure(WordPressAvatarAPIError.unsupportedServer("""
-                                WordPress server chưa hỗ trợ xóa avatar qua REST cho user hiện tại. Hãy triển khai endpoint `/wp-json/woo-tools-app/v1/avatar` hoặc register user meta `avatar_attachment_id` trên `/wp/v2/users/me`.
-                                """)))
+                                completion(.failure(WordPressAvatarAPIError.unsupportedServer(L10n.Error.unsupportedAvatarDelete.localized)))
                             }
                         }
                     }
@@ -454,7 +450,7 @@ private final class WordPressAvatarAPI {
                 }
 
                 let message = String(data: responseData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
-                let fallbackMessage = message?.isEmpty == false ? message! : "WordPress avatar endpoint returned HTTP \(httpResponse.statusCode)."
+                let fallbackMessage = message?.isEmpty == false ? message! : String(format: L10n.Error.fallbackAvatarEndpoint.localized, String(httpResponse.statusCode))
                 completion(.failure(NSError(
                     domain: "WordPressAvatarAPI",
                     code: httpResponse.statusCode,

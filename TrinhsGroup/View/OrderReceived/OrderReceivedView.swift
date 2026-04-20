@@ -24,7 +24,7 @@ struct OrderReceivedView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
-            Text("Checkout")
+            Text(L10n.OrderReceived.checkout.localizedKey)
                 .font(.headline)
                 .padding(.horizontal, 10)
                 .background(Color.init(hex: "f9f9f9"))

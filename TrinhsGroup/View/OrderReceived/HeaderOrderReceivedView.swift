@@ -16,10 +16,10 @@ struct HeaderOrderReceivedView: View {
                 .scaledToFit()
                 .frame(width: 100, height: 100, alignment: .center)
             
-            Text("Order Received")
+            Text(L10n.OrderReceived.title.localizedKey)
                 .fontWeight(.semibold)
             
-            Text("Thank you. Your order has \nbeen received.")
+            Text(L10n.OrderReceived.thankYouMessage.localizedKey)
                 .multilineTextAlignment(.center)
                 .font(.footnote)
         }

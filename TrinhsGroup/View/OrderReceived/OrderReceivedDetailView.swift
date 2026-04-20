@@ -15,7 +15,7 @@ struct OrderReceivedDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Order No")
+                    Text(L10n.OrderReceived.orderNo.localizedKey)
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
                     Text("#\(mainViewModel.receivedOrder.number)")
@@ -25,7 +25,7 @@ struct OrderReceivedDetailView: View {
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Date")
+                    Text(L10n.OrderReceived.date.localizedKey)
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
                     Text(mainViewModel.receivedOrder.dateCreated.toAustraliaDateTime())
@@ -35,7 +35,7 @@ struct OrderReceivedDetailView: View {
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Total")
+                    Text(L10n.Common.total.localizedKey)
                         .fontWeight(.semibold)
                         .foregroundColor(Color("ColorPrimary"))
                     
@@ -47,7 +47,7 @@ struct OrderReceivedDetailView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Email")
+                Text(L10n.Common.email.localizedKey)
                     .fontWeight(.semibold)
                     .foregroundColor(Color("ColorPrimary"))
                 Text(mainViewModel.receivedOrder.billing.email)

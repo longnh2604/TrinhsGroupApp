@@ -15,7 +15,7 @@ struct HistoryOrderDetailPaymentView: View {
     var body: some View {
         VStack(spacing: 4){
             HStack {
-                Text("Subtotal")
+                Text(L10n.Common.subtotal.localizedKey)
                 
                 Spacer()
                 
@@ -25,7 +25,7 @@ struct HistoryOrderDetailPaymentView: View {
             
             if order.discount > 0 {
                 HStack {
-                    Text("Discount")
+                    Text(L10n.OrderReceived.discount.localizedKey)
 
                     Spacer()
                     (
@@ -38,7 +38,7 @@ struct HistoryOrderDetailPaymentView: View {
             }
             
             HStack {
-                Text("Total")
+                Text(L10n.Common.total.localizedKey)
                     .fontWeight(.semibold)
                 
                 Spacer()

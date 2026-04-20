@@ -13,7 +13,7 @@ struct HistoryOrderNoteView: View {
     
     var body: some View {
         HStack(spacing: 20){
-            Text("Note")
+            Text(L10n.Profile.note.localizedKey)
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             

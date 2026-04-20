@@ -14,7 +14,7 @@ struct OrderReceivedPricesView: View {
     var body: some View {
         VStack(spacing: 4){
             HStack {
-                Text("Subtotal")
+                Text(L10n.Common.subtotal.localizedKey)
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                 
                 Spacer()
@@ -32,7 +32,7 @@ struct OrderReceivedPricesView: View {
             let discountValue = max(0, originalFromFinal - finalTotal)
             if discountValue > 0 {
                 HStack {
-                    Text("Discount")
+                    Text(L10n.OrderReceived.discount.localizedKey)
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     
                     Spacer()
@@ -44,7 +44,7 @@ struct OrderReceivedPricesView: View {
             }
             
             HStack {
-                Text("Total")
+                Text(L10n.Common.total.localizedKey)
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     .fontWeight(.semibold)
                 

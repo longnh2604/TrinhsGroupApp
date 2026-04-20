@@ -1,0 +1,164 @@
+/* Common */
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.submit" = "Submit";
+"common.save" = "Save";
+"common.done" = "Done";
+"common.error" = "Error";
+"common.success" = "Success";
+"common.warning" = "Warning";
+"common.yes" = "Yes";
+"common.no" = "No";
+"common.total" = "Total";
+"common.subtotal" = "Subtotal";
+"common.email" = "Email";
+"common.emptyString" = "";
+"common.back" = "Back";
+"common.update" = "Update";
+"common.logout" = "Logout";
+"common.redeem" = "Redeem";
+
+/* Auth */
+"auth.login" = "Login";
+"auth.signup" = "Sign Up";
+"auth.email" = "Email";
+"auth.password" = "Password";
+"auth.username" = "Username";
+"auth.forgetPassword" = "Forget your password?";
+"auth.forgetPasswordTitle" = "Forget Password";
+"auth.dontHaveAccount" = "Don't have an account yet? Sign Up";
+"auth.accountCreated" = "Your account was created successfully. Please switch to login";
+"auth.send" = "Send";
+"auth.enterEmailPrompt" = "Please, enter your email address. You will receive a link to create a new password via email.";
+"auth.invalidEmail" = "Please enter a valid email address";
+
+/* Order Received */
+"orderReceived.items" = "Items";
+"orderReceived.title" = "Order Received";
+"orderReceived.thankYouMessage" = "Thank you. Your order has \nbeen received.";
+"orderReceived.checkout" = "Checkout";
+"orderReceived.discount" = "Discount";
+"orderReceived.orderNo" = "Order No";
+"orderReceived.date" = "Date";
+"orderReceived.note" = "Note:";
+"orderReceived.addition" = "Addition:";
+
+/* Profile */
+"profile.orderNoFormat" = "Order No #%@";
+"profile.showMore" = "show more";
+"profile.guestUser" = "Guest User";
+"profile.notLoggedIn" = "Not logged in";
+"profile.accountSettings" = "Account Settings";
+"profile.changeAvatar" = "Change Avatar";
+"profile.changeAvatarSubtitle" = "Update your profile picture";
+"profile.changePassword" = "Change Password";
+"profile.changePasswordSubtitle" = "Update your password";
+"profile.manageAddress" = "Manage Address";
+"profile.manageAddressSubtitle" = "Billing and shipping addresses";
+"profile.personalInformation" = "Personal Information";
+"profile.firstName" = "First Name";
+"profile.lastName" = "Last Name";
+"profile.phone" = "Phone";
+"profile.billingAddress" = "Billing Address";
+"profile.myOrders" = "My Orders";
+"profile.noOrdersTitle" = "You don't have any orders today";
+"profile.noOrdersMessage" = "If you'd like to order, don't hesitate to add items to your cart. We're happy and eager to serve you with the best care possible.";
+"profile.orderDetail" = "Order Detail";
+"profile.note" = "Note";
+"profile.status" = "Status";
+"profile.points" = "points";
+"profile.member" = "Member";
+"profile.earnPointsInfo" = "Earn 1 point for every $20 spent";
+"profile.redeemVouchers" = "Redeem Vouchers";
+"profile.vouchersValidInfo" = "Vouchers are valid for 30 days after redemption";
+"profile.voucherHistory" = "Voucher History";
+"profile.noVouchersTitle" = "No vouchers yet";
+"profile.noVouchersMessage" = "Redeem your points to get vouchers";
+"profile.voucherAmountFormat" = "$%@ Voucher";
+"profile.voucherExpiresFormat" = "Expires: %@";
+"profile.preferences" = "Preferences";
+"profile.pushNotifications" = "Push Notifications";
+"profile.pushNotificationsSubtitle" = "Receive order updates and offers";
+"profile.helpAndSupport" = "Help & Support";
+"profile.legal" = "Legal";
+"profile.logoutButton" = "Logout";
+"profile.appVersionFormat" = "App Version %@ (%@)";
+"profile.madeWithLove" = "Made with ❤️ by TrinhsGroup";
+"profile.rewards" = "Rewards";
+"profile.seeAll" = "See all";
+"profile.accountTitle" = "Account";
+"profile.accountSubtitle" = "Password, avatar";
+"profile.ordersSubtitleFormat" = "%d orders";
+"profile.rewardsSubtitle" = "Redeem vouchers";
+"profile.contactSupport" = "Contact Support";
+"profile.faq" = "FAQ";
+"profile.termsOfService" = "Terms of Service";
+"profile.privacyPolicy" = "Privacy Policy";
+"profile.orderStatus" = "Order Status";
+"profile.pointsSuffix" = "Points";
+"profile.pointsSuffixShort" = "pts";
+"profile.editBillingAddress" = "Edit Billing Address";
+"profile.updatedUserSuccessful" = "Updated User Info Successful";
+"profile.profileTitle" = "Profile";
+"profile.accountNav" = "Account";
+"profile.name" = "Name";
+"profile.firstName_placeholder" = "First name";
+"profile.lastName_placeholder" = "Last name";
+"profile.country" = "Country";
+"profile.streetAddress" = "Street address";
+"profile.state" = "State";
+"profile.cityTown" = "City / Town";
+"profile.postcode" = "Postcode";
+
+/* Alerts */
+"alert.logoutTitle" = "Logout";
+"alert.logoutMessage" = "Are you sure you want to logout?";
+"alert.logoutConfirm" = "Logout";
+"alert.redeemTitle" = "Redeem Points";
+"alert.redeemConfirmFormat" = "Are you sure you want to redeem %d points for a $%@ voucher?\n\nThis action cannot be undone.";
+"alert.redeemConfirm" = "Redeem";
+"alert.voucherCreatedTitle" = "Voucher Created!";
+"alert.voucherCreatedMessageFormat" = "Your voucher code is:\n%@\n\nValue: $%d\nRemaining points: %d";
+"alert.voucherCreatedSuccess" = "Your voucher has been created successfully!";
+"alert.redemptionFailedTitle" = "Redemption Failed";
+"alert.avatarUpdateTitle" = "Update Avatar";
+"alert.avatarUpdateMessage" = "Choose how you want to update your avatar";
+"alert.chooseFromLibrary" = "Choose from Library";
+"alert.takeNewPhoto" = "Take New Photo";
+"alert.removeAvatar" = "Remove Avatar";
+"alert.deleteAvatarTitle" = "Remove Avatar";
+"alert.deleteAvatarMessage" = "Your avatar will be reset to the default image.";
+"alert.deleteConfirm" = "Remove";
+"alert.avatarErrorTitle" = "Avatar";
+
+/* Checkout */
+"checkout.title" = "Checkout";
+"checkout.placeOrder" = "Place Order";
+"checkout.paymentFailed" = "Payment Failed";
+"checkout.paymentFailedRetry" = "Payment failed. Please try again.";
+"checkout.billingDetails" = "Billing Details";
+"checkout.firstName" = "First Name";
+"checkout.lastName" = "Last Name";
+"checkout.address" = "Address";
+"checkout.city" = "City";
+"checkout.state" = "State";
+"checkout.postcode" = "Postcode";
+"checkout.phone" = "Phone";
+"checkout.paymentMethod" = "Payment Method";
+"checkout.couponCode" = "Coupon Code";
+"checkout.applyCoupon" = "Apply";
+"checkout.removeCoupon" = "Remove";
+"checkout.orderNotes" = "Order Notes";
+"checkout.noPaymentMethods" = "No payment methods available";
+
+/* Setting */
+"setting.title" = "Setting";
+
+/* Error */
+"error.invalidAvatarURL" = "Invalid WordPress avatar endpoint URL.";
+"error.missingResponse" = "No response from WordPress server.";
+"error.avatarUnauthorized" = "Avatar update requires a valid login token. Please sign in again.";
+"error.imageDataMissing" = "Image data is missing.";
+"error.unsupportedAvatarUpdate" = "WordPress server does not support updating avatar via REST for the current user. Please implement endpoint /wp-json/woo-tools-app/v1/avatar or register user meta avatar_attachment_id on /wp/v2/users/me.";
+"error.unsupportedAvatarDelete" = "WordPress server does not support deleting avatar via REST for the current user. Please implement endpoint /wp-json/woo-tools-app/v1/avatar or register user meta avatar_attachment_id on /wp/v2/users/me.";
+"error.fallbackAvatarEndpoint" = "WordPress avatar endpoint returned HTTP %@.";

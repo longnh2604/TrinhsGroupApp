@@ -32,7 +32,7 @@ struct OrderReceivedProductItemView: View {
             if let noteMeta = productOrder.meta_data.first(where: { $0.key == "_note" }) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Note:")
+                        Text(L10n.OrderReceived.note.localizedKey)
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                             .foregroundColor(Constants.AppColor.secondaryBlack)
                         Spacer()
@@ -52,7 +52,7 @@ struct OrderReceivedProductItemView: View {
             let addons = productOrder.meta_data.filter { $0.key != "_note" }
             if addons.count > 0 {
                 HStack {
-                    Text ("Addition:")
+                    Text(L10n.OrderReceived.addition.localizedKey)
                         .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                     Spacer()
                 }.padding(.top, 8)

@@ -13,7 +13,7 @@ struct OrderReceivedItemsView: View {
     
     var body: some View {
         VStack(alignment: .leading){
-            Text("Items")
+            Text(L10n.OrderReceived.items.localizedKey)
                 .fontWeight(.semibold)
                 .foregroundColor(Color("ColorPrimary"))
             

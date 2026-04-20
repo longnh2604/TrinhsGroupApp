@@ -26,7 +26,7 @@ struct ForgetPasswordView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
-            Text("Forget Password")
+            Text(L10n.Auth.forgetPasswordTitle.localizedKey)
                 .font(.headline)
                 .padding(.horizontal, 10)
                 .background(Color.init(hex: "f9f9f9"))
@@ -41,7 +41,7 @@ struct ForgetPasswordView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $email)
+            TextField(L10n.Auth.email.localizedKey, text: $email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -57,7 +57,7 @@ struct ForgetPasswordView: View {
         return Button(action: {
             authViewModel.onForgotPassword(email: email)
         }) {
-            Text("Send")
+            Text(L10n.Auth.send.localizedKey)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
@@ -89,7 +89,7 @@ struct ForgetPasswordView: View {
                     .edgesIgnoringSafeArea(.all)
                 VStack {
                     NavigationBarView()
-                    Text("Please, enter your email address. You will receive a link to create a new password via email.")
+                    Text(L10n.Auth.enterEmailPrompt.localizedKey)
                         .foregroundColor(.gray)
                         .padding([.trailing, .leading], 20)
                         .padding(.top, 50)
@@ -97,7 +97,7 @@ struct ForgetPasswordView: View {
                     EmailTextField()
                     
                     if !isEmailValid && !email.isEmpty {
-                        Text("Please enter a valid email address")
+                        Text(L10n.Auth.invalidEmail.localizedKey)
                             .foregroundColor(.red)
                             .font(.caption)
                             .padding(.leading, 30)
@@ -112,7 +112,7 @@ struct ForgetPasswordView: View {
                     LoadingView().ignoresSafeArea()
                 }
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
+            .navigationBarTitle(Text(L10n.Common.emptyString.localizedKey), displayMode: .inline)
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
         }

@@ -26,7 +26,7 @@ struct SignupView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
-            Text("Signup")
+            Text(L10n.Auth.signup.localizedKey)
                 .font(.headline)
                 .padding(.horizontal, 10)
                 .background(Color.init(hex: "f9f9f9"))
@@ -51,7 +51,7 @@ struct SignupView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Username", text: $authViewModel.username)
+            TextField(L10n.Auth.username.localizedKey, text: $authViewModel.username)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -71,7 +71,7 @@ struct SignupView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $authViewModel.email)
+            TextField(L10n.Auth.email.localizedKey, text: $authViewModel.email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -91,7 +91,7 @@ struct SignupView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            SecureField("Password", text: $authViewModel.password)
+            SecureField(L10n.Auth.password.localizedKey, text: $authViewModel.password)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -107,7 +107,7 @@ struct SignupView: View {
         return Button(action: {
             authViewModel.createUser()
         }) {
-            Text("Sign Up")
+            Text(L10n.Auth.signup.localizedKey)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
@@ -159,7 +159,7 @@ struct SignupView: View {
                     CustomAlertView(message: authViewModel.message)
                 }
                 if authViewModel.isCreatedUser {
-                    CustomAlertView(message: "Your account was created successfully. Please switch to login")
+                    CustomAlertView(message: L10n.Auth.accountCreated.localized)
                 }
             }
         }

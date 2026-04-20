@@ -41,11 +41,11 @@ struct AccountCenterView: View {
                     .padding(.bottom, ProfileDesign.Spacing.xxl)
                 }
             }
-            .navigationTitle("Account")
+            .navigationTitle(L10n.Profile.accountNav.localized)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done.localized) {
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -83,11 +83,11 @@ struct AccountCenterView: View {
             
             // User info
             VStack(spacing: 4) {
-                Text(authViewModel.user.username.isEmpty ? "Guest User" : authViewModel.user.username)
+                Text(authViewModel.user.username.isEmpty ? L10n.Profile.guestUser.localized : authViewModel.user.username)
                     .font(ProfileDesign.Typography.title)
                     .foregroundColor(ProfileDesign.Colors.textPrimary)
                 
-                Text(authViewModel.user.email.isEmpty ? "Not logged in" : authViewModel.user.email)
+                Text(authViewModel.user.email.isEmpty ? L10n.Profile.notLoggedIn.localized : authViewModel.user.email)
                     .font(ProfileDesign.Typography.subheadline)
                     .foregroundColor(ProfileDesign.Colors.textSecondary)
             }
@@ -105,7 +105,7 @@ struct AccountCenterView: View {
         onAddressTap: @escaping () -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: ProfileDesign.Spacing.sm) {
-            Text("Account Settings")
+            Text(L10n.Profile.accountSettings.localizedKey)
                 .font(ProfileDesign.Typography.headline)
                 .foregroundColor(ProfileDesign.Colors.textPrimary)
                 .padding(.bottom, 4)
@@ -113,8 +113,8 @@ struct AccountCenterView: View {
             ProfileRowItem(
                 icon: ProfileDesign.Icons.camera,
                 iconColor: .pink,
-                title: "Change Avatar",
-                subtitle: "Update your profile picture",
+                title: L10n.Profile.changeAvatar.localized,
+                subtitle: L10n.Profile.changeAvatarSubtitle.localized,
                 action: onAvatarTap
             )
             
@@ -123,8 +123,8 @@ struct AccountCenterView: View {
             ProfileRowItem(
                 icon: ProfileDesign.Icons.password,
                 iconColor: .orange,
-                title: "Change Password",
-                subtitle: "Update your password",
+                title: L10n.Profile.changePassword.localized,
+                subtitle: L10n.Profile.changePasswordSubtitle.localized,
                 action: onPasswordTap
             )
             
@@ -133,8 +133,8 @@ struct AccountCenterView: View {
             ProfileRowItem(
                 icon: ProfileDesign.Icons.address,
                 iconColor: .green,
-                title: "Manage Address",
-                subtitle: "Billing and shipping addresses",
+                title: L10n.Profile.manageAddress.localized,
+                subtitle: L10n.Profile.manageAddressSubtitle.localized,
                 action: onAddressTap
             )
         }
@@ -145,18 +145,18 @@ struct AccountCenterView: View {
     @ViewBuilder
     private func PersonalInfoCard() -> some View {
         VStack(alignment: .leading, spacing: ProfileDesign.Spacing.sm) {
-            Text("Personal Information")
+            Text(L10n.Profile.personalInformation.localizedKey)
                 .font(ProfileDesign.Typography.headline)
                 .foregroundColor(ProfileDesign.Colors.textPrimary)
                 .padding(.bottom, 4)
             
-            InfoRow(label: "First Name", value: authViewModel.user.first_name)
+            InfoRow(label: L10n.Profile.firstName.localized, value: authViewModel.user.first_name)
             Divider().padding(.leading, 0)
-            InfoRow(label: "Last Name", value: authViewModel.user.last_name)
+            InfoRow(label: L10n.Profile.lastName.localized, value: authViewModel.user.last_name)
             Divider().padding(.leading, 0)
-            InfoRow(label: "Email", value: authViewModel.user.email)
+            InfoRow(label: L10n.Common.email.localized, value: authViewModel.user.email)
             Divider().padding(.leading, 0)
-            InfoRow(label: "Phone", value: authViewModel.user.billing.phone)
+            InfoRow(label: L10n.Profile.phone.localized, value: authViewModel.user.billing.phone)
         }
         .profileCard()
     }

@@ -14,7 +14,7 @@ struct HistoryOrderAddressView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading){
-                Text("Status")
+                Text(L10n.Profile.status.localizedKey)
                     .fontWeight(.semibold)
                     .foregroundColor(Color("ColorPrimary"))
                 

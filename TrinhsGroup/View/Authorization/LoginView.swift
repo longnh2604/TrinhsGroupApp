@@ -30,7 +30,7 @@ struct LogInView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $authViewModel.email)
+            TextField(L10n.Auth.email.localizedKey, text: $authViewModel.email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -50,7 +50,7 @@ struct LogInView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            SecureField("Password", text: $authViewModel.password)
+            SecureField(L10n.Auth.password.localizedKey, text: $authViewModel.password)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -66,7 +66,7 @@ struct LogInView: View {
         return Button(action: {
             authViewModel.onAuthUser()
         }) {
-            Text("Login")
+            Text(L10n.Auth.login.localizedKey)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
@@ -83,7 +83,7 @@ struct LogInView: View {
         return Button(action: {
             authViewModel.isShowForgot = true
         }) {
-            Text("Forget your password?")
+            Text(L10n.Auth.forgetPassword.localizedKey)
                 .foregroundColor(.gray)
                 .padding()
         }.sheet(isPresented: $authViewModel.isShowForgot) {
@@ -96,7 +96,7 @@ struct LogInView: View {
         return Button(action: {
             self.isShowSignUp.toggle()
         }) {
-            Text("Don't have an account yet? Sign Up")
+            Text(L10n.Auth.dontHaveAccount.localizedKey)
                 .foregroundColor(.gray)
                 .padding()
         }
@@ -127,7 +127,7 @@ struct LogInView: View {
                     EmptyView()
                 }
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
+            .navigationBarTitle(Text(L10n.Common.emptyString.localizedKey), displayMode: .inline)
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
         }

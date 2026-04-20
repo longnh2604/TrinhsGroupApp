@@ -16,7 +16,7 @@ struct OrderHistoryItemView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Order No #\(order.number)")
+                    Text(String(format: L10n.Profile.orderNoFormat.localized, order.number))
                         .fontWeight(.semibold)
                     Text(order.dateCreated.toAustraliaDateTime())
                         .font(.footnote)
@@ -36,7 +36,7 @@ struct OrderHistoryItemView: View {
                 
                 Spacer()
                 
-                Text("show more")
+                Text(L10n.Profile.showMore.localizedKey)
                     .font(.callout)
                 
                 Image(systemName: "chevron.compact.right")
@@ -53,7 +53,7 @@ struct OrderHistoryItemView: View {
                 
                 Spacer()
                 
-                Text("Total")
+                Text(L10n.Common.total.localizedKey)
                 
 //                Text(getPriceAndCurrencySymbol(price: order.discountTotal, currency: "$", currencyPosition: "right"))
 //                    .foregroundColor(Constants.AppColor.primaryBlack)

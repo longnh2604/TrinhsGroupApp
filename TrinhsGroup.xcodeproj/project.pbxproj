@@ -19,9 +19,11 @@
 		22EC20C12DACC36F0032C77B /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20C02DACC36B0032C77B /* MenuView.swift */; };
 		29E3C486ADB329DBCEBC513B /* Pods_TrinhsGroup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279E584F4FD336DB4F45F50E /* Pods_TrinhsGroup.framework */; };
 		2F6079492D95051D00874FB5 /* WooCommerceOAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */; };
+		5F933812A81233123943863D /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873EB90F575D93F653FA522F /* L10n.swift */; };
 		64C8D3FB2E3C7DBF006ECB89 /* ProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */; };
 		64C8D3FD2E3CA099006ECB89 /* ProductDetailsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C8D3FC2E3CA092006ECB89 /* ProductDetailsCard.swift */; };
 		64FC0B852EDFD8F000768BF8 /* OptimizedKFImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */; };
+		E9C23D07C1962B8A1864EF3A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6409568E2E7D3241B5E1BAB0 /* Localizable.strings */; };
 		F5AD91C0DB3042398B88C5B8 /* PickupDateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */; };
 		FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */; };
 		FD460F0028696F0E004523FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD460EFF28696F0E004523FC /* Assets.xcassets */; };
@@ -138,9 +140,11 @@
 		22EC20C02DACC36B0032C77B /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		279E584F4FD336DB4F45F50E /* Pods_TrinhsGroup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrinhsGroup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooCommerceOAuth.swift; sourceTree = "<group>"; };
+		6409568E2E7D3241B5E1BAB0 /* Localizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCard.swift; sourceTree = "<group>"; };
 		64C8D3FC2E3CA092006ECB89 /* ProductDetailsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailsCard.swift; sourceTree = "<group>"; };
 		64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizedKFImage.swift; sourceTree = "<group>"; };
+		873EB90F575D93F653FA522F /* L10n.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		B291CFC664BC238B40015E90 /* Pods-TrinhsGroup.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.debug.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.debug.xcconfig"; sourceTree = "<group>"; };
 		E86527E79F0777951863B7A2 /* Pods-TrinhsGroup.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.release.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.release.xcconfig"; sourceTree = "<group>"; };
 		F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupDateTimeView.swift; sourceTree = "<group>"; };
@@ -274,6 +278,14 @@
 				64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */,
 			);
 			path = Product;
+			sourceTree = "<group>";
+		};
+		8D091C610FDD96FE742BB202 /* en.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				6409568E2E7D3241B5E1BAB0 /* Localizable.strings */,
+			);
+			name = en.lproj;
 			sourceTree = "<group>";
 		};
 		DE007F749FAFEC150FA25E2A /* Frameworks */ = {
@@ -498,6 +510,7 @@
 				FD6733A7287425470007F354 /* UserDefaultsManager.swift */,
 				FDB69C962877E3A900878117 /* FirestoreManager.swift */,
 				FDA32E362893C8F90005621A /* StripeManager.swift */,
+				873EB90F575D93F653FA522F /* L10n.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -605,6 +618,7 @@
 			isa = PBXGroup;
 			children = (
 				FDC6A91B289A12B9002C4970 /* cookLoading.json */,
+				8D091C610FDD96FE742BB202 /* en.lproj */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -673,6 +687,7 @@
 				FD460F0028696F0E004523FC /* Assets.xcassets in Resources */,
 				FDC6A91C289A12B9002C4970 /* cookLoading.json in Resources */,
 				FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */,
+				E9C23D07C1962B8A1864EF3A /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -835,6 +850,7 @@
 				FD6733A4287423E30007F354 /* NotificationModel.swift in Sources */,
 				FD8EAF012872CAC1004F9ED0 /* AuthViewModel.swift in Sources */,
 				22EC20BA2DA90D3A0032C77B /* SplashView.swift in Sources */,
+				5F933812A81233123943863D /* L10n.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
