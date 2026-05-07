@@ -15,6 +15,7 @@ struct TrinhsGroupApp: App {
     @StateObject var historyViewModel = HistoryViewModel()
     @StateObject var firestoreManager = FirestoreManager()
     @State private var isActive = false
+    @State private var showTokenExpiredAlert = false
     
     var body: some Scene {
         WindowGroup {
@@ -40,7 +41,23 @@ struct TrinhsGroupApp: App {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     withAnimation {
                         isActive = true
+                        // Check if token expired after splash screen
+                        if authViewModel.isTokenExpired {
+                            showTokenExpiredAlert = true
+                        }
                     }
+                }
+            }
+            .alert("Session Expired", isPresented: $showTokenExpiredAlert) {
+                Button("OK") {
+                    authViewModel.dismissTokenExpiredMessage()
+                }
+            } message: {
+                Text("Your session has expired. Please log in again to continue.")
+            }
+            .onChange(of: authViewModel.isTokenExpired) { expired in
+                if expired && isActive {
+                    showTokenExpiredAlert = true
                 }
             }
             .onOpenURL { url in

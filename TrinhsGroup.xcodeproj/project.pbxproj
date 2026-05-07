@@ -12,6 +12,7 @@
 		2250732C2F486387006506B2 /* PointsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2250732B2F486386006506B2 /* PointsViewModel.swift */; };
 		2250732E2F48639B006506B2 /* PointsServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2250732D2F48639B006506B2 /* PointsServices.swift */; };
 		225073302F48644A006506B2 /* PointsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2250732F2F48644A006506B2 /* PointsResponse.swift */; };
+		2270CF212FAB9163008C2D18 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2270CF1F2FAB9163008C2D18 /* Localizable.strings */; };
 		22EC20B82DA51C2E0032C77B /* WooErrorResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20B72DA51C200032C77B /* WooErrorResponse.swift */; };
 		22EC20BA2DA90D3A0032C77B /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20B92DA90D360032C77B /* SplashView.swift */; };
 		22EC20BC2DA90DE70032C77B /* AppAssets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EC20BB2DA90DE30032C77B /* AppAssets.swift */; };
@@ -23,7 +24,6 @@
 		64C8D3FB2E3C7DBF006ECB89 /* ProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */; };
 		64C8D3FD2E3CA099006ECB89 /* ProductDetailsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C8D3FC2E3CA092006ECB89 /* ProductDetailsCard.swift */; };
 		64FC0B852EDFD8F000768BF8 /* OptimizedKFImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */; };
-		E9C23D07C1962B8A1864EF3A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6409568E2E7D3241B5E1BAB0 /* Localizable.strings */; };
 		F5AD91C0DB3042398B88C5B8 /* PickupDateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */; };
 		FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */; };
 		FD460F0028696F0E004523FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD460EFF28696F0E004523FC /* Assets.xcassets */; };
@@ -133,6 +133,7 @@
 		2250732D2F48639B006506B2 /* PointsServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsServices.swift; sourceTree = "<group>"; };
 		2250732F2F48644A006506B2 /* PointsResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsResponse.swift; sourceTree = "<group>"; };
 		225C8486298223D100677AA9 /* TrinhsGroup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrinhsGroup.entitlements; sourceTree = "<group>"; };
+		2270CF202FAB9163008C2D18 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		22EC20B72DA51C200032C77B /* WooErrorResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooErrorResponse.swift; sourceTree = "<group>"; };
 		22EC20B92DA90D360032C77B /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		22EC20BB2DA90DE30032C77B /* AppAssets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAssets.swift; sourceTree = "<group>"; };
@@ -140,7 +141,6 @@
 		22EC20C02DACC36B0032C77B /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		279E584F4FD336DB4F45F50E /* Pods_TrinhsGroup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrinhsGroup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F6079482D95050900874FB5 /* WooCommerceOAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WooCommerceOAuth.swift; sourceTree = "<group>"; };
-		6409568E2E7D3241B5E1BAB0 /* Localizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		64C8D3FA2E3C7DB8006ECB89 /* ProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCard.swift; sourceTree = "<group>"; };
 		64C8D3FC2E3CA092006ECB89 /* ProductDetailsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailsCard.swift; sourceTree = "<group>"; };
 		64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizedKFImage.swift; sourceTree = "<group>"; };
@@ -283,7 +283,7 @@
 		8D091C610FDD96FE742BB202 /* en.lproj */ = {
 			isa = PBXGroup;
 			children = (
-				6409568E2E7D3241B5E1BAB0 /* Localizable.strings */,
+				2270CF1F2FAB9163008C2D18 /* Localizable.strings */,
 			);
 			name = en.lproj;
 			sourceTree = "<group>";
@@ -684,10 +684,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				FD460F0328696F0E004523FC /* Preview Assets.xcassets in Resources */,
+				2270CF212FAB9163008C2D18 /* Localizable.strings in Resources */,
 				FD460F0028696F0E004523FC /* Assets.xcassets in Resources */,
 				FDC6A91C289A12B9002C4970 /* cookLoading.json in Resources */,
 				FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */,
-				E9C23D07C1962B8A1864EF3A /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -724,9 +724,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -855,6 +859,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		2270CF1F2FAB9163008C2D18 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2270CF202FAB9163008C2D18 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		FD460F0428696F0E004523FC /* Debug */ = {

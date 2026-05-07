@@ -163,6 +163,20 @@ class MainServices: MainServicesProtocol {
             pickupTime = timeOnlyFormatter.string(from: date)
         }
 
+        // Use user.email as fallback if billing.email is empty
+        let billingEmail = user.billing.email.isEmpty ? user.email : user.billing.email
+        let billingFirstName = user.billing.first_name.isEmpty ? user.first_name : user.billing.first_name
+        let billingLastName = user.billing.last_name.isEmpty ? user.last_name : user.billing.last_name
+        
+        // Validate email before sending
+        guard !billingEmail.isEmpty else {
+            print("❌ Error: No valid email address found for user")
+            self.isLoading = false
+            self.error = "No valid email address found. Please update your profile."
+            completion(nil, nil)
+            return
+        }
+        
         var json: [String: Any] = [
             "customer_id": user.id,
             "set_paid": false,
@@ -172,14 +186,14 @@ class MainServices: MainServicesProtocol {
             // Consider "pending" for unpaid orders; "on-hold" also works.
             "status": status,
             "billing": [
-                "first_name": user.billing.first_name,
-                "last_name": user.billing.last_name,
-                "country": user.billing.country,
+                "first_name": billingFirstName,
+                "last_name": billingLastName,
+                "country": user.billing.country.isEmpty ? "AU" : user.billing.country,
                 "address_1": user.billing.address_1,
                 "city": user.billing.city,
                 "postcode": user.billing.postcode,
                 "state": user.billing.state,
-                "email": user.billing.email,
+                "email": billingEmail,
                 "phone": user.billing.phone
             ],
             "line_items": lineItems,

@@ -17,6 +17,7 @@ class AuthViewModel: ObservableObject {
     @AppStorage("authUserEmail") private var persistedAuthEmail: String = ""
     @AppStorage("authUsername") private var persistedAuthUsername: String = ""
     @AppStorage("authDisplayName") private var persistedAuthDisplayName: String = ""
+    @AppStorage("tokenExpirationDate") private var tokenExpirationTimestamp: Double = 0
     @Published var user : User = .empty
     @Published var authUser: UserAuth?
     @Published var username = ""
@@ -29,15 +30,134 @@ class AuthViewModel: ObservableObject {
     @Published var isUpdatedUser = false
     @Published var isCreatedUser = false
     @Published var isShowForgot = false
+    @Published var isTokenExpired = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
     
     init(service: AuthServices = AuthServices()) {
         self.service = service
-        restorePersistedAuthSession()
+        validateAndRestoreSession()
         self.bindingData()
     }
+    
+    // MARK: - Token Validation
+    
+    /// Validate token expiration and restore session if valid
+    private func validateAndRestoreSession() {
+        // Check if we have stored credentials
+        guard persistedJWTToken.nonEmptyValue != nil,
+              persistedAuthEmail.nonEmptyValue != nil else {
+            // No stored session, user needs to login
+            print("🔐 No stored session found")
+            isLogin = false
+            return
+        }
+        
+        // Check if token is expired
+        if isTokenExpiredCheck() {
+            print("🔐 Token expired, clearing session")
+            clearExpiredSession()
+            isTokenExpired = true
+            return
+        }
+        
+        // Token is still valid, restore session
+        print("🔐 Token valid, restoring session")
+        restorePersistedAuthSession()
+    }
+    
+    /// Check if the stored token has expired
+    private func isTokenExpiredCheck() -> Bool {
+        // First try to decode expiration from JWT token
+        if let expDate = decodeJWTExpiration(token: persistedJWTToken) {
+            let isExpired = expDate < Date()
+            print("🔐 JWT expiration date: \(expDate), isExpired: \(isExpired)")
+            return isExpired
+        }
+        
+        // Fallback to stored expiration timestamp
+        if tokenExpirationTimestamp > 0 {
+            let expDate = Date(timeIntervalSince1970: tokenExpirationTimestamp)
+            let isExpired = expDate < Date()
+            print("🔐 Stored expiration date: \(expDate), isExpired: \(isExpired)")
+            return isExpired
+        }
+        
+        // If we can't determine expiration, assume token is valid
+        print("🔐 No expiration info found, assuming token is valid")
+        return false
+    }
+    
+    /// Decode JWT token to extract expiration date
+    private func decodeJWTExpiration(token: String) -> Date? {
+        let segments = token.components(separatedBy: ".")
+        guard segments.count == 3 else {
+            print("🔐 Invalid JWT format")
+            return nil
+        }
+        
+        // JWT payload is the second segment (Base64 encoded)
+        var base64String = segments[1]
+        
+        // Add padding if needed (Base64 requires length to be multiple of 4)
+        let remainder = base64String.count % 4
+        if remainder > 0 {
+            base64String += String(repeating: "=", count: 4 - remainder)
+        }
+        
+        // Replace URL-safe characters
+        base64String = base64String
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        
+        guard let payloadData = Data(base64Encoded: base64String) else {
+            print("🔐 Failed to decode JWT Base64")
+            return nil
+        }
+        
+        guard let payload = try? JSONSerialization.jsonObject(with: payloadData) as? [String: Any] else {
+            print("🔐 Failed to parse JWT payload JSON")
+            return nil
+        }
+        
+        // JWT standard uses "exp" claim for expiration (Unix timestamp)
+        if let exp = payload["exp"] as? Double {
+            let expirationDate = Date(timeIntervalSince1970: exp)
+            print("🔐 Decoded JWT expiration: \(expirationDate)")
+            return expirationDate
+        }
+        
+        print("🔐 No 'exp' claim found in JWT")
+        return nil
+    }
+    
+    /// Clear expired session data
+    private func clearExpiredSession() {
+        authUser = nil
+        user = .empty
+        isLogin = false
+        persistedJWTToken = ""
+        persistedAuthEmail = ""
+        persistedAuthUsername = ""
+        persistedAuthDisplayName = ""
+        tokenExpirationTimestamp = 0
+    }
+    
+    /// Called to dismiss token expired message
+    public func dismissTokenExpiredMessage() {
+        isTokenExpired = false
+    }
+    
+    /// Save token expiration timestamp when login
+    private func saveTokenExpiration(token: String) {
+        if let expDate = decodeJWTExpiration(token: token) {
+            tokenExpirationTimestamp = expDate.timeIntervalSince1970
+            print("🔐 Saved token expiration: \(expDate)")
+        }
+    }
+    
+    // MARK: - Binding Data
     
     func bindingData() {
         service.loadingPublisher
@@ -107,10 +227,14 @@ class AuthViewModel: ObservableObject {
                     self.persistedAuthEmail = authUser.email
                     self.persistedAuthUsername = authUser.username
                     self.persistedAuthDisplayName = authUser.displayName
+                    // Save token expiration when login
+                    self.saveTokenExpiration(token: authUser.token)
                 }
             }
             .store(in: &cancellableSet)
     }
+    
+    // MARK: - Public Methods
     
     public func createUser() {
         if username.isEmpty || email.isEmpty || password.isEmpty {
@@ -240,6 +364,7 @@ class AuthViewModel: ObservableObject {
         persistedAuthEmail = ""
         persistedAuthUsername = ""
         persistedAuthDisplayName = ""
+        tokenExpirationTimestamp = 0
         password = ""
     }
 
