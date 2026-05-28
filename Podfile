@@ -28,7 +28,7 @@ post_install do |installer|
       target.source_build_phase.files.each do |file|
         if file.settings && file.settings['COMPILER_FLAGS']
           flags = file.settings['COMPILER_FLAGS']
-          flags = flags.gsub('-G ', '')
+          flags = flags.split(' ').reject { |f| f == '-G' }.join(' ')
           file.settings['COMPILER_FLAGS'] = flags
         end
       end
