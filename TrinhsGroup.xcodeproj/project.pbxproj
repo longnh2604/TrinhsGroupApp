@@ -890,7 +890,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
-				DEVELOPMENT_TEAM = RK77V3T6GD;
+				DEVELOPMENT_TEAM = 8YLSK83HY4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TrinhsGroup/Info.plist;
@@ -906,7 +906,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.au.trinhskitchen;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trinhskitchen.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -926,7 +926,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
-				DEVELOPMENT_TEAM = RK77V3T6GD;
+				DEVELOPMENT_TEAM = 8YLSK83HY4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TrinhsGroup/Info.plist;
@@ -942,7 +942,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.au.trinhskitchen;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trinhskitchen.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
