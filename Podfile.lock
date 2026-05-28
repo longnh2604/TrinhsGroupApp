@@ -764,7 +764,7 @@ PODS:
     - gRPC-Core/Interface (= 1.44.0)
     - Libuv-gRPC (= 0.0.10)
   - gRPC-Core/Interface (1.44.0)
-  - Kingfisher (7.2.4)
+  - Kingfisher (7.12.0)
   - leveldb-library (1.22.1)
   - Libuv-gRPC (0.0.10):
     - Libuv-gRPC/Implementation (= 0.0.10)
@@ -799,7 +799,7 @@ DEPENDENCIES:
   - Firebase/Core
   - Firebase/Firestore
   - Firebase/Messaging
-  - Kingfisher
+  - Kingfisher (~> 7.12)
   - lottie-ios
   - Stripe
   - SwiftyJSON
@@ -849,7 +849,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: e0913149f6b0625b553d70dae12b49fc62914fd1
   "gRPC-C++": 9675f953ace2b3de7c506039d77be1f2e77a8db2
   gRPC-Core: 943e491cb0d45598b0b0eb9e910c88080369290b
-  Kingfisher: 2457be2121734e69e54a2312ecc0150eb9ae70b3
+  Kingfisher: 53a10ea35051a436b5fb626ca2dd8f3144d755e9
   leveldb-library: 50c7b45cbd7bf543c81a468fe557a16ae3db8729
   Libuv-gRPC: 55e51798e14ef436ad9bc45d12d43b77b49df378
   lottie-ios: 6ac74dcc09904798f59b18cb3075c089d76be9ae
@@ -861,6 +861,6 @@ SPEC CHECKSUMS:
   StripeUICore: aa77a7dc94d6ba400cddeda8eb28c865a2d7619c
   SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
 
-PODFILE CHECKSUM: 7cf402bf626f01bf503f15f77317ce862dc75ec5
+PODFILE CHECKSUM: 071d9624b761a716c061392404ed5ea1caf9b3b3
 
 COCOAPODS: 1.16.2

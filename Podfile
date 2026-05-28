@@ -6,7 +6,7 @@ target 'TrinhsGroup' do
   use_frameworks!
 
   # Pods for TrinhsGroup
-  pod 'Kingfisher'
+  pod 'Kingfisher', '~> 7.12'
   pod 'SwiftyJSON'
   pod 'Firebase/Core'
   pod 'Firebase/Messaging'
