@@ -57,15 +57,22 @@ struct Product: Identifiable, Codable {
         categories = try container.decodeIfPresent([Category].self, forKey: .categories) ?? []
         meta_data = try container.decodeIfPresent([ProductMetaData].self, forKey: .meta_data) ?? []
         
-        // Handle price conversion from String to Double
-        let priceString = try container.decode(String.self, forKey: .price)
-        price = Double(priceString) ?? 0
-        
-        let regularPriceString = try container.decode(String.self, forKey: .regular_price)
-        regular_price = Double(regularPriceString) ?? 0
-        
-        let salePriceString = try container.decodeIfPresent(String.self, forKey: .sale_price) ?? ""
-        sale_price = Double(salePriceString) ?? 0
+        // price can arrive as a number (10, 10.5) or a string ("10")
+        if let p = try? container.decode(Double.self, forKey: .price) {
+            price = p
+        } else {
+            price = Double(try container.decode(String.self, forKey: .price)) ?? 0
+        }
+        if let rp = try? container.decode(Double.self, forKey: .regular_price) {
+            regular_price = rp
+        } else {
+            regular_price = Double(try container.decode(String.self, forKey: .regular_price)) ?? 0
+        }
+        if let sp = try? container.decode(Double.self, forKey: .sale_price) {
+            sale_price = sp
+        } else {
+            sale_price = Double(try container.decodeIfPresent(String.self, forKey: .sale_price) ?? "") ?? 0
+        }
     }
 }
 
@@ -89,8 +96,8 @@ struct ProductMetaData: Identifiable, Codable, Equatable {
     static func == (lhs: ProductMetaData, rhs: ProductMetaData) -> Bool {
         return lhs.value == rhs.value && lhs.key == rhs.key
     }
-    
-    var id: Int
+
+    var id: Int?
     var key: String
     var value: AnyCodableValue
 }

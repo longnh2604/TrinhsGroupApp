@@ -1,5 +1,8 @@
 # Mac OS X
 *.DS_Store
+._*
+.AppleDouble
+.LSOverride
 
 # Xcode
 #

@@ -127,12 +127,13 @@ enum AnyCodableValue: Codable, Equatable {
                  return
              }
         
-        if let _ = try? container.decodeNil() {
-                 self = .string("")
-                 return
-             }
-        
-        throw DecodingError.typeMismatch(AnyCodableValue.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type"))
+        if container.decodeNil() {
+            self = .null
+            return
+        }
+
+        // Arrays and nested objects (e.g. meta_data value:[{...}]) — treat as null
+        self = .null
     }
     
     

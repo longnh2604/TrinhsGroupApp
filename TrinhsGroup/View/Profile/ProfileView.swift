@@ -436,7 +436,7 @@ struct ProfileView: View {
                 Button("Chụp ảnh mới") {
                     presentCamera()
                 }
-                if localAvatarPreview != nil || !(authViewModel.user.avatar_url ?? "").isEmpty {
+                if localAvatarPreview != nil || !authViewModel.localAvatarURL.isEmpty || !(authViewModel.user.avatar_url ?? "").isEmpty {
                     Button("Xóa ảnh đại diện", role: .destructive) {
                         showDeleteAvatarConfirmation = true
                     }
@@ -966,12 +966,13 @@ struct ProfileView: View {
     // MARK: - Helper Methods
 
     private var avatarDisplayURL: URL? {
-        guard let avatar = authViewModel.user.avatar_url, !avatar.isEmpty else {
-            return nil
-        }
-
-        let separator = avatar.contains("?") ? "&" : "?"
-        return URL(string: "\(avatar)\(separator)app_avatar_refresh=\(avatarRefreshToken.uuidString)")
+        // Firebase Storage URL takes priority; falls back to WooCommerce avatar_url
+        let urlString = authViewModel.localAvatarURL.isEmpty
+            ? (authViewModel.user.avatar_url ?? "")
+            : authViewModel.localAvatarURL
+        guard !urlString.isEmpty else { return nil }
+        let separator = urlString.contains("?") ? "&" : "?"
+        return URL(string: "\(urlString)\(separator)app_avatar_refresh=\(avatarRefreshToken.uuidString)")
     }
 
     @MainActor

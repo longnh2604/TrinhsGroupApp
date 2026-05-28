@@ -18,6 +18,7 @@ class AuthViewModel: ObservableObject {
     @AppStorage("authUsername") private var persistedAuthUsername: String = ""
     @AppStorage("authDisplayName") private var persistedAuthDisplayName: String = ""
     @AppStorage("tokenExpirationDate") private var tokenExpirationTimestamp: Double = 0
+    @AppStorage("localAvatarURL") var localAvatarURL: String = ""
     @Published var user : User = .empty
     @Published var authUser: UserAuth?
     @Published var username = ""
@@ -121,13 +122,14 @@ class AuthViewModel: ObservableObject {
             return nil
         }
         
-        // JWT standard uses "exp" claim for expiration (Unix timestamp)
-        if let exp = payload["exp"] as? Double {
+        // JWT standard uses "exp" claim (Unix timestamp). JSONSerialization returns
+        // integer JSON values as NSNumber, so cast via NSNumber to cover Int and Double.
+        if let exp = (payload["exp"] as? NSNumber)?.doubleValue {
             let expirationDate = Date(timeIntervalSince1970: exp)
             print("🔐 Decoded JWT expiration: \(expirationDate)")
             return expirationDate
         }
-        
+
         print("🔐 No 'exp' claim found in JWT")
         return nil
     }
@@ -142,6 +144,7 @@ class AuthViewModel: ObservableObject {
         persistedAuthUsername = ""
         persistedAuthDisplayName = ""
         tokenExpirationTimestamp = 0
+        localAvatarURL = ""
     }
     
     /// Called to dismiss token expired message
@@ -283,19 +286,6 @@ class AuthViewModel: ObservableObject {
         image: UIImage,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        restorePersistedAuthSession()
-
-        guard let token = resolvedJWTToken() else {
-            let error = NSError(
-                domain: "AuthViewModel",
-                code: 401,
-                userInfo: [NSLocalizedDescriptionKey: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để cập nhật avatar."]
-            )
-            message = error.localizedDescription
-            completion(.failure(error))
-            return
-        }
-
         guard let imageData = image.jpegData(compressionQuality: 0.85) else {
             let error = NSError(
                 domain: "AuthViewModel",
@@ -307,15 +297,13 @@ class AuthViewModel: ObservableObject {
             return
         }
 
-        let fileName = "avatar-\(user.id)-\(Int(Date().timeIntervalSince1970)).jpg"
-        service.updateAvatar(jwtToken: token, imageData: imageData, fileName: fileName, mimeType: "image/jpeg") { [weak self] result in
+        service.updateAvatar(userId: user.id, imageData: imageData, mimeType: "image/jpeg") { [weak self] result in
             guard let self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let avatarURL):
-                    if !avatarURL.isEmpty {
-                        self.user.avatar_url = avatarURL
-                    }
+                    self.user.avatar_url = avatarURL
+                    self.localAvatarURL = avatarURL
                     completion(.success(()))
                 case .failure(let error):
                     self.message = error.localizedDescription
@@ -328,25 +316,13 @@ class AuthViewModel: ObservableObject {
     public func onRemoveAvatar(
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        restorePersistedAuthSession()
-
-        guard let token = resolvedJWTToken() else {
-            let error = NSError(
-                domain: "AuthViewModel",
-                code: 401,
-                userInfo: [NSLocalizedDescriptionKey: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xóa avatar."]
-            )
-            message = error.localizedDescription
-            completion(.failure(error))
-            return
-        }
-
-        service.removeAvatar(jwtToken: token) { [weak self] result in
+        service.removeAvatar(userId: user.id) { [weak self] result in
             guard let self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success:
                     self.user.avatar_url = nil
+                    self.localAvatarURL = ""
                     completion(.success(()))
                 case .failure(let error):
                     self.message = error.localizedDescription
@@ -366,6 +342,7 @@ class AuthViewModel: ObservableObject {
         persistedAuthDisplayName = ""
         tokenExpirationTimestamp = 0
         password = ""
+        localAvatarURL = ""
     }
 
     private func restorePersistedAuthSession() {

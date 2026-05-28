@@ -91,9 +91,9 @@ extension String {
 }
 
 struct WooCommerceAPI {
-    private let consumerKey = "ck_7a7ff2a5389700b8bff6f7c113882899a8a29f07"
-    private let consumerSecret = "cs_2aed31668184fb02b3590c69eb96c4686ba7038e"
-    private let storeURL = "https://trinhsgroup.au"
+    private let consumerKey = "ck_20e71704fe5ead42ac978651c0a072dedbef5bff"
+    private let consumerSecret = "cs_c64dee9d58f39cf9dacc483c770a7067d96df850"
+    private let storeURL = "https://trinhsgroup.com.au"
 
     /// Generate OAuth signature
     private func generateOAuthSignature(httpMethod: HTTPMethod, endpoint: WooCommerceEndpoint, params: [String: String]) -> String {
