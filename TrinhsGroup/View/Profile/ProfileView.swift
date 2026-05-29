@@ -514,7 +514,7 @@ struct ProfileView: View {
     }
     
     private var avatarView: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
             Circle()
                 .strokeBorder(ProfileDesign.Colors.avatarBorderGradient, lineWidth: 3)
                 .frame(width: 78, height: 78)
@@ -541,7 +541,9 @@ struct ProfileView: View {
             } else {
                 defaultAvatarImage
             }
-            
+        }
+        .frame(width: 78, height: 78)
+        .overlay(alignment: .bottomTrailing) {
             Button(action: { showAvatarActionSheet = true }) {
                 ZStack {
                     Circle()
