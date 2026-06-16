@@ -130,16 +130,15 @@ class MainServices: MainServicesProtocol {
         for p in productOrders {
             var metas: [[String: Any]] = []
             for m in p.meta_data {
-                // Convert AnyCodableValue to JSON-serializable value
                 let jsonValue: Any = convertAnyCodableValueToJSON(m.value)
-                metas.append(["id": m.id, "key": m.key, "value": jsonValue])
+                var meta: [String: Any] = ["key": m.key, "value": jsonValue]
+                if let id = m.id { meta["id"] = id }
+                metas.append(meta)
             }
             lineItems.append([
                 "product_id": p.product_id,
                 "quantity": p.quantity,
                 "meta_data": metas
-                // Woo can compute totals; if you must send total, keep it as a String.
-                // "total": "\(p.price)"
             ])
         }
 
@@ -248,8 +247,16 @@ class MainServices: MainServicesProtocol {
                     print("📦 Total payment methods received: \(data.count)")
                     print("📋 All payments: \(data)")
                     
-                    // Filter to get only enabled payments
-                    let enabledPayments = data.filter { $0.enabled }
+                    // Filter to standalone enabled gateways only.
+                    // Exclude sub-method prefixes: woocommerce_payments_* (Apple/Google Pay express
+                    // methods) and stripe_* (Link, SEPA, etc.) — these are handled inside their
+                    // parent gateway's own checkout, not shown as separate options.
+                    let enabledPayments = data.filter {
+                        $0.enabled &&
+                        !$0.title.isEmpty &&
+                        !$0.id.hasPrefix("woocommerce_payments_") &&
+                        !$0.id.hasPrefix("stripe_")
+                    }
                     print("✅ Enabled payments count: \(enabledPayments.count)")
                     print("📋 Enabled payments: \(enabledPayments)")
                     

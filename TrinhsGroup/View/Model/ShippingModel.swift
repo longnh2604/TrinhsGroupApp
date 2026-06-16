@@ -10,14 +10,13 @@ import Foundation
 struct Shipping: Codable  {
     var first_name: String
     var last_name: String
-    var company: String
+    var company: String?
     var country: String
     var address_1: String
-    var phone: String
+    var phone: String?
     var city: String
     var postcode: String
     var state: String
-    
-    static let empty = Shipping(first_name: "", last_name: "", company: "", country: "", address_1: "", phone: "", city: "", postcode: "", state: ""
-    )
+
+    static let empty = Shipping(first_name: "", last_name: "", company: nil, country: "", address_1: "", phone: nil, city: "", postcode: "", state: "")
 }

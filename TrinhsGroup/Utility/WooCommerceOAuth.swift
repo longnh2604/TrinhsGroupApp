@@ -91,8 +91,8 @@ extension String {
 }
 
 struct WooCommerceAPI {
-    private let consumerKey = "ck_20e71704fe5ead42ac978651c0a072dedbef5bff"
-    private let consumerSecret = "cs_c64dee9d58f39cf9dacc483c770a7067d96df850"
+    private let consumerKey = "ck_964e801db7cd1929895596460ac9a366cbb3e6f4"
+    private let consumerSecret = "cs_f256c30430cf0c062bc19d374c260e9d4d0b1a32"
     private let storeURL = "https://trinhsgroup.com.au"
 
     /// Generate OAuth signature
@@ -203,19 +203,20 @@ struct WooCommerceAPI {
         method: HTTPMethod,
         params: [String: String] = [:],
         body: [String: Any]? = nil,
+        retriesRemaining: Int = 1,
         completion: @escaping (Result<T, Error>) -> Void
     ) {
         // Build URL with query parameters
         var components = URLComponents(string: "\(storeURL)\(endpoint.urlPath())")!
-        
+
         // Add existing params
         var queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
-        
+
         // Add cache-busting timestamp for GET requests to prevent stale data
         if method == .GET {
             queryItems.append(URLQueryItem(name: "_", value: String(Int(Date().timeIntervalSince1970 * 1000))))
         }
-        
+
         if !queryItems.isEmpty {
             // Merge with existing query items if URL already has them
             if components.queryItems != nil {
@@ -224,7 +225,7 @@ struct WooCommerceAPI {
                 components.queryItems = queryItems
             }
         }
-        
+
         guard let url = components.url else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
             return
@@ -232,7 +233,8 @@ struct WooCommerceAPI {
 
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        
+        request.timeoutInterval = 120
+
         // Disable caching to always get fresh data
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
 
@@ -242,7 +244,7 @@ struct WooCommerceAPI {
             let base64LoginString = loginData.base64EncodedString()
             request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
         }
-        
+
         // Add no-cache headers
         request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         request.setValue("no-cache", forHTTPHeaderField: "Pragma")
@@ -262,9 +264,27 @@ struct WooCommerceAPI {
                 print("📥 Response Status Code: \(httpResponse.statusCode)")
                 print("📋 Response Headers: \(httpResponse.allHeaderFields)")
             }
-            
+
             if let error = error {
                 print("❌ Network Error: \(error.localizedDescription)")
+                let nsError = error as NSError
+                let isTransient = nsError.domain == NSURLErrorDomain &&
+                    (nsError.code == NSURLErrorNetworkConnectionLost ||
+                     nsError.code == NSURLErrorTimedOut)
+                if isTransient && retriesRemaining > 0 {
+                    print("🔄 Transient error (\(nsError.code)) — retrying in 1.5s, \(retriesRemaining) attempt(s) left")
+                    DispatchQueue.global().asyncAfter(deadline: .now() + 1.5) {
+                        self.request(
+                            endpoint: endpoint,
+                            method: method,
+                            params: params,
+                            body: body,
+                            retriesRemaining: retriesRemaining - 1,
+                            completion: completion
+                        )
+                    }
+                    return
+                }
                 completion(.failure(error))
                 return
             }

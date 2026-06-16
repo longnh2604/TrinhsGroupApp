@@ -18,7 +18,6 @@ struct MyOrdersView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var historyViewModel: HistoryViewModel
-    @State var selectedOrder: Order = Order.default
     
     // Show back button when navigated from Profile (pastOnly filter)
     private var showBackButton: Bool {
@@ -130,9 +129,9 @@ struct MyOrdersView: View {
                                     .padding(.bottom)
                                     .environmentObject(mainViewModel)
                                     .onTapGesture {
-                                        withAnimation(.easeOut){
-                                            selectedOrder = order
-                                            historyViewModel.showHistoryOrderDetail.toggle()
+                                        withAnimation(.easeOut) {
+                                            historyViewModel.selectedOrder = order
+                                            historyViewModel.showHistoryOrderDetail = true
                                         }
                                     }
                             }
@@ -150,7 +149,7 @@ struct MyOrdersView: View {
                 }
                 
             if historyViewModel.showHistoryOrderDetail {
-                HistoryOrderDetailView(order: selectedOrder)
+                HistoryOrderDetailView(order: historyViewModel.selectedOrder)
                     .environmentObject(historyViewModel)
             }
         }

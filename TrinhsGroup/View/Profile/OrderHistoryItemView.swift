@@ -67,14 +67,14 @@ struct OrderHistoryItemView: View {
     }
     
     func getStatusColor(status: String) -> Color {
-        if status == "on-hold" {
-            return Color("ColorPrimary")
-        } else if status == "processing" {
-            return Color("ColorGreen")
-        } else if status == "completed" {
-            return Color("ColorGray")
-        } else {
-            return Color("ColorPrimary")
+        switch status {
+        case "on-hold":    return Color("ColorPrimary")
+        case "processing": return Color("ColorGreen")
+        case "completed":  return Color("ColorGray")
+        case "cancelled":  return Color.red
+        case "refunded":   return Color.orange
+        case "pending":    return Color.gray
+        default:           return Color("ColorPrimary")
         }
     }
 }

@@ -18,6 +18,7 @@ struct CheckOutView: View {
     @State private var currentStripeOrderId: Int? = nil
     @State private var selectedVoucher: VoucherResponse? = nil
     @State private var showVoucherPicker: Bool = false
+    @State private var orderError: String? = nil
     
     // Computed property: enable only when payments fetched and a method selected, and pickup time chosen
     private var isSubmitEnabled: Bool {
@@ -38,6 +39,13 @@ struct CheckOutView: View {
 
     fileprivate func SubmitButton() -> some View {
         Button(action: {
+            orderError = nil
+            mainViewModel.message = ""
+            if authViewModel.isTokenExpiredCheck() {
+                authViewModel.logout()
+                authViewModel.isTokenExpired = true
+                return
+            }
             guard authViewModel.checkUserUpdatedBillInfo() else { return }
             guard let pickupDateTime = selectedPickupDateTime else { return }
 
@@ -169,8 +177,7 @@ struct CheckOutView: View {
                     mainViewModel.reset()
                     mainViewModel.presentedType = .orderReceived
                 } else {
-                    print("Failed to create order")
-                    // TODO: Show error message to user
+                    orderError = "Failed to place order. Please try again."
                 }
             }
         }) {
@@ -268,6 +275,12 @@ struct CheckOutView: View {
                             }
                             if let msg = stripeManager.lastError {
                                 Text(msg).foregroundColor(.red).font(.footnote)
+                            }
+                            if let msg = orderError {
+                                Text(msg).foregroundColor(.red).font(.footnote)
+                            }
+                            if !mainViewModel.message.isEmpty {
+                                Text(mainViewModel.message).foregroundColor(.red).font(.footnote)
                             }
                         }
                         .padding(15)

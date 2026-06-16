@@ -17,10 +17,10 @@ struct Billing: Codable  {
     var state: String
     var email: String
     var phone: String
-    var company: String
-    
+    var company: String?
+
     static var empty = Billing(
-        first_name: "", last_name: "", country: "", address_1: "", city: "", postcode: "", state: "", email: "", phone: "", company: ""
+        first_name: "", last_name: "", country: "", address_1: "", city: "", postcode: "", state: "", email: "", phone: "", company: nil
     )
     
     func checkFilledData() -> Bool {

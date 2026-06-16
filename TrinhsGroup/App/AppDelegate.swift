@@ -36,9 +36,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             UNUserNotificationCenter.current().delegate = self
             
             let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-            UNUserNotificationCenter.current().requestAuthorization(
-                options: authOptions,
-                completionHandler: {_, _ in })
+            UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
+                print("🔔 Notification authorization granted=\(granted) error=\(error?.localizedDescription ?? "none")")
+                UNUserNotificationCenter.current().getNotificationSettings { settings in
+                    print("🔔 Notification settings: auth=\(settings.authorizationStatus.rawValue) alert=\(settings.alertSetting.rawValue)")
+                }
+            }
         } else {
             let settings: UIUserNotificationSettings =
                 UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
@@ -48,14 +51,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return true
     }
     
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data)          {
-        print(deviceToken)
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenStr = deviceToken.map { String(format: "%02x", $0) }.joined()
+        print("📡 APNs token received (\(deviceToken.count) bytes): \(tokenStr.prefix(20))…")
         Messaging.messaging().apnsToken = deviceToken
-        updateFCMToken()
     }
-    
+
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        print(error.localizedDescription)
+        print("📡 ❌ APNs registration failed: \(error.localizedDescription)")
     }
     
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) {
@@ -92,29 +95,30 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     }
     // [END receive_message]
     
-//    @available(iOS 10.0, *)
-//    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-//        completionHandler([.badge, .sound])
-//
-//        let userInfo:NSDictionary = notification.request.content.userInfo as NSDictionary
-//        print(userInfo)
-//        let dict:NSDictionary = userInfo["aps"] as! NSDictionary
-//        let data:NSDictionary = dict["alert"] as! NSDictionary
-//
-//        UserDefaultsManager.save(AppNotification(title: (data["title"] as? String) ?? "", content: (data["body"] as? String) ?? ""))
-//        UserDefaultsManager.saveNew(AppNotification(title: (data["title"] as? String) ?? "", content: (data["body"] as? String) ?? ""))
-//        notifications = UserDefaultsManager.loadNew().count
-//    }
-    
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-//        let userInfo:NSDictionary = response.notification.request.content.userInfo as NSDictionary
-//        print(userInfo)
-//        let dict:NSDictionary = userInfo["aps"] as! NSDictionary
-//        let data:NSDictionary = dict["alert"] as! NSDictionary
-//
-//        UserDefaultsManager.save(AppNotification(title: (data["title"] as? String) ?? "", content: (data["body"] as? String) ?? ""))
-//        UserDefaultsManager.saveNew(AppNotification(title: (data["title"] as? String) ?? "", content: (data["body"] as? String) ?? ""))
-//        notifications = UserDefaultsManager.loadNew().count
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let orderIDString = userInfo["order_id"] as? String, let orderID = Int(orderIDString) {
+            // Store for cold-launch support; HistoryViewModel also reads this on orders load
+            UserDefaults.standard.set(orderID, forKey: "pending_order_id")
+            NotificationCenter.default.post(
+                name: .didTapOrderNotification,
+                object: nil,
+                userInfo: ["order_id": orderID]
+            )
+        }
+        completionHandler()
     }
     
     /// Configure Kingfisher image cache for optimal performance
@@ -132,57 +136,26 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         cache.cleanExpiredCache()
     }
     
-    fileprivate func updateFCMToken() {
-//        Messaging.messaging().token { token, error in
-//            if let refreshedToken = token {
-//                let systemVersion = UIDevice.current.systemVersion
-//                print("iOS\(systemVersion)")
-//
-//                //iPhone or iPad
-//                let model = UIDevice.current.model
-//
-//                print("device type=\(model)")
-//                let deviceID = UIDevice.current.identifierForVendor!.uuidString
-//                print(deviceID)
-//                print("InstanceID token: \(refreshedToken)")
-//
-//                
-//                // Prepare URL"
-//                let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/woo-tools-app/fcm/register")
-//                guard let requestUrl = url else { fatalError() }
-//                // Prepare URL Request Object
-//                var request = URLRequest(url: requestUrl)
-//                request.httpMethod = "POST"
-//                request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
-//
-//                // HTTP Request Parameters which will be sent in HTTP Request Body
-//                let postString = "device_id=\(deviceID)&device_name=\(model)&os_version=\(systemVersion)&regid=\(refreshedToken)";
-//                // Set HTTP Request Body
-//                request.httpBody = postString.data(using: String.Encoding.utf8);
-//                // Perform HTTP Request
-//                let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-//
-//                    // Check for Error
-//                    if let error = error {
-//                        print("Error took place \(error)")
-//                        return
-//                    }
-//                    let json = JSON(data!)
-//                    print(json)
-//
-//                }
-//                task.resume()
-//            }
-//        }
-    }
+}
+
+extension Notification.Name {
+    static let didTapOrderNotification = Notification.Name("didTapOrderNotification")
+    static let sessionExpired = Notification.Name("sessionExpired")
 }
 
 
 extension AppDelegate: MessagingDelegate {
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("Firebase registration token: \(String(describing: fcmToken))")
-        let dataDict:[String: String] = ["token": fcmToken ?? ""]
-        NotificationCenter.default.post(name: Notification.Name("FCMToken"), object: nil, userInfo: dataDict)
-        updateFCMToken()
+        guard let token = fcmToken else {
+            print("🔥 FCM token callback fired with nil token")
+            return
+        }
+        print("🔥 FCM token received: \(token.prefix(24))… (length=\(token.count))")
+        UserDefaults.standard.set(token, forKey: "fcm_token")
+        NotificationCenter.default.post(
+            name: Notification.Name("FCMToken"),
+            object: nil,
+            userInfo: ["token": token]
+        )
     }
 }

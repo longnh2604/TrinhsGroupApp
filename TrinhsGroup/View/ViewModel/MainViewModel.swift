@@ -227,13 +227,6 @@ class MainViewModel: ObservableObject {
             }
             .store(in: &cancellableSet)
         
-        $presentedType
-            .dropFirst()
-            .receive(on: RunLoop.main)
-            .sink { value in
-                self.presentedType = value
-            }
-            .store(in: &cancellableSet)
     }
     
     func onOpenURL() {

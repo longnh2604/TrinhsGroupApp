@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct StatusItemView: View {
-    
+
     var current: String
     var status: String
     var date: String
-    
+    var activeColor: Color = Color("ColorPrimary")
+
     var body: some View {
         HStack(spacing: 15) {
             VStack(alignment: .center, spacing: 0){
@@ -22,7 +23,7 @@ struct StatusItemView: View {
                     .offset(y: 5)
                     .zIndex(0)
                 if current == status {
-                    Color("ColorPrimary")
+                    activeColor
                         .clipShape(Circle())
                         .frame(width: 15, height: 15)
                         .zIndex(1)
@@ -39,15 +40,15 @@ struct StatusItemView: View {
                     .zIndex(0)
             }
             .frame(height: 45)
-            
-            
+
+
             Text(status.uppercased())
                 .padding(4)
                 .foregroundColor(.white)
-                .background(Color("ColorPrimary").cornerRadius(4))
-            
+                .background((current == status ? activeColor : Color("ColorPrimary")).cornerRadius(4))
+
             Spacer()
-            
+
             if current == status {
                 Text(date.toAustraliaDateTime())
                     .foregroundColor(.black)

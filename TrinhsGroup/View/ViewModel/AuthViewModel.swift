@@ -69,7 +69,7 @@ class AuthViewModel: ObservableObject {
     }
     
     /// Check if the stored token has expired
-    private func isTokenExpiredCheck() -> Bool {
+    func isTokenExpiredCheck() -> Bool {
         // First try to decode expiration from JWT token
         if let expDate = decodeJWTExpiration(token: persistedJWTToken) {
             let isExpired = expDate < Date()
@@ -181,6 +181,26 @@ class AuthViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] user in
                 self?.user = user
+                if user.id > 0 {
+                    self?.registerFCMTokenIfNeeded(userID: user.id)
+                }
+            }
+            .store(in: &cancellableSet)
+
+        NotificationCenter.default.publisher(for: Notification.Name("FCMToken"))
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self = self, self.user.id > 0 else { return }
+                self.registerFCMTokenIfNeeded(userID: self.user.id)
+            }
+            .store(in: &cancellableSet)
+
+        NotificationCenter.default.publisher(for: .sessionExpired)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self = self, self.isLogin else { return }
+                self.logout()
+                self.isTokenExpired = true
             }
             .store(in: &cancellableSet)
         
@@ -237,8 +257,38 @@ class AuthViewModel: ObservableObject {
             .store(in: &cancellableSet)
     }
     
+    // MARK: - FCM Token Registration
+
+    private func registerFCMTokenIfNeeded(userID: Int) {
+        guard let token = UserDefaults.standard.string(forKey: "fcm_token"), !token.isEmpty else {
+            print("📱 FCM register skipped — no token in UserDefaults yet")
+            return
+        }
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/trinh-app/v1/fcm/register") else {
+            print("📱 FCM register skipped — invalid URL")
+            return
+        }
+
+        print("📱 FCM register POST → \(url.absoluteString) user_id=\(userID) token_prefix=\(token.prefix(16))…")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["user_id": userID, "fcm_token": token]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("📱 FCM register ❌ network error: \(error.localizedDescription)")
+                return
+            }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let bodyText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
+            print("📱 FCM register response status=\(status) body=\(bodyText)")
+        }.resume()
+    }
+
     // MARK: - Public Methods
-    
+
     public func createUser() {
         if username.isEmpty || email.isEmpty || password.isEmpty {
             message = "Please fill all data"
