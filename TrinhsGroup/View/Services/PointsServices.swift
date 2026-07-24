@@ -5,15 +5,18 @@ protocol PointsServicesProtocol: BaseServiceProtocol {
     var pointsPublisher: AnyPublisher<PointsResponse?, Never> { get }
     var redeemPublisher: AnyPublisher<RedeemResponse?, Never> { get }
     var vouchersPublisher: AnyPublisher<[VoucherResponse], Never> { get }
+    var allVouchersPublisher: AnyPublisher<[VoucherResponse], Never> { get }
     func fetchMyPoints(userId: Int)
     func redeemPoints(userId: Int, points: Int)
     func fetchVouchers(userId: Int)
+    func fetchAllVouchers(userId: Int)
 }
 
 final class PointsServices: PointsServicesProtocol {
     public private(set) lazy var pointsPublisher: AnyPublisher<PointsResponse?, Never> = $points.eraseToAnyPublisher()
     public private(set) lazy var redeemPublisher: AnyPublisher<RedeemResponse?, Never> = $redeemResponse.eraseToAnyPublisher()
     public private(set) lazy var vouchersPublisher: AnyPublisher<[VoucherResponse], Never> = $vouchers.eraseToAnyPublisher()
+    public private(set) lazy var allVouchersPublisher: AnyPublisher<[VoucherResponse], Never> = $allVouchers.eraseToAnyPublisher()
     public private(set) lazy var loadingPublisher: AnyPublisher<Bool, Never> = $isLoading.eraseToAnyPublisher()
     public private(set) lazy var errorPublisher: AnyPublisher<String, Never> = $error.eraseToAnyPublisher()
 
@@ -22,6 +25,7 @@ final class PointsServices: PointsServicesProtocol {
     @Published private var points: PointsResponse?
     @Published private var redeemResponse: RedeemResponse?
     @Published private var vouchers: [VoucherResponse] = []
+    @Published private var allVouchers: [VoucherResponse] = []
     
     private let api = WooCommerceAPI()
 
@@ -168,6 +172,35 @@ final class PointsServices: PointsServicesProtocol {
                     print("❌ WC Coupons API Error: \(error.localizedDescription)")
                     print("❌ Full error: \(error)")
                     self.vouchers = []
+                }
+            }
+        }
+    }
+
+    /// Fetch ALL of the user's redeemed vouchers, including used and expired ones.
+    /// Unlike `fetchVouchers` (which returns only currently-usable vouchers for checkout),
+    /// this keeps the full history so the wallet screen can show Available and History.
+    func fetchAllVouchers(userId: Int) {
+        guard userId > 0 else {
+            self.error = "Invalid user ID"
+            return
+        }
+
+        api.request(endpoint: .wcCoupons, method: .GET) { [weak self] (result: Result<[WCCouponResponse], Error>) in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let coupons):
+                    let userPrefix = "rw\(userId)-"
+                    let userCoupons = coupons.filter { $0.code.lowercased().hasPrefix(userPrefix) }
+                    self.allVouchers = userCoupons
+                        .map { $0.toVoucherResponse() }
+                        .sorted { ($0.expirationDate ?? .distantPast) > ($1.expirationDate ?? .distantPast) }
+
+                case .failure(let error):
+                    print("❌ All Vouchers API Error: \(error.localizedDescription)")
+                    self.allVouchers = []
                 }
             }
         }

@@ -247,6 +247,15 @@ struct WCCouponResponse: Decodable, Identifiable {
         return formatter.string(from: expDate)
     }
     
+    /// Detailed lifecycle status: "active", "used", or "expired"
+    var detailedStatus: String {
+        let limit = usageLimit ?? 0
+        let isUsed = limit > 0 ? usageCount >= limit : usageCount > 0
+        if isUsed { return "used" }
+        if isExpired { return "expired" }
+        return "active"
+    }
+
     /// Convert to VoucherResponse for UI compatibility
     func toVoucherResponse() -> VoucherResponse {
         return VoucherResponse(
@@ -257,7 +266,7 @@ struct WCCouponResponse: Decodable, Identifiable {
             expiresAt: dateExpires,
             usageCount: usageCount,
             usageLimit: usageLimit ?? 0,
-            status: isValid ? "active" : "inactive"
+            status: detailedStatus
         )
     }
 }

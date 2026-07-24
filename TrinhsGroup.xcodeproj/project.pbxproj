@@ -50,6 +50,7 @@
 		FD6733B8287428470007F354 /* AttributeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733B7287428470007F354 /* AttributeModel.swift */; };
 		FD6733BA28742AAA0007F354 /* ItemCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733B928742AAA0007F354 /* ItemCellView.swift */; };
 		FD6733BC287449B10007F354 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BB287449B10007F354 /* EditProfileView.swift */; };
+		FDAA000000000000000A0001 /* MyVouchersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000A0002 /* MyVouchersView.swift */; };
 		FD6733BE287449BE0007F354 /* EditAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BD287449BE0007F354 /* EditAddressView.swift */; };
 		FD6733C0287449C80007F354 /* MyOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BF287449C80007F354 /* MyOrdersView.swift */; };
 		FD8E6B8C28811EB2007884C0 /* HistoryOrderDetailDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */; };
@@ -175,6 +176,7 @@
 		FD6733B7287428470007F354 /* AttributeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributeModel.swift; sourceTree = "<group>"; };
 		FD6733B928742AAA0007F354 /* ItemCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCellView.swift; sourceTree = "<group>"; };
 		FD6733BB287449B10007F354 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		FDAA000000000000000A0002 /* MyVouchersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVouchersView.swift; sourceTree = "<group>"; };
 		FD6733BD287449BE0007F354 /* EditAddressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditAddressView.swift; sourceTree = "<group>"; };
 		FD6733BF287449C80007F354 /* MyOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyOrdersView.swift; sourceTree = "<group>"; };
 		FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderDetailDetailView.swift; sourceTree = "<group>"; };
@@ -400,6 +402,7 @@
 			children = (
 				FD67339B287421570007F354 /* ProfileView.swift */,
 				FD6733BB287449B10007F354 /* EditProfileView.swift */,
+				FDAA000000000000000A0002 /* MyVouchersView.swift */,
 				FD6733BD287449BE0007F354 /* EditAddressView.swift */,
 				FD6733BF287449C80007F354 /* MyOrdersView.swift */,
 				FD9A223728759AFC009FDD65 /* OrderHistoryItemView.swift */,
@@ -781,6 +784,7 @@
 				FD6733A8287425470007F354 /* UserDefaultsManager.swift in Sources */,
 				FD8E6B9C288159D6007884C0 /* CheckBoxView.swift in Sources */,
 				FD6733BC287449B10007F354 /* EditProfileView.swift in Sources */,
+				FDAA000000000000000A0001 /* MyVouchersView.swift in Sources */,
 				FD9A222A28757097009FDD65 /* ShippingItemView.swift in Sources */,
 				FD67339E287423280007F354 /* HomeNavigationBarView.swift in Sources */,
 				FD9A221F28756820009FDD65 /* CartView.swift in Sources */,

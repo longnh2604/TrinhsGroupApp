@@ -16,6 +16,7 @@ struct CustomNavigationBarView: View {
     var body: some View {
         HStack {
             Button(action: {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 dismiss()
             }) {
                 Image(systemName: "chevron.left")

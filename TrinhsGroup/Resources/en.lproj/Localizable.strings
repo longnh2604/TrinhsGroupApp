@@ -109,6 +109,15 @@
 "profile.state" = "State";
 "profile.cityTown" = "City / Town";
 "profile.postcode" = "Postcode";
+"profile.editProfileTitle" = "Edit Profile";
+"profile.usernameLockedNote" = "Username cannot be changed";
+"profile.emailLockedNote" = "Email cannot be changed";
+"profile.newPassword" = "New Password";
+"profile.confirmPassword" = "Confirm Password";
+"profile.passwordKeepNote" = "Leave blank to keep your current password";
+"profile.passwordMismatch" = "Passwords do not match";
+"profile.passwordTooShort" = "Password must be at least 6 characters";
+"profile.saveChanges" = "Save Changes";
 
 /* Alerts */
 "alert.logoutTitle" = "Logout";

@@ -10,6 +10,8 @@ final class PointsViewModel: ObservableObject {
     @Published var showRedeemError: Bool = false
     @Published var availableVouchers: [VoucherResponse] = []
     @Published var isLoadingVouchers: Bool = false
+    @Published var allVouchers: [VoucherResponse] = []
+    @Published var isLoadingAllVouchers: Bool = false
 
     private var service: PointsServices = PointsServices()
     private var cancellableSet: Set<AnyCancellable> = []
@@ -57,6 +59,14 @@ final class PointsViewModel: ObservableObject {
             .sink { [weak self] vouchers in
                 self?.availableVouchers = vouchers
                 self?.isLoadingVouchers = false
+            }
+            .store(in: &cancellableSet)
+
+        service.allVouchersPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] vouchers in
+                self?.allVouchers = vouchers
+                self?.isLoadingAllVouchers = false
             }
             .store(in: &cancellableSet)
     }
@@ -122,5 +132,14 @@ final class PointsViewModel: ObservableObject {
         }
         isLoadingVouchers = true
         service.fetchVouchers(userId: userId)
+    }
+
+    /// Fetch the user's full voucher history (available + used + expired)
+    func fetchAllVouchers(userId: Int) {
+        guard userId > 0 else {
+            return
+        }
+        isLoadingAllVouchers = true
+        service.fetchAllVouchers(userId: userId)
     }
 }

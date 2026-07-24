@@ -116,6 +116,15 @@ enum L10n {
         static let state = "profile.state"
         static let cityTown = "profile.cityTown"
         static let postcode = "profile.postcode"
+        static let editProfileTitle = "profile.editProfileTitle"
+        static let usernameLockedNote = "profile.usernameLockedNote"
+        static let emailLockedNote = "profile.emailLockedNote"
+        static let newPassword = "profile.newPassword"
+        static let confirmPassword = "profile.confirmPassword"
+        static let passwordKeepNote = "profile.passwordKeepNote"
+        static let passwordMismatch = "profile.passwordMismatch"
+        static let passwordTooShort = "profile.passwordTooShort"
+        static let saveChanges = "profile.saveChanges"
     }
     
     enum Alert {

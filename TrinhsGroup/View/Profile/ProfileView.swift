@@ -300,7 +300,7 @@ struct ProfileView: View {
     
     @State private var showLogoutAlert = false
     @State private var showAccountCenter = false
-    @State private var showRewardsCenter = false
+    @State private var showMyVouchers = false
     @State private var pushNotificationsEnabled = true
     @State private var showAvatarActionSheet = false
     @State private var showCameraPicker = false
@@ -319,8 +319,6 @@ struct ProfileView: View {
     @State private var pendingRedeemAmount: Int = 0
     @State private var pendingRedeemPoints: Int = 0
     
-    // Sample vouchers - replace with real data from API
-    @State private var vouchers: [VoucherItem] = []
     
     var body: some View {
         NavigationView {
@@ -339,9 +337,6 @@ struct ProfileView: View {
                         
                         // Rewards Quick Card
                         rewardsQuickCard
-                        
-                        // Voucher History
-                        voucherHistoryCard
                         
                         // Preferences
                         preferencesCard
@@ -400,17 +395,6 @@ struct ProfileView: View {
             // Redeem success alert
             .alert("Voucher Created!", isPresented: $pointsViewModel.showRedeemSuccess) {
                 Button("OK", role: .cancel) {
-                    // Add the new voucher to the list
-                    if let response = pointsViewModel.lastRedeemResponse {
-                        let newVoucher = VoucherItem(
-                            id: response.couponCode,
-                            amount: Int(response.amount),
-                            code: response.couponCode,
-                            status: .active,
-                            expiresAt: response.expirationDate
-                        )
-                        vouchers.insert(newVoucher, at: 0)
-                    }
                     pointsViewModel.clearSuccess()
                     // Refresh points from server to ensure UI is in sync
                     pointsViewModel.fetchPoints(userId: authViewModel.user.id)
@@ -637,7 +621,7 @@ struct ProfileView: View {
                 iconColor: .purple,
                 title: "Rewards",
                 subtitle: "Redeem vouchers",
-                action: { showRewardsCenter = true }
+                action: { showMyVouchers = true }
             )
         }
     }
@@ -652,23 +636,10 @@ struct ProfileView: View {
         
         return VStack(alignment: .leading, spacing: ProfileDesign.Spacing.md) {
             // Header
-            HStack {
-                Text("Rewards")
-                    .font(ProfileDesign.Typography.headline)
-                    .foregroundColor(ProfileDesign.Colors.textPrimary)
-                
-                Spacer()
-                
-                Button(action: { showRewardsCenter = true }) {
-                    HStack(spacing: 4) {
-                        Text("See all")
-                            .font(ProfileDesign.Typography.subheadline)
-                        Image(systemName: ProfileDesign.Icons.chevronRight)
-                            .font(.caption.weight(.semibold))
-                    }
-                    .foregroundColor(ProfileDesign.Colors.primary)
-                }
-            }
+            Text("Rewards")
+                .font(ProfileDesign.Typography.headline)
+                .foregroundColor(ProfileDesign.Colors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
             // Points display
             if pointsViewModel.isLoading {
@@ -718,92 +689,6 @@ struct ProfileView: View {
         }
         .buttonStyle(CardPressStyle())
         .disabled(!isEnabled)
-    }
-    
-    // MARK: - Voucher History Card
-    private var voucherHistoryCard: some View {
-        VStack(alignment: .leading, spacing: ProfileDesign.Spacing.md) {
-            HStack {
-                Text("Voucher History")
-                    .font(ProfileDesign.Typography.headline)
-                    .foregroundColor(ProfileDesign.Colors.textPrimary)
-                
-                Spacer()
-            }
-            
-            if vouchers.isEmpty {
-                emptyVoucherView
-            } else {
-                ForEach(vouchers.prefix(2)) { voucher in
-                    voucherRow(voucher)
-                }
-            }
-        }
-        .profileCard()
-    }
-    
-    private var emptyVoucherView: some View {
-        VStack(spacing: ProfileDesign.Spacing.xs) {
-            Image(systemName: ProfileDesign.Icons.voucher)
-                .font(.system(size: 32))
-                .foregroundColor(ProfileDesign.Colors.textTertiary)
-            
-            Text("No vouchers yet")
-                .font(ProfileDesign.Typography.subheadline)
-                .foregroundColor(ProfileDesign.Colors.textSecondary)
-            
-            Text("Redeem your points to get vouchers")
-                .font(ProfileDesign.Typography.caption)
-                .foregroundColor(ProfileDesign.Colors.textTertiary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, ProfileDesign.Spacing.lg)
-    }
-    
-    private func voucherRow(_ voucher: VoucherItem) -> some View {
-        HStack(spacing: ProfileDesign.Spacing.sm) {
-            ZStack {
-                RoundedRectangle(cornerRadius: ProfileDesign.Radius.xs, style: .continuous)
-                    .fill(Color.green.opacity(0.15))
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: ProfileDesign.Icons.voucher)
-                    .font(.system(size: 18))
-                    .foregroundColor(.green)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("$\(voucher.amount) Voucher")
-                    .font(ProfileDesign.Typography.subheadline.weight(.medium))
-                    .foregroundColor(ProfileDesign.Colors.textPrimary)
-                
-                Text(voucher.code)
-                    .font(ProfileDesign.Typography.monospace)
-                    .foregroundColor(ProfileDesign.Colors.textSecondary)
-            }
-            
-            Spacer()
-            
-            voucherStatusBadge(voucher.status)
-        }
-    }
-    
-    private func voucherStatusBadge(_ status: VoucherItem.VoucherStatus) -> some View {
-        let (color, text): (Color, String) = {
-            switch status {
-            case .active: return (.green, "Active")
-            case .used: return (.gray, "Used")
-            case .expired: return (.red, "Expired")
-            }
-        }()
-        
-        return Text(text)
-            .font(ProfileDesign.Typography.caption2.weight(.semibold))
-            .foregroundColor(color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.12))
-            .clipShape(Capsule())
     }
     
     // MARK: - Preferences Card
@@ -955,6 +840,12 @@ struct ProfileView: View {
                     .environmentObject(historyViewModel)
                     .environmentObject(authViewModel),
                 isActive: $mainViewModel.showOrderReceived
+            ) { EmptyView() }
+            .hidden()
+
+            NavigationLink(
+                destination: MyVouchersView(pointsViewModel: pointsViewModel, userId: authViewModel.user.id),
+                isActive: $showMyVouchers
             ) { EmptyView() }
             .hidden()
         }

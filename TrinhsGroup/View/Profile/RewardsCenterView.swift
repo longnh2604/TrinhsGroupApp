@@ -17,12 +17,12 @@ struct RewardsCenterView: View {
     @State private var selectedTab = 0
     
     private let redeemOptions: [(amount: Int, points: Int)] = [
-        (5, 50),
-        (10, 100),
-        (20, 200),
-        (30, 300),
-        (50, 500),
-        (100, 1000)
+        (10, 10),
+        (20, 20),
+        (30, 30),
+        (50, 50),
+        (100, 100),
+        (200, 200)
     ]
     
     var body: some View {

@@ -305,8 +305,8 @@ class AuthViewModel: ObservableObject {
         service.onAuthUser(email: email, password: password)
     }
     
-    public func onUpdateUser(user: User) {
-        service.updateUser(user: user, password: password)
+    public func onUpdateUser(user: User, password: String? = nil) {
+        service.updateUser(user: user, password: password ?? self.password)
     }
     
     public func checkUserUpdatedBillInfo() -> Bool {
