@@ -151,8 +151,7 @@ enum AnyCodableValue: Codable, Equatable {
         case .boolean(let x):
             try container.encode(x)
         case .null:
-            try container.encode(self)
-            break
+            try container.encodeNil()
         }
     }
     

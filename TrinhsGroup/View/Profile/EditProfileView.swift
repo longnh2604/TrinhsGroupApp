@@ -104,7 +104,7 @@ struct EditProfileView: View {
                     .padding(.top)
                 EmailTextFields()
                 PasswordTextField()
-//                UpdateButton()
+                UpdateButton()
                 
                 Spacer()
             }

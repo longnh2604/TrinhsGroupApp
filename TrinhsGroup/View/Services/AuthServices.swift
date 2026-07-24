@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 import SwiftyJSON
-import FirebaseStorage
 
 protocol BaseServiceProtocol {
     var loadingPublisher: AnyPublisher<Bool, Never> { get }
@@ -44,6 +43,14 @@ class AuthServices: AuthServicesProtocol {
     @Published var authUser : UserAuth?
     
     private let api = WooCommerceAPI()
+
+    private struct AvatarResponse: Decodable {
+        let avatarURL: String
+
+        enum CodingKeys: String, CodingKey {
+            case avatarURL = "avatar_url"
+        }
+    }
     
     func createUser(username: String, firstName: String, lastName: String, password: String, email: String) {
         self.isLoading.toggle()
@@ -112,17 +119,57 @@ class AuthServices: AuthServicesProtocol {
     }
     
 
-    func updateUser(user: User, password: String) {   
-        self.isLoading.toggle()
-        APIClient.shared.onUpdateUser(user: user, password: password) { success, data, error in
-            if success {
-                if data != nil {
+    func updateUser(user: User, password: String) {
+        guard user.id > 0 else {
+            error = "Invalid user account"
+            return
+        }
+
+        isLoading = true
+        var body: [String: Any] = [
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "billing": [
+                "first_name": user.billing.first_name,
+                "last_name": user.billing.last_name,
+                "company": user.billing.company ?? "",
+                "country": user.billing.country,
+                "address_1": user.billing.address_1,
+                "city": user.billing.city,
+                "postcode": user.billing.postcode,
+                "state": user.billing.state,
+                "email": user.billing.email,
+                "phone": user.billing.phone
+            ],
+            "shipping": [
+                "first_name": user.shipping.first_name,
+                "last_name": user.shipping.last_name,
+                "company": user.shipping.company ?? "",
+                "country": user.shipping.country,
+                "address_1": user.shipping.address_1,
+                "city": user.shipping.city,
+                "postcode": user.shipping.postcode,
+                "state": user.shipping.state,
+                "phone": user.shipping.phone ?? ""
+            ]
+        ]
+        if !password.isEmpty {
+            body["password"] = password
+        }
+
+        api.request(endpoint: .specificCustomer(customerID: user.id), method: .PUT, body: body) { [weak self] (result: Result<User, Error>) in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isLoading = false
+                switch result {
+                case .success(let updatedUser):
+                    self.user = updatedUser
                     self.isUpdated = true
+                case .failure(let error):
+                    self.error = (error as? WooErrorResponse)?.message ?? error.localizedDescription
                 }
-            } else {
-                self.error = error ?? ""
             }
-            self.isLoading.toggle()
         }
     }
     
@@ -153,33 +200,21 @@ class AuthServices: AuthServicesProtocol {
     ) {
         DispatchQueue.main.async { self.isLoading = true }
 
-        let storageRef = Storage.storage().reference().child("avatars/\(userId).jpg")
-        let metadata = StorageMetadata()
-        metadata.contentType = mimeType
-
-        storageRef.putData(imageData, metadata: metadata) { [weak self] _, error in
-            if let error = error {
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    self?.error = error.localizedDescription
+        api.uploadCustomerAvatar(
+            customerID: userId,
+            imageData: imageData,
+            fileName: "avatar.jpg",
+            mimeType: mimeType
+        ) { [weak self] (result: Result<AvatarResponse, Error>) in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isLoading = false
+                switch result {
+                case .success(let response):
+                    completion(.success(response.avatarURL))
+                case .failure(let error):
+                    self.error = (error as? WooErrorResponse)?.message ?? error.localizedDescription
                     completion(.failure(error))
-                }
-                return
-            }
-            storageRef.downloadURL { url, error in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    if let url = url {
-                        completion(.success(url.absoluteString))
-                    } else {
-                        let err = NSError(
-                            domain: "FirebaseStorage",
-                            code: -1,
-                            userInfo: [NSLocalizedDescriptionKey: error?.localizedDescription ?? "Failed to get download URL."]
-                        )
-                        self?.error = err.localizedDescription
-                        completion(.failure(err))
-                    }
                 }
             }
         }
@@ -191,19 +226,18 @@ class AuthServices: AuthServicesProtocol {
     ) {
         DispatchQueue.main.async { self.isLoading = true }
 
-        let storageRef = Storage.storage().reference().child("avatars/\(userId).jpg")
-        storageRef.delete { [weak self] error in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                if let error = error as? NSError,
-                   error.domain == StorageErrorDomain,
-                   StorageErrorCode(rawValue: error.code) == .objectNotFound {
-                    // No avatar was stored — treat as success
-                    completion(.success(()))
-                } else if let error = error {
-                    self?.error = error.localizedDescription
+        api.request(endpoint: .customerAvatar(customerID: userId), method: .DELETE) { [weak self] (result: Result<AvatarResponse, Error>) in
+            guard let self else { return }
+            switch result {
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.error = (error as? WooErrorResponse)?.message ?? error.localizedDescription
                     completion(.failure(error))
-                } else {
+                }
+            case .success:
+                DispatchQueue.main.async {
+                    self.isLoading = false
                     completion(.success(()))
                 }
             }

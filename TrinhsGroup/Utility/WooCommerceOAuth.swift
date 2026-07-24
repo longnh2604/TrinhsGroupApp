@@ -34,6 +34,7 @@ enum WooCommerceEndpoint {
     case onCreateOrder
     case fetchHistoryOrders(customerID: Int)
     case getStripePaymentIntent(orderID: Int)
+    case customerAvatar(customerID: Int)
     case redeemPoints  // Custom myCred endpoint
     case userVouchers(userID: Int)  // Fetch user's available vouchers (custom endpoint)
     case wcCoupons  // WooCommerce coupons API
@@ -71,6 +72,8 @@ enum WooCommerceEndpoint {
             return "\(commonURL)/orders?customer=\(customerID)&page=1&per_page=100"
         case .getStripePaymentIntent(let orderID):
             return "\(commonURL)/orders/\(orderID)/stripe/payment-intent"
+        case .customerAvatar(let customerID):
+            return "\(commonURL)/customers/\(customerID)/avatar"
         case .redeemPoints:
             return "/wp-json/bu/v1/redeem"
         case .userVouchers(let userID):
@@ -339,6 +342,57 @@ struct WooCommerceAPI {
                         completion(.failure(decodingError))
                     }
                 }
+            }
+        }.resume()
+    }
+
+    /// Upload a customer avatar directly to the WordPress Media Library.
+    func uploadCustomerAvatar<T: Decodable>(
+        customerID: Int,
+        imageData: Data,
+        fileName: String,
+        mimeType: String,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
+        guard let url = URL(string: "\(storeURL)\(WooCommerceEndpoint.customerAvatar(customerID: customerID).urlPath())") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
+            return
+        }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = URLRequest(url: url)
+        request.httpMethod = HTTPMethod.POST.rawValue
+        request.timeoutInterval = 120
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        let credentials = "\(consumerKey):\(consumerSecret)"
+        if let credentialData = credentials.data(using: .utf8) {
+            request.setValue("Basic \(credentialData.base64EncodedString())", forHTTPHeaderField: "Authorization")
+        }
+
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"avatar\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let error {
+                completion(.failure(error))
+                return
+            }
+            guard let data else {
+                completion(.failure(NSError(domain: "No data", code: 500, userInfo: nil)))
+                return
+            }
+            if let response = try? JSONDecoder().decode(T.self, from: data) {
+                completion(.success(response))
+            } else if let error = try? JSONDecoder().decode(WooErrorResponse.self, from: data) {
+                completion(.failure(error))
+            } else {
+                completion(.failure(NSError(domain: "AvatarUpload", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid avatar upload response."])))
             }
         }.resume()
     }

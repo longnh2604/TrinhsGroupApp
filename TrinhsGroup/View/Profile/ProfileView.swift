@@ -312,6 +312,7 @@ struct ProfileView: View {
     @State private var localAvatarPreview: UIImage?
     @State private var isAvatarUpdating = false
     @State private var avatarRefreshToken = UUID()
+    @State private var legalDocument: LegalDocument?
     
     // Redeem confirmation state
     @State private var showRedeemConfirmation = false
@@ -476,6 +477,9 @@ struct ProfileView: View {
             } message: {
                 Text(avatarErrorMessage)
             }
+        }
+        .sheet(item: $legalDocument) { document in
+            LegalDocumentView(document: document)
         }
     }
     
@@ -854,15 +858,6 @@ struct ProfileView: View {
                 title: "Contact Support",
                 action: { openContactSupport() }
             )
-            
-            Divider().padding(.leading, 48)
-            
-            ProfileRowItem(
-                icon: ProfileDesign.Icons.faqFill,
-                iconColor: .indigo,
-                title: "FAQ",
-                action: { openFAQ() }
-            )
         }
         .profileCard()
     }
@@ -1125,19 +1120,108 @@ struct ProfileView: View {
     }
     
     private func openContactSupport() {
-        // TODO: Implement contact support
-    }
-    
-    private func openFAQ() {
-        // TODO: Implement FAQ
+        guard let url = URL(string: "https://www.facebook.com/Vietnamesecuisine.8890/") else { return }
+        UIApplication.shared.open(url)
     }
     
     private func openTerms() {
-        // TODO: Implement terms
+        legalDocument = .terms
     }
     
     private func openPrivacy() {
-        // TODO: Implement privacy
+        legalDocument = .privacy
+    }
+}
+
+private enum LegalDocument: Identifiable {
+    case terms
+    case privacy
+
+    var id: String { title }
+
+    var title: String {
+        switch self {
+        case .terms: return "Terms of Service"
+        case .privacy: return "Privacy Policy"
+        }
+    }
+
+    var sections: [LegalSection] {
+        switch self {
+        case .terms:
+            return [
+                LegalSection("About these terms", "These Terms govern your use of the Trinhs Kitchen Group app and its online ordering features. By using the app or placing an order, you agree to these Terms."),
+                LegalSection("Accounts", "You are responsible for providing accurate account, contact, and pickup information and for keeping your password confidential. Please contact us promptly if you believe your account has been accessed without permission."),
+                LegalSection("Orders and pickup", "Orders are requests to purchase food and are subject to acceptance, availability, and confirmation by Trinhs Kitchen Group. You must review your order, selected pickup time, and contact details before submitting it. Pickup times may change when necessary to prepare your order safely and accurately."),
+                LegalSection("Prices, payments, and refunds", "Prices, promotions, menu items, and availability may change. Payment is processed through the payment method selected at checkout, including Stripe where available. Refunds, changes, and cancellations are handled in accordance with applicable law and our store policies; please contact us as soon as possible if you need help with an order."),
+                LegalSection("Vouchers and rewards", "Vouchers, coupons, and reward points are subject to the conditions shown in the app or at issue. They may have expiry dates, minimum-order requirements, usage limits, and exclusions. They cannot be exchanged for cash unless required by law."),
+                LegalSection("Acceptable use", "Do not misuse the app, interfere with its operation, submit fraudulent orders, attempt to access another person’s account, or use the app in a way that violates applicable law."),
+                LegalSection("Changes and contact", "We may update these Terms when our services or legal obligations change. Continued use after an update means you accept the revised Terms. For questions about an order or these Terms, contact Trinhs Kitchen Group through our website or support channels.")
+            ]
+        case .privacy:
+            return [
+                LegalSection("Our commitment", "Trinhs Kitchen Group respects your privacy. This Policy explains how the app handles information when you create an account, place an order, use rewards, receive notifications, or update your profile."),
+                LegalSection("Information we collect", "We collect account details such as your name, email address, phone number, billing and pickup information, order history, selected products, vouchers, reward activity, and any special instructions you provide with an order."),
+                LegalSection("Profile photos", "If you choose to upload a profile photo, the app sends it to our WordPress Media Library and associates its URL with your customer profile. You can remove your profile photo in the app."),
+                LegalSection("How we use information", "We use information to create and fulfil orders, arrange pickup, process payments, manage your account and rewards, provide support, improve app reliability, and send order-status notifications and offers where permitted."),
+                LegalSection("Service providers", "Our services may use WooCommerce and WordPress for customer and order management, Stripe for supported payment processing, and Firebase services for app notifications and app features. These providers process information only as needed to provide their services."),
+                LegalSection("Sharing", "We do not sell personal information. We share information with service providers and staff only when needed to process orders, provide support, meet legal obligations, protect our rights, or operate the app."),
+                LegalSection("Retention and security", "We retain information for as long as reasonably needed for orders, accounts, legal obligations, dispute resolution, and business records. We use reasonable safeguards, but no internet service can guarantee absolute security."),
+                LegalSection("Your choices and contact", "You may update account details, remove your profile photo, manage notification permissions in your device settings, or ask us about your personal information by contacting Trinhs Kitchen Group through our website or support channels."),
+                LegalSection("Updates to this Policy", "We may update this Policy as our app or legal obligations change. The latest version is available in this screen. Effective date: 24 July 2026.")
+            ]
+        }
+    }
+}
+
+private struct LegalSection: Identifiable {
+    let title: String
+    let text: String
+
+    var id: String { title }
+
+    init(_ title: String, _ text: String) {
+        self.title = title
+        self.text = text
+    }
+}
+
+private struct LegalDocumentView: View {
+    let document: LegalDocument
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Effective 24 July 2026")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    ForEach(document.sections) { section in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(section.title)
+                                .font(.headline)
+                            Text(section.text)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .navigationTitle(document.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .navigationViewStyle(.stack)
     }
 }
 
