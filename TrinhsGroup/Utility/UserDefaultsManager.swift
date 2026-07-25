@@ -82,7 +82,7 @@ class UserDefaultsManager {
         saveNew([])
     }
     
-    static func isInclude(_ id: Int) -> Bool{
+    static func isInclude(_ id: String) -> Bool{
         let news = load()
         return news.firstIndex(where: {$0.id == id}) != nil
     }

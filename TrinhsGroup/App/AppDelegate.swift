@@ -100,6 +100,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
+        let content = notification.request.content
+        NotificationStore.shared.add(id: notification.request.identifier,
+                                     title: content.title,
+                                     content: content.body,
+                                     date: notification.date)
         completionHandler([.banner, .sound, .badge])
     }
 
@@ -108,6 +113,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        let tappedContent = response.notification.request.content
+        NotificationStore.shared.add(id: response.notification.request.identifier,
+                                     title: tappedContent.title,
+                                     content: tappedContent.body,
+                                     date: response.notification.date,
+                                     isRead: true)
         let userInfo = response.notification.request.content.userInfo
         if let orderIDString = userInfo["order_id"] as? String, let orderID = Int(orderIDString) {
             // Store for cold-launch support; HistoryViewModel also reads this on orders load

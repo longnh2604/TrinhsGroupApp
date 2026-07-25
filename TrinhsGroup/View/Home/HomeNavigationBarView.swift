@@ -9,7 +9,8 @@ import SwiftUI
 
 struct HomeNavigationBarView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
-    
+    @ObservedObject var notificationStore = NotificationStore.shared
+
     // Optional custom title (default = "Home")
     var title: String = "Home"
     
@@ -27,10 +28,27 @@ struct HomeNavigationBarView: View {
                         showNotifications.wrappedValue.toggle()
                     }
                 }) {
-                    Image(systemName: "bell")
-                        .foregroundColor(Constants.AppColor.secondaryBlack)
-                        .frame(height: 30)
-                        .padding(.leading, 15)
+                    if notificationStore.unreadCount != 0 {
+                        Image(systemName: "bell")
+                            .foregroundColor(Constants.AppColor.secondaryBlack)
+                            .frame(height: 30)
+                            .padding(.leading, 15)
+                            .overlay(
+                                Text("\(notificationStore.unreadCount)")
+                                    .font(.footnote)
+                                    .fontWeight(.bold)
+                                    .padding(5)
+                                    .background(Color("ColorPrimary"))
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                                    .offset(x: 5, y: -5)
+                            )
+                    } else {
+                        Image(systemName: "bell")
+                            .foregroundColor(Constants.AppColor.secondaryBlack)
+                            .frame(height: 30)
+                            .padding(.leading, 15)
+                    }
                 }
             } else {
                 // Empty space if notification icon is hidden (optional)

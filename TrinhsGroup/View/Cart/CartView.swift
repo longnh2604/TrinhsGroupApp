@@ -10,16 +10,13 @@ import Kingfisher
 
 struct CartView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
-    
+
     init() {
         UITableView.appearance().separatorStyle = .none
     }
-    
-    @State var isShowPromoCodeView : Bool = false
+
     @State var showMondayAlert: Bool = false
-    var discount = 0
-    var deliveryCharges = 0
-    
+
     /// Check if today is Monday in Australia timezone
     private func isMondayInAustralia() -> Bool {
         let tz = TimeZone(identifier: "Australia/Sydney") ?? .current
@@ -30,7 +27,11 @@ struct CartView: View {
         return false
         return weekday == 2
     }
-    
+
+    private var isCartEmpty: Bool {
+        mainViewModel.items.isEmpty
+    }
+
     fileprivate func CheckOutButton() -> some View {
         Button(action: {
             // Check if today is Monday in Australia
@@ -40,28 +41,32 @@ struct CartView: View {
                 mainViewModel.presentedType = .checkOut
             }
         }) {
-            Text("")
-                .font(.custom(Constants.AppFont.boldFont, size: 15))
-                .foregroundColor(.white)
-                .frame(height: 65)
-                .frame(minWidth: 0, maxWidth: .infinity)
-                .background(Color("ColorPrimary"))
-                .cornerRadius(0)
+            HStack {
+                Text("Checkout")
+                    .font(.custom(Constants.AppFont.boldFont, size: 16))
+                    .foregroundColor(.white)
+                Spacer()
+                Text(getPriceAndCurrencySymbol(price: mainViewModel.total, currency: "$", currencyPosition: "right"))
+                    .font(.custom(Constants.AppFont.boldFont, size: 16))
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 20)
+            .frame(height: 56)
+            .frame(minWidth: 0, maxWidth: .infinity)
+            .background(Color("ColorPrimary"))
+            .cornerRadius(16)
+            .shadow(color: Color("ColorPrimary").opacity(0.35), radius: 10, x: 0, y: 4)
         }
-        .padding(.horizontal, 0)
-        .overlay(
-            Text("Checkout")
-                .font(.custom(Constants.AppFont.boldFont, size: 15))
-                .foregroundColor(.white)
-                .padding(.top, -10)
-        )
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
         .alert("Notice", isPresented: $showMondayAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("We sincerely apologize and thank you for your understanding. We are closed on Mondays. We appreciate your understanding and hope you will continue to support us on other days of the week.")
         }
     }
-    
+
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
@@ -69,135 +74,147 @@ struct CartView: View {
             }) {
                 Image(systemName: "arrow.left")
                     .foregroundColor(Constants.AppColor.secondaryBlack)
+                    .frame(width: 36, height: 36)
+                    .background(Color.white)
+                    .clipShape(Circle())
+                    .shadow(color: Constants.AppColor.shadowColor.opacity(0.6), radius: 4, x: 0, y: 2)
             }
-            .padding(.leading, 10)
-            .frame(width: 40, height: 40)
+            .padding(.leading, 16)
             Spacer()
         }
-        .frame(width: UIScreen.main.bounds.width, height: 35)
+        .frame(height: 44)
         .overlay(
-            Text("My Cart")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                .foregroundColor(Constants.AppColor.primaryBlack)
-                .padding(.horizontal, 10)
-                .background(Color.clear)
+            VStack(spacing: 1) {
+                Text("My Cart")
+                    .font(.custom(Constants.AppFont.semiBoldFont, size: 16))
+                    .foregroundColor(Constants.AppColor.primaryBlack)
+                if !isCartEmpty {
+                    Text("\(mainViewModel.numberOfItems) item\(mainViewModel.numberOfItems > 1 ? "s" : "")")
+                        .font(.custom(Constants.AppFont.regularFont, size: 11))
+                        .foregroundColor(.gray)
+                }
+            }
             , alignment: .center)
     }
-    
-    var line: some View {
-        VStack {
-            Divider()
+
+    fileprivate func EmptyCartView() -> some View {
+        VStack(spacing: 12) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(Color("ColorPrimary").opacity(0.1))
+                    .frame(width: 120, height: 120)
+                Image(systemName: "cart")
+                    .font(.system(size: 44, weight: .regular))
+                    .foregroundColor(Color("ColorPrimary"))
+            }
+            .padding(.bottom, 8)
+
+            Text("Your cart is empty")
+                .font(.custom(Constants.AppFont.boldFont, size: 18))
+                .foregroundColor(Constants.AppColor.primaryBlack)
+
+            Text("Looks like you haven't added\nanything to your cart yet.")
+                .font(.custom(Constants.AppFont.regularFont, size: 14))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+
+            Button(action: {
+                mainViewModel.presentedType = .none
+            }) {
+                Text("Browse Menu")
+                    .font(.custom(Constants.AppFont.boldFont, size: 15))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+                    .frame(height: 48)
+                    .background(Color("ColorPrimary"))
+                    .cornerRadius(14)
+            }
+            .padding(.top, 16)
+
+            Spacer()
+            Spacer()
         }
-        .padding(.horizontal, 0)
+        .frame(minWidth: 0, maxWidth: .infinity)
     }
-    
-    fileprivate func ApplyCoupon() -> some View {
-        return Button(action: {
-            self.isShowPromoCodeView.toggle()
-        }) {
+
+    fileprivate func summaryRow(title: String, value: String, valueColor: Color) -> some View {
+        HStack {
+            Text(title)
+                .font(.custom(Constants.AppFont.regularFont, size: 14))
+                .foregroundColor(Constants.AppColor.secondaryBlack)
+            Spacer()
+            Text(value)
+                .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                .foregroundColor(valueColor)
+        }
+    }
+
+    fileprivate func OrderSummaryView() -> some View {
+        VStack(spacing: 14) {
+            summaryRow(title: "Item Total",
+                       value: getPriceAndCurrencySymbol(price: mainViewModel.regularPriceTotal, currency: "$", currencyPosition: "right"),
+                       valueColor: Constants.AppColor.secondaryBlack)
+
+            if mainViewModel.discounts > 0 {
+                summaryRow(title: "Discount",
+                           value: "-" + getPriceAndCurrencySymbol(price: mainViewModel.discounts, currency: "$", currencyPosition: "right"),
+                           valueColor: Color.init(hex: "036440"))
+            }
+
+            Divider()
+
             HStack {
-                Image("offer")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20)
-                    .padding(.leading, 15)
+                Text("Total Amount")
+                    .font(.custom(Constants.AppFont.boldFont, size: 16))
                     .foregroundColor(Constants.AppColor.primaryBlack)
-                
-                Text("APPLY COUPON")
-                    .font(.custom(Constants.AppFont.regularFont, size: 13))
-                    .foregroundColor(Constants.AppColor.primaryBlack)
-                
                 Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 15, height: 15)
-                    .padding(.trailing, 15)
-                    .foregroundColor(.gray)
+                Text(getPriceAndCurrencySymbol(price: mainViewModel.total, currency: "$", currencyPosition: "right"))
+                    .font(.custom(Constants.AppFont.boldFont, size: 16))
+                    .foregroundColor(Color("ColorPrimary"))
             }
         }
-        .frame(width: UIScreen.main.bounds.width, height: 45)
+        .padding(16)
         .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Constants.AppColor.shadowColor.opacity(0.5), radius: 8, x: 0, y: 2)
     }
-    
+
     var body: some View {
-        
+
         NavigationView {
-            
-            VStack {
+
+            VStack(spacing: 0) {
                 NavigationBarView()
-                
-                ZStack {
-                    Constants.AppColor.lightGrayColor
-                    
-                    ScrollView {
-                        ZStack(alignment: .top) {
-                            VStack {
-                                ScrollView(.vertical, showsIndicators: false, content: {
-                                    ForEach(Array(mainViewModel.items.enumerated()), id: \.offset) { index, element in
-                                        ItemCellTypeThree(product: element)
-                                            .padding()
-                                            .environmentObject(mainViewModel)
-                                    }
-                                })
-                                    .padding(.bottom, 10)
-                                
-                                VStack {
-                                    HStack {
-                                        Text("Item Total")
-                                            .font(.custom(Constants.AppFont.regularFont, size: 13))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                        Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: mainViewModel.regularPriceTotal, currency: "$", currencyPosition: "right"))
-                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    }
-                                    .padding(.top, 25)
-                                    .padding(.horizontal, 15)
-                                    
-                                    HStack {
-                                        Text("Discount")
-                                            .font(.custom(Constants.AppFont.regularFont, size: 13))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                        Spacer()
-                                        Text("\(mainViewModel.discounts > 0 ? "-" : "")")
-                                        +
-                                        Text("\(getPriceAndCurrencySymbol(price: mainViewModel.discounts, currency: "$", currencyPosition: "right"))")
-                                            .font(.custom(Constants.AppFont.boldFont, size: 13))
-                                            .foregroundColor(Color.init(hex: "036440"))
-                                    }
-                                    .padding(.top, 10)
-                                    .padding(.horizontal, 15)
-                                    
-                                    line.padding(10)
-                                    
-                                    HStack {
-                                        Text("Total Amount")
-                                            .font(.custom(Constants.AppFont.boldFont, size: 16))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                        Spacer()
-                                        Text(getPriceAndCurrencySymbol(price: mainViewModel.total, currency: "$", currencyPosition: "right"))
-                                            .font(.custom(Constants.AppFont.boldFont, size: 16))
-                                            .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    }
-                                    .padding(.horizontal, 15)
-                                    .padding(.bottom, 10)
-                                    
-                                    Spacer()
-                                }.background(Color.white)
-                                    .padding(.top, 10)
+
+                if isCartEmpty {
+                    EmptyCartView()
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 12) {
+                            ForEach(Array(mainViewModel.items.enumerated()), id: \.offset) { index, element in
+                                ItemCellTypeThree(product: element)
+                                    .environmentObject(mainViewModel)
                             }
+
+                            OrderSummaryView()
+                                .padding(.top, 8)
                         }
-                    }.padding(.top, 5)
-                    Spacer()
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 20)
+                    }
+
+                    CheckOutButton()
                 }
-                CheckOutButton()
-            }.edgesIgnoringSafeArea(.bottom)
-                
-                .navigationBarTitle(Text(""), displayMode: .inline)
-                .navigationBarHidden(true)
-                .navigationBarBackButtonHidden(true)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Constants.AppColor.lightGrayColor.ignoresSafeArea())
+
+            .navigationBarTitle(Text(""), displayMode: .inline)
+            .navigationBarHidden(true)
+            .navigationBarBackButtonHidden(true)
         }
     }
 }
@@ -209,10 +226,10 @@ struct BagView_Previews: PreviewProvider {
 }
 
 struct ItemCellTypeThree: View {
-    
+
     @EnvironmentObject var mainViewModel: MainViewModel
     let product: Product
-    
+
     fileprivate func plusButton() -> some View {
         return Button(action: {
             withAnimation(.spring()){
@@ -220,11 +237,14 @@ struct ItemCellTypeThree: View {
             }
         }) {
             Image(systemName: "plus")
-                .foregroundColor(.gray)
-                .frame(width: 25, height: 25)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: 26, height: 26)
+                .background(Color("ColorPrimary"))
+                .clipShape(Circle())
         }
     }
-    
+
     fileprivate func minusButton() -> some View {
         return Button(action: {
             withAnimation(.spring()){
@@ -232,108 +252,98 @@ struct ItemCellTypeThree: View {
             }
         }) {
             Image(systemName: "minus")
-                .foregroundColor(.gray)
-                .frame(width: 25, height: 25)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Constants.AppColor.secondaryBlack)
+                .frame(width: 26, height: 26)
+                .background(Constants.AppColor.lightGrayColor)
+                .clipShape(Circle())
         }
     }
-    
-    var line: some View {
-        VStack {
-            Divider()
-        }
-        .padding(.horizontal, 0)
-    }
-    
+
     var body: some View {
-        
-        ZStack() {
-            HStack(alignment: .top) {
-                OptimizedKFImage(
-                    url: product.images.first.flatMap { image in URL(string: image.src) },
-                    width: 90,
-                    height: 120,
-                    contentMode: .fill,
-                    cornerRadius: 1,
-                    placeholder: Image(systemName: "photo")
-                )
-                VStack(alignment: .leading) {
-                    HStack(alignment: .top) {
-                        Text(product.name.decodingHTMLEntities())
-                            .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                            .foregroundColor(Constants.AppColor.primaryBlack)
-                            .lineLimit(1)
-                        Spacer()
-                        Button(action: {
+
+        HStack(alignment: .top, spacing: 12) {
+            OptimizedKFImage(
+                url: product.images.first.flatMap { image in URL(string: image.src) },
+                width: 80,
+                height: 80,
+                contentMode: .fill,
+                cornerRadius: 12,
+                placeholder: Image(systemName: "photo")
+            )
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top) {
+                    Text(product.name.decodingHTMLEntities())
+                        .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
+                        .foregroundColor(Constants.AppColor.primaryBlack)
+                        .lineLimit(2)
+                    Spacer()
+                    Button(action: {
+                        withAnimation(.spring()){
                             mainViewModel.removeAll(item: product)
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(Color.init(hex: "bbbbbb"))
-                                .padding(.top, 5)
                         }
+                    }) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.init(hex: "bbbbbb"))
                     }
-                    
-                    // Display product note separately if exists
-                    if let noteMeta = product.meta_data.first(where: { $0.key == "_note" }) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Note:")
-                                .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
-                                .foregroundColor(Constants.AppColor.secondaryBlack)
-                            Text(noteMeta.value.stringValue)
-                                .font(.custom(Constants.AppFont.regularFont, size: 11))
-                                .foregroundColor(Constants.AppColor.secondaryBlack)
-                                .lineLimit(3)
-                                .padding(.leading, 8)
-                        }
-                        .padding(.bottom, 4)
-                    }
-                    
-                    // Display other meta_data (addons) excluding note
-                    let addons = product.meta_data.filter { $0.key != "_note" }
-                    if addons.count > 0 {
-                        Text ("Addition:")
-                            .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
+                }
+
+                // Display product note separately if exists
+                if let noteMeta = product.meta_data.first(where: { $0.key == "_note" }) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Note:")
+                            .font(.custom(Constants.AppFont.semiBoldFont, size: 12))
                             .foregroundColor(Constants.AppColor.secondaryBlack)
-                            .padding(.bottom, 4)
-                        
+                        Text(noteMeta.value.stringValue)
+                            .font(.custom(Constants.AppFont.regularFont, size: 11))
+                            .foregroundColor(.gray)
+                            .lineLimit(3)
+                    }
+                }
+
+                // Display other meta_data (addons) excluding note
+                let addons = product.meta_data.filter { $0.key != "_note" }
+                if addons.count > 0 {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Addition:")
+                            .font(.custom(Constants.AppFont.semiBoldFont, size: 12))
+                            .foregroundColor(Constants.AppColor.secondaryBlack)
+
                         ForEach(addons, id:\.key) { meta in
-                            HStack {
+                            HStack(spacing: 4) {
                                 Text(meta.key)
                                 if let value = Int(meta.value.stringValue), value > 0 {
                                     Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "right")))")
                                 }
                             }
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
-                            .foregroundColor(Constants.AppColor.secondaryBlack)
+                            .foregroundColor(.gray)
                         }
                     }
-                    
-                    HStack {
-                        HStack {
-                            minusButton()
-                            Text("\(product.quantity)")
-                                .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
-                                .foregroundColor(Constants.AppColor.secondaryBlack)
-                                .padding(.horizontal, 5)
-                            plusButton()
-                        }
-                        .background(Constants.AppColor.lightGrayColor)
-                        .cornerRadius(5)
-                        .padding(.bottom, 10)
-                        Spacer()
-                        Text(getPriceAndCurrencySymbol(price: product.price, currency: "$", currencyPosition: "right"))
+                }
+
+                HStack {
+                    HStack(spacing: 10) {
+                        minusButton()
+                        Text("\(product.quantity)")
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
                             .foregroundColor(Constants.AppColor.primaryBlack)
+                            .frame(minWidth: 18)
+                        plusButton()
                     }
-                    
+                    Spacer()
+                    Text(getPriceAndCurrencySymbol(price: product.price, currency: "$", currencyPosition: "right"))
+                        .font(.custom(Constants.AppFont.boldFont, size: 15))
+                        .foregroundColor(Constants.AppColor.primaryBlack)
                 }
-                .padding(.init(top: 5, leading: 5, bottom: 5, trailing: 0))
-                Spacer()
+                .padding(.top, 4)
             }
-            .overlay(
-                line
-                    .padding(.top, 10), alignment: .bottom)
-                .frame(height: 130)
-                .padding(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
         }
+        .padding(12)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Constants.AppColor.shadowColor.opacity(0.5), radius: 8, x: 0, y: 2)
     }
 }
