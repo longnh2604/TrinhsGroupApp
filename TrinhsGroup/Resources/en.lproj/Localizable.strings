@@ -171,3 +171,12 @@
 "error.unsupportedAvatarUpdate" = "WordPress server does not support updating avatar via REST for the current user. Please implement endpoint /wp-json/woo-tools-app/v1/avatar or register user meta avatar_attachment_id on /wp/v2/users/me.";
 "error.unsupportedAvatarDelete" = "WordPress server does not support deleting avatar via REST for the current user. Please implement endpoint /wp-json/woo-tools-app/v1/avatar or register user meta avatar_attachment_id on /wp/v2/users/me.";
 "error.fallbackAvatarEndpoint" = "WordPress avatar endpoint returned HTTP %@.";
+
+/* Account deletion */
+"profile.dangerZone" = "Danger Zone";
+"profile.deleteAccount" = "Delete Account";
+"profile.deleteAccountSubtitle" = "Permanently remove your account and data";
+"profile.deleteAccountConfirmTitle" = "Delete your account?";
+"profile.deleteAccountConfirmMessage" = "This permanently deletes your account, order history, points and vouchers. This action cannot be undone.";
+"profile.deleteAccountErrorMessage" = "We couldn't delete your account. Please try again or contact us at info@trinhsgroup.com.au.";
+"profile.deleteAccountButton" = "Delete";

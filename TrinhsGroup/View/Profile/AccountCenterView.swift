@@ -14,7 +14,9 @@ struct AccountCenterView: View {
     @State private var showChangeAvatar = false
     @State private var showChangePassword = false
     @State private var showManageAddress = false
-    
+    @State private var showDeleteConfirm = false
+    @State private var showDeleteError = false
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -35,6 +37,9 @@ struct AccountCenterView: View {
                         
                         // Personal Information
                         PersonalInfoCard()
+
+                        // Danger Zone — permanent account deletion (App Store Guideline 5.1.1(v))
+                        DangerZoneCard()
                     }
                     .padding(.horizontal, ProfileDesign.Spacing.md)
                     .padding(.top, ProfileDesign.Spacing.sm)
@@ -55,7 +60,46 @@ struct AccountCenterView: View {
                 EditAddressView()
                     .environmentObject(authViewModel)
             }
+            .alert(L10n.Profile.deleteAccountConfirmTitle.localized, isPresented: $showDeleteConfirm) {
+                Button(L10n.Profile.deleteAccountButton.localized, role: .destructive) {
+                    authViewModel.onDeleteAccount { success in
+                        if success {
+                            dismiss()
+                        } else {
+                            showDeleteError = true
+                        }
+                    }
+                }
+                Button(L10n.Common.cancel.localized, role: .cancel) { }
+            } message: {
+                Text(L10n.Profile.deleteAccountConfirmMessage.localized)
+            }
+            .alert(L10n.Common.error.localized, isPresented: $showDeleteError) {
+                Button(L10n.Common.ok.localized, role: .cancel) { }
+            } message: {
+                Text(L10n.Profile.deleteAccountErrorMessage.localized)
+            }
         }
+    }
+
+    // MARK: - Danger Zone Card
+    @ViewBuilder
+    private func DangerZoneCard() -> some View {
+        VStack(alignment: .leading, spacing: ProfileDesign.Spacing.sm) {
+            Text(L10n.Profile.dangerZone.localizedKey)
+                .font(ProfileDesign.Typography.headline)
+                .foregroundColor(ProfileDesign.Colors.textPrimary)
+                .padding(.bottom, 4)
+
+            ProfileRowItem(
+                icon: "trash",
+                iconColor: .red,
+                title: L10n.Profile.deleteAccount.localized,
+                subtitle: L10n.Profile.deleteAccountSubtitle.localized,
+                action: { showDeleteConfirm = true }
+            )
+        }
+        .profileCard()
     }
     
     // MARK: - Profile Header Card

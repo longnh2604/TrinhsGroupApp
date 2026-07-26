@@ -220,6 +220,28 @@ class AuthServices: AuthServicesProtocol {
         }
     }
 
+    /// Permanently delete the customer account (WooCommerce requires force=true).
+    func deleteAccount(
+        userId: Int,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        DispatchQueue.main.async { self.isLoading = true }
+
+        api.request(endpoint: .specificCustomer(customerID: userId), method: .DELETE, params: ["force": "true"]) { [weak self] (result: Result<User, Error>) in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isLoading = false
+                switch result {
+                case .success:
+                    completion(.success(()))
+                case .failure(let error):
+                    self.error = (error as? WooErrorResponse)?.message ?? error.localizedDescription
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
     func removeAvatar(
         userId: Int,
         completion: @escaping (Result<Void, Error>) -> Void

@@ -382,6 +382,27 @@ class AuthViewModel: ObservableObject {
         }
     }
 
+    /// Permanently delete the signed-in customer account, then clear the local session.
+    public func onDeleteAccount(completion: @escaping (Bool) -> Void) {
+        guard user.id > 0 else {
+            message = "Invalid user account"
+            completion(false)
+            return
+        }
+        showLoading = true
+        service.deleteAccount(userId: user.id) { [weak self] result in
+            guard let self = self else { return }
+            self.showLoading = false
+            switch result {
+            case .success:
+                self.logout()
+                completion(true)
+            case .failure:
+                completion(false)
+            }
+        }
+    }
+
     public func logout() {
         authUser = nil
         user = .empty

@@ -50,7 +50,6 @@
 		FD6733B8287428470007F354 /* AttributeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733B7287428470007F354 /* AttributeModel.swift */; };
 		FD6733BA28742AAA0007F354 /* ItemCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733B928742AAA0007F354 /* ItemCellView.swift */; };
 		FD6733BC287449B10007F354 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BB287449B10007F354 /* EditProfileView.swift */; };
-		FDAA000000000000000A0001 /* MyVouchersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000A0002 /* MyVouchersView.swift */; };
 		FD6733BE287449BE0007F354 /* EditAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BD287449BE0007F354 /* EditAddressView.swift */; };
 		FD6733C0287449C80007F354 /* MyOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BF287449C80007F354 /* MyOrdersView.swift */; };
 		FD8E6B8C28811EB2007884C0 /* HistoryOrderDetailDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */; };
@@ -118,6 +117,7 @@
 		FDA32E372893C8F90005621A /* StripeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA32E362893C8F90005621A /* StripeManager.swift */; };
 		FDA4747D287D21EB00319E02 /* MainServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA4747C287D21EB00319E02 /* MainServices.swift */; };
 		FDA842FA289BAE70002FB283 /* FloatingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA842F9289BAE70002FB283 /* FloatingButton.swift */; };
+		FDAA000000000000000A0001 /* MyVouchersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000A0002 /* MyVouchersView.swift */; };
 		FDB69C932877D4C100878117 /* SaleProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB69C922877D4C100878117 /* SaleProductsView.swift */; };
 		FDB69C952877D4E700878117 /* DiscountProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB69C942877D4E700878117 /* DiscountProductsView.swift */; };
 		FDB69C972877E3A900878117 /* FirestoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB69C962877E3A900878117 /* FirestoreManager.swift */; };
@@ -176,7 +176,6 @@
 		FD6733B7287428470007F354 /* AttributeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributeModel.swift; sourceTree = "<group>"; };
 		FD6733B928742AAA0007F354 /* ItemCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCellView.swift; sourceTree = "<group>"; };
 		FD6733BB287449B10007F354 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
-		FDAA000000000000000A0002 /* MyVouchersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVouchersView.swift; sourceTree = "<group>"; };
 		FD6733BD287449BE0007F354 /* EditAddressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditAddressView.swift; sourceTree = "<group>"; };
 		FD6733BF287449C80007F354 /* MyOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyOrdersView.swift; sourceTree = "<group>"; };
 		FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderDetailDetailView.swift; sourceTree = "<group>"; };
@@ -244,6 +243,7 @@
 		FDA32E362893C8F90005621A /* StripeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeManager.swift; sourceTree = "<group>"; };
 		FDA4747C287D21EB00319E02 /* MainServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainServices.swift; sourceTree = "<group>"; };
 		FDA842F9289BAE70002FB283 /* FloatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingButton.swift; sourceTree = "<group>"; };
+		FDAA000000000000000A0002 /* MyVouchersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVouchersView.swift; sourceTree = "<group>"; };
 		FDB69C922877D4C100878117 /* SaleProductsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaleProductsView.swift; sourceTree = "<group>"; };
 		FDB69C942877D4E700878117 /* DiscountProductsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscountProductsView.swift; sourceTree = "<group>"; };
 		FDB69C962877E3A900878117 /* FirestoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreManager.swift; sourceTree = "<group>"; };
@@ -727,9 +727,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -995,7 +999,7 @@
 				CODE_SIGN_ENTITLEMENTS = TrinhsGroup/TrinhsGroup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
 				DEVELOPMENT_TEAM = 8YLSK83HY4;
 				ENABLE_PREVIEWS = YES;
@@ -1035,7 +1039,7 @@
 				CODE_SIGN_ENTITLEMENTS = TrinhsGroup/TrinhsGroup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
 				DEVELOPMENT_TEAM = 8YLSK83HY4;
 				ENABLE_PREVIEWS = YES;
