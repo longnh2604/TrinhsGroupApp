@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FDAA000000000000000B0006 /* OrderStatusHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */; };
 		2205489B29D1835B00D24FFB /* CustomNavigationBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */; };
 		2248AA732EAE346A00CEBFB1 /* FavoriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */; };
 		2250732C2F486387006506B2 /* PointsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2250732B2F486386006506B2 /* PointsViewModel.swift */; };
@@ -129,6 +130,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderStatusHistoryModel.swift; sourceTree = "<group>"; };
 		2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationBarView.swift; sourceTree = "<group>"; };
 		2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteButton.swift; sourceTree = "<group>"; };
 		2250732B2F486386006506B2 /* PointsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsViewModel.swift; sourceTree = "<group>"; };
@@ -471,6 +473,7 @@
 		FD8EAEFA2872C92E004F9ED0 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */,
 				2250732F2F48644A006506B2 /* PointsResponse.swift */,
 				22EC20B72DA51C200032C77B /* WooErrorResponse.swift */,
 				FD8EAEFB2872C93C004F9ED0 /* Onboard.swift */,
@@ -751,6 +754,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDAA000000000000000B0006 /* OrderStatusHistoryModel.swift in Sources */,
 				FD9A222828757074009FDD65 /* PaymentItemView.swift in Sources */,
 				FDC6A920289A2107002C4970 /* LottieLoadingView.swift in Sources */,
 				FD8EAF1F2872E08B004F9ED0 /* AppSetting.swift in Sources */,

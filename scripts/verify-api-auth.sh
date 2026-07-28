@@ -270,6 +270,9 @@ if [[ -n "$JWT2" ]]; then
 
         req GET "/wp-json/trinh-app/v1/me/orders/${FIRST_ORDER_ID}/payment-intent" "$JWT2"
         expect_code "reading A's payment intent with B's token → 403" 403
+
+        req GET "/wp-json/trinh-app/v1/me/orders/${FIRST_ORDER_ID}/history" "$JWT2"
+        expect_code "reading A's status history with B's token → 403" 403
     else
         skip "cross-account order tests" "account A has no orders to target"
     fi
@@ -277,6 +280,52 @@ fi
 
 req POST "/wp-json/trinh-app/v1/me/orders/999999999/cancel" "$JWT"
 expect_code "cancelling a non-existent order → 404" 404
+
+# ─── 3b. GET /me/orders/{id}/history ───────────────────────────────────────────
+
+section "3b. GET /me/orders/{id}/history"
+
+req GET "/wp-json/trinh-app/v1/me/orders/999999999/history" "$JWT"
+expect_code "status history for a non-existent order → 404" 404
+
+req GET "/wp-json/trinh-app/v1/me/orders/999999999/history" ""
+expect_code "status history without a token → 401" 401
+
+if [[ -n "$FIRST_ORDER_ID" ]]; then
+    req GET "/wp-json/trinh-app/v1/me/orders/${FIRST_ORDER_ID}/history" "$JWT"
+    if [[ "$RESP_CODE" == "200" ]]; then
+        expect_val "history echoes the order id" "$FIRST_ORDER_ID" "$(jval "d['order_id']")"
+
+        # The timeline must always open on placement, whatever WooCommerce recorded:
+        # orders created through the website checkout have no note for their first status.
+        expect_val "first entry is the synthetic placement anchor" "placed" \
+            "$(jval "d['history'][0]['status']")"
+
+        # Every entry needs at_gmt — the app formats from it, and falling back to the
+        # site-local `at` would silently shift every timestamp by the AEST offset.
+        expect_val "every entry carries at_gmt" "0" \
+            "$(jval "len([e for e in d['history'] if not e.get('at_gmt')])")"
+
+        # Consecutive duplicates are collapsed, so no two neighbours share a status.
+        expect_val "no consecutive duplicate statuses" "0" \
+            "$(jval "sum(1 for a,b in zip(d['history'], d['history'][1:]) if a['status']==b['status'])")"
+
+        # Sorted oldest first.
+        expect_val "entries are in chronological order" "True" \
+            "$(jval "d['history'] == sorted(d['history'], key=lambda e: e['at_gmt'])")"
+
+        # The current status must appear, otherwise the rail cannot mark 'you are here'.
+        expect_val "current status appears in the timeline" "True" \
+            "$(jval "d['status'] in [e['status'] for e in d['history']] or d['status']=='pending'")"
+
+        printf '   %shistory: %s%s\n' "$DIM" \
+            "$(jval "' -> '.join(e['status'] for e in d['history'])")" "$OFF"
+    else
+        bad "GET /me/orders/${FIRST_ORDER_ID}/history → 200" "HTTP 200" "HTTP $RESP_CODE"
+    fi
+else
+    skip "status history content checks" "account A has no orders to read"
+fi
 
 # ─── 4. Profile writes cannot escalate privileges ──────────────────────────────
 

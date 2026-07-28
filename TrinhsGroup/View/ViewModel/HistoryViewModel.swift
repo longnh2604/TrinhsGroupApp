@@ -27,6 +27,11 @@ class HistoryViewModel: ObservableObject {
     @Published var notificationOrder: Order?
     @Published var isResolvingNotificationOrder = false
 
+    /// Timestamped stages for the order whose detail is on screen. Empty until the fetch
+    /// lands, and stays empty if the server has no history to give — `OrderProgressCard`
+    /// falls back to the order's own dates in that case.
+    @Published var statusHistory: [OrderTimelineEvent] = []
+
     private var service: HistoryServices = HistoryServices()
     private var cancellableSet: Set<AnyCancellable> = []
     // Holds an order_id from a notification tap that arrived before orders were loaded
@@ -34,6 +39,9 @@ class HistoryViewModel: ObservableObject {
     // Separate from pendingNavigationOrderID so the notification-list flow and the
     // OS-banner-tap flow cannot consume each other's pending request.
     private var pendingNotificationOrderID: Int?
+    // Which order `statusHistory` belongs to, so a slow response for a previously viewed
+    // order cannot land on the rail of the one now on screen.
+    private var statusHistoryOrderID: Int?
     // Last customer ID used for fetch — needed to re-fetch on notification tap
     private var lastCustomerId: Int = 0
 
@@ -98,6 +106,14 @@ class HistoryViewModel: ObservableObject {
                 self?.message = error
             }
             .store(in: &cancellableSet)
+
+        service.orderHistoryPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] result in
+                guard let self = self, result.orderID == self.statusHistoryOrderID else { return }
+                self.statusHistory = result.history?.timelineEvents ?? []
+            }
+            .store(in: &cancellableSet)
     }
 
     func fetchOrders(customerId: Int) {
@@ -108,6 +124,18 @@ class HistoryViewModel: ObservableObject {
     func cancelOrder(orderID: Int) {
         isCancelling = true
         service.onCancelOrder(orderID: orderID)
+    }
+
+    /// Loads the timestamped stages for an order about to be shown.
+    ///
+    /// Clears the previous order's rail immediately so the new screen never shows another
+    /// order's timestamps while its own request is in flight.
+    func loadStatusHistory(orderID: Int) {
+        if statusHistoryOrderID != orderID {
+            statusHistory = []
+        }
+        statusHistoryOrderID = orderID
+        service.onFetchOrderStatusHistory(orderID: orderID)
     }
 
     // MARK: - Notification tap navigation

@@ -39,6 +39,9 @@ enum WooCommerceEndpoint {
     case me
     case myOrders
     case cancelMyOrder(orderID: Int)
+    /// Timestamped status timeline for one order, so the progress rail can date every
+    /// stage instead of only the current one.
+    case myOrderHistory(orderID: Int)
     case myPaymentIntent(orderID: Int)
     case myVouchers
     case paymentMethods
@@ -73,6 +76,8 @@ enum WooCommerceEndpoint {
             return "\(appAPIURL)/me/orders"
         case .cancelMyOrder(let orderID):
             return "\(appAPIURL)/me/orders/\(orderID)/cancel"
+        case .myOrderHistory(let orderID):
+            return "\(appAPIURL)/me/orders/\(orderID)/history"
         case .myPaymentIntent(let orderID):
             return "\(appAPIURL)/me/orders/\(orderID)/payment-intent"
         case .myVouchers:
@@ -99,7 +104,7 @@ enum WooCommerceEndpoint {
         case .authenticate, .forgotPassword, .register,
              .fetchCategories, .fetchPopularProducts, .fetchProductsCategory:
             return false
-        case .me, .myOrders, .cancelMyOrder, .myPaymentIntent, .myVouchers,
+        case .me, .myOrders, .cancelMyOrder, .myOrderHistory, .myPaymentIntent, .myVouchers,
              .paymentMethods, .myPoints, .redeemPoints, .fcmRegister, .customerAvatar:
             return true
         }
