@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FDAA000000000000000C0002 /* Order_onHold.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0001 /* Order_onHold.json */; };
+		FDAA000000000000000C0004 /* Order_processing.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0003 /* Order_processing.json */; };
+		FDAA000000000000000C0006 /* Order_ready.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0005 /* Order_ready.json */; };
+		FDAA000000000000000C0008 /* Order_refunded.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0007 /* Order_refunded.json */; };
+		FDAA000000000000000C000A /* Order_failed.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0009 /* Order_failed.json */; };
 		FDAA000000000000000B0006 /* OrderStatusHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */; };
 		2205489B29D1835B00D24FFB /* CustomNavigationBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */; };
 		2248AA732EAE346A00CEBFB1 /* FavoriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */; };
@@ -130,6 +135,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FDAA000000000000000C0001 /* Order_onHold.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_onHold.json; sourceTree = "<group>"; };
+		FDAA000000000000000C0003 /* Order_processing.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_processing.json; sourceTree = "<group>"; };
+		FDAA000000000000000C0005 /* Order_ready.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_ready.json; sourceTree = "<group>"; };
+		FDAA000000000000000C0007 /* Order_refunded.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_refunded.json; sourceTree = "<group>"; };
+		FDAA000000000000000C0009 /* Order_failed.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_failed.json; sourceTree = "<group>"; };
 		FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderStatusHistoryModel.swift; sourceTree = "<group>"; };
 		2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationBarView.swift; sourceTree = "<group>"; };
 		2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteButton.swift; sourceTree = "<group>"; };
@@ -626,6 +636,11 @@
 		FDC6A91A289A1297002C4970 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FDAA000000000000000C0001 /* Order_onHold.json */,
+				FDAA000000000000000C0003 /* Order_processing.json */,
+				FDAA000000000000000C0005 /* Order_ready.json */,
+				FDAA000000000000000C0007 /* Order_refunded.json */,
+				FDAA000000000000000C0009 /* Order_failed.json */,
 				FDC6A91B289A12B9002C4970 /* cookLoading.json */,
 				8D091C610FDD96FE742BB202 /* en.lproj */,
 			);
@@ -692,6 +707,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDAA000000000000000C0002 /* Order_onHold.json in Resources */,
+				FDAA000000000000000C0004 /* Order_processing.json in Resources */,
+				FDAA000000000000000C0006 /* Order_ready.json in Resources */,
+				FDAA000000000000000C0008 /* Order_refunded.json in Resources */,
+				FDAA000000000000000C000A /* Order_failed.json in Resources */,
 				FD460F0328696F0E004523FC /* Preview Assets.xcassets in Resources */,
 				2270CF212FAB9163008C2D18 /* Localizable.strings in Resources */,
 				FD460F0028696F0E004523FC /* Assets.xcassets in Resources */,
