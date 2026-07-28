@@ -8,21 +8,20 @@
 import SwiftUI
 
 struct HistoryOrderNoteView: View {
-    
+
     var order: Order
-    
+
     var body: some View {
-        HStack(spacing: 20){
-            Text(L10n.Profile.note.localizedKey)
-                .fontWeight(.semibold)
-                .foregroundColor(Color("ColorPrimary"))
-            
+        OrderDetailCard(
+            title: L10n.Profile.note.localized.uppercased(),
+            icon: "text.bubble"
+        ) {
             Text(order.customerNote)
-                .foregroundColor(.black)
+                .font(.custom(Constants.AppFont.regularFont, size: 14))
+                .foregroundColor(Constants.AppColor.primaryBlack)
                 .multilineTextAlignment(.leading)
-            
-            Spacer()
-            
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
@@ -30,6 +29,8 @@ struct HistoryOrderNoteView: View {
 struct HistoryOrderNoteView_Previews: PreviewProvider {
     static var previews: some View {
         HistoryOrderNoteView(order: Order.default)
+            .padding()
+            .background(Constants.AppColor.lightGrayColor)
             .previewLayout(.sizeThatFits)
     }
 }

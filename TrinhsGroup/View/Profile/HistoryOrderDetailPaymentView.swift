@@ -8,43 +8,81 @@
 import SwiftUI
 
 struct HistoryOrderDetailPaymentView: View {
-    
-    @EnvironmentObject var mainViewModel: MainViewModel
-    var order: Order
-    
-    var body: some View {
-        VStack(spacing: 4){
-            HStack {
-                Text(L10n.Common.subtotal.localizedKey)
-                
-                Spacer()
-                
-                Text(getPriceAndCurrencySymbol(price: order.subtotal, currency: "$", currencyPosition: "right"))
-            }
-            .foregroundColor(.black)
-            
-            if order.discount > 0 {
-                HStack {
-                    Text(L10n.OrderReceived.discount.localizedKey)
 
-                    Spacer()
-                    (
-                        Text("-")
-                            +
-                    Text(getPriceAndCurrencySymbol(price: order.discount, currency: "$", currencyPosition: "right"))
+    var order: Order
+
+    var body: some View {
+        OrderDetailCard(
+            title: L10n.Profile.paymentSummary.localized.uppercased(),
+            icon: "creditcard"
+        ) {
+            VStack(spacing: 9) {
+                row(L10n.Common.subtotal.localized, amount: order.subtotal)
+
+                if order.discount > 0 {
+                    row(
+                        L10n.OrderReceived.discount.localized,
+                        amount: -order.discount,
+                        tint: Color(hex: "57A733")
                     )
                 }
-                .foregroundColor(.black)
+
+                Rectangle()
+                    .fill(Color(hex: "EDEFF2"))
+                    .frame(height: 1)
+                    .padding(.vertical, 2)
+
+                row(
+                    L10n.Common.total.localized,
+                    amount: Double(order.total) ?? 0,
+                    emphasised: true
+                )
+
+                if !order.paymentMethodTitle.isEmpty {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .font(.system(size: 10))
+                        Text(order.paymentMethodTitle)
+                            .font(.custom(Constants.AppFont.regularFont, size: 12))
+                        Spacer(minLength: 0)
+                    }
+                    .foregroundColor(Constants.AppColor.secondaryBlack)
+                    .padding(.top, 2)
+                }
             }
-            
-            HStack {
-                Text(L10n.Common.total.localizedKey)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Text(getPriceAndCurrencySymbol(price: Double(order.total) ?? 0, currency: "$", currencyPosition: "right"))
-            }
+        }
+    }
+
+    /// One money line. A negative `amount` prints as `-$1.23` rather than `$-1.23`.
+    private func row(
+        _ label: String,
+        amount: Double,
+        tint: Color? = nil,
+        emphasised: Bool = false
+    ) -> some View {
+        HStack {
+            Text(label)
+                .font(.custom(
+                    emphasised ? Constants.AppFont.semiBoldFont : Constants.AppFont.regularFont,
+                    size: emphasised ? 15 : 14
+                ))
+                .foregroundColor(Constants.AppColor.primaryBlack)
+
+            Spacer()
+
+            Text(
+                (amount < 0 ? "-" : "")
+                + getPriceAndCurrencySymbol(
+                    price: abs(amount),
+                    currency: "$",
+                    currencyPosition: "left"
+                )
+            )
+                .font(.custom(
+                    emphasised ? Constants.AppFont.boldFont : Constants.AppFont.regularFont,
+                    size: emphasised ? 16 : 14
+                ))
+                .foregroundColor(tint ?? Constants.AppColor.primaryBlack)
         }
     }
 }
@@ -52,5 +90,8 @@ struct HistoryOrderDetailPaymentView: View {
 struct HistoryOrderDetailPaymentView_Previews: PreviewProvider {
     static var previews: some View {
         HistoryOrderDetailPaymentView(order: Order.default)
+            .padding()
+            .background(Constants.AppColor.lightGrayColor)
+            .previewLayout(.sizeThatFits)
     }
 }

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FDAA000000000000000B0002 /* OrderStatusPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000B0001 /* OrderStatusPresentation.swift */; };
+		FDAA000000000000000B0004 /* OrderProgressCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000B0003 /* OrderProgressCard.swift */; };
 		FDAA000000000000000C0002 /* Order_onHold.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0001 /* Order_onHold.json */; };
 		FDAA000000000000000C0004 /* Order_processing.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0003 /* Order_processing.json */; };
 		FDAA000000000000000C0006 /* Order_ready.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0005 /* Order_ready.json */; };
@@ -60,14 +62,11 @@
 		FD6733BC287449B10007F354 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BB287449B10007F354 /* EditProfileView.swift */; };
 		FD6733BE287449BE0007F354 /* EditAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BD287449BE0007F354 /* EditAddressView.swift */; };
 		FD6733C0287449C80007F354 /* MyOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733BF287449C80007F354 /* MyOrdersView.swift */; };
-		FD8E6B8C28811EB2007884C0 /* HistoryOrderDetailDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */; };
 		FD8E6B8E28811EF3007884C0 /* HistoryOrderItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B8D28811EF3007884C0 /* HistoryOrderItemsView.swift */; };
 		FD8E6B9028811F16007884C0 /* HistoryOrderDetailPaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B8F28811F16007884C0 /* HistoryOrderDetailPaymentView.swift */; };
-		FD8E6B9228811FA8007884C0 /* StatusItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9128811FA8007884C0 /* StatusItemsView.swift */; };
 		FD8E6B9428812003007884C0 /* HistoryOrderNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9328812003007884C0 /* HistoryOrderNoteView.swift */; };
 		FD8E6B9628812028007884C0 /* HistoryOrderAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9528812028007884C0 /* HistoryOrderAddressView.swift */; };
 		FD8E6B98288121A7007884C0 /* HistoryOrderProductItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B97288121A7007884C0 /* HistoryOrderProductItemView.swift */; };
-		FD8E6B9A288122E5007884C0 /* StatusItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B99288122E5007884C0 /* StatusItemView.swift */; };
 		FD8E6B9C288159D6007884C0 /* CheckBoxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */; };
 		FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */; };
 		FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */; };
@@ -135,6 +134,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FDAA000000000000000B0001 /* OrderStatusPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderStatusPresentation.swift; sourceTree = "<group>"; };
+		FDAA000000000000000B0003 /* OrderProgressCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderProgressCard.swift; sourceTree = "<group>"; };
 		FDAA000000000000000C0001 /* Order_onHold.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_onHold.json; sourceTree = "<group>"; };
 		FDAA000000000000000C0003 /* Order_processing.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_processing.json; sourceTree = "<group>"; };
 		FDAA000000000000000C0005 /* Order_ready.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_ready.json; sourceTree = "<group>"; };
@@ -193,14 +194,11 @@
 		FD6733BB287449B10007F354 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		FD6733BD287449BE0007F354 /* EditAddressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditAddressView.swift; sourceTree = "<group>"; };
 		FD6733BF287449C80007F354 /* MyOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyOrdersView.swift; sourceTree = "<group>"; };
-		FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderDetailDetailView.swift; sourceTree = "<group>"; };
 		FD8E6B8D28811EF3007884C0 /* HistoryOrderItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderItemsView.swift; sourceTree = "<group>"; };
 		FD8E6B8F28811F16007884C0 /* HistoryOrderDetailPaymentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderDetailPaymentView.swift; sourceTree = "<group>"; };
-		FD8E6B9128811FA8007884C0 /* StatusItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemsView.swift; sourceTree = "<group>"; };
 		FD8E6B9328812003007884C0 /* HistoryOrderNoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderNoteView.swift; sourceTree = "<group>"; };
 		FD8E6B9528812028007884C0 /* HistoryOrderAddressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderAddressView.swift; sourceTree = "<group>"; };
 		FD8E6B97288121A7007884C0 /* HistoryOrderProductItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderProductItemView.swift; sourceTree = "<group>"; };
-		FD8E6B99288122E5007884C0 /* StatusItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemView.swift; sourceTree = "<group>"; };
 		FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckBoxView.swift; sourceTree = "<group>"; };
 		FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -415,6 +413,8 @@
 		FD67339A2874214A0007F354 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				FDAA000000000000000B0001 /* OrderStatusPresentation.swift */,
+				FDAA000000000000000B0003 /* OrderProgressCard.swift */,
 				FD67339B287421570007F354 /* ProfileView.swift */,
 				FD6733BB287449B10007F354 /* EditProfileView.swift */,
 				FDAA000000000000000A0002 /* MyVouchersView.swift */,
@@ -422,14 +422,11 @@
 				FD6733BF287449C80007F354 /* MyOrdersView.swift */,
 				FD9A223728759AFC009FDD65 /* OrderHistoryItemView.swift */,
 				FD9A223928759B37009FDD65 /* HistoryOrderDetailView.swift */,
-				FD8E6B8B28811EB2007884C0 /* HistoryOrderDetailDetailView.swift */,
 				FD8E6B8D28811EF3007884C0 /* HistoryOrderItemsView.swift */,
 				FD8E6B8F28811F16007884C0 /* HistoryOrderDetailPaymentView.swift */,
-				FD8E6B9128811FA8007884C0 /* StatusItemsView.swift */,
 				FD8E6B9328812003007884C0 /* HistoryOrderNoteView.swift */,
 				FD8E6B9528812028007884C0 /* HistoryOrderAddressView.swift */,
 				FD8E6B97288121A7007884C0 /* HistoryOrderProductItemView.swift */,
-				FD8E6B99288122E5007884C0 /* StatusItemView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -774,6 +771,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDAA000000000000000B0002 /* OrderStatusPresentation.swift in Sources */,
+				FDAA000000000000000B0004 /* OrderProgressCard.swift in Sources */,
 				FDAA000000000000000B0006 /* OrderStatusHistoryModel.swift in Sources */,
 				FD9A222828757074009FDD65 /* PaymentItemView.swift in Sources */,
 				FDC6A920289A2107002C4970 /* LottieLoadingView.swift in Sources */,
@@ -792,7 +791,6 @@
 				FDB69C972877E3A900878117 /* FirestoreManager.swift in Sources */,
 				FD9A22362875977E009FDD65 /* HistoryViewModel.swift in Sources */,
 				FD9A223A28759B37009FDD65 /* HistoryOrderDetailView.swift in Sources */,
-				FD8E6B9A288122E5007884C0 /* StatusItemView.swift in Sources */,
 				FD8E6B9628812028007884C0 /* HistoryOrderAddressView.swift in Sources */,
 				FD9A221528752D20009FDD65 /* CategoryRowView.swift in Sources */,
 				FD8EAEFC2872C93C004F9ED0 /* Onboard.swift in Sources */,
@@ -877,11 +875,9 @@
 				FDA32E372893C8F90005621A /* StripeManager.swift in Sources */,
 				FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */,
 				FD8EAF072872CBD1004F9ED0 /* ShippingModel.swift in Sources */,
-				FD8E6B9228811FA8007884C0 /* StatusItemsView.swift in Sources */,
 				FD8EAF032872CB50004F9ED0 /* UserModel.swift in Sources */,
 				FD94E3E7287C182400ED4B2C /* OrderReceivedView.swift in Sources */,
 				FD6733C0287449C80007F354 /* MyOrdersView.swift in Sources */,
-				FD8E6B8C28811EB2007884C0 /* HistoryOrderDetailDetailView.swift in Sources */,
 				FD8E6B98288121A7007884C0 /* HistoryOrderProductItemView.swift in Sources */,
 				FD6733A4287423E30007F354 /* NotificationModel.swift in Sources */,
 				FD8EAF012872CAC1004F9ED0 /* AuthViewModel.swift in Sources */,

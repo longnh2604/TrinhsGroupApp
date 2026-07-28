@@ -65,7 +65,6 @@
 "profile.noOrdersMessage" = "If you'd like to order, don't hesitate to add items to your cart. We're happy and eager to serve you with the best care possible.";
 "profile.orderDetail" = "Order Detail";
 "profile.note" = "Note";
-"profile.status" = "Status";
 "profile.points" = "points";
 "profile.member" = "Member";
 "profile.earnPointsInfo" = "Earn 1 point for every $20 spent";
@@ -94,7 +93,8 @@
 "profile.faq" = "FAQ";
 "profile.termsOfService" = "Terms of Service";
 "profile.privacyPolicy" = "Privacy Policy";
-"profile.orderStatus" = "Order Status";
+"profile.paymentSummary" = "Payment Summary";
+"profile.pickupDetails" = "Pickup Details";
 "profile.pointsSuffix" = "Points";
 "profile.pointsSuffixShort" = "pts";
 "profile.editBillingAddress" = "Edit Billing Address";

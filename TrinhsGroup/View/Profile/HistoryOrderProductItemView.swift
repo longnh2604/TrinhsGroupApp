@@ -8,55 +8,48 @@
 import SwiftUI
 
 struct HistoryOrderProductItemView: View {
-    
-    @EnvironmentObject var mainViewModel: MainViewModel
-    var productOrder : LineItem = LineItem.default
-    
+
+    var productOrder: LineItem = LineItem.default
+
     var body: some View {
-        VStack {
-            HStack {
-                Text(productOrder.name)
-                    .foregroundColor(.black)
-                Spacer()
-                (
-                    Text("\(productOrder.quantity) X ")
-                    +
-                Text(getPriceAndCurrencySymbol(price: productOrder.price, currency: "$", currencyPosition: "right"))
-                    .foregroundColor(Constants.AppColor.primaryBlack)
-                )
-            }
-            
-//            if productOrder.meta_data.count > 0 {
-//                HStack {
-//                    Text ("Addition:")
-//                        .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-//                    Spacer()
-//                }.padding(.top, 8)
-//                
-//                HStack {
-//                    ForEach(productOrder.meta_data, id:\.key) { meta in
-//                        HStack {
-//                            Text(meta.key)
-//                            if let value = Int(meta.value.stringValue), value > 0 {
-//                                Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "right")))")
-//                            }
-//                        }
-//                        .font(.custom(Constants.AppFont.regularFont, size: 11))
-//                        .foregroundColor(Constants.AppColor.secondaryBlack)
-//                    }
-//                    Spacer()
-//                }.padding(.top, 8)
-//            }
-            
-            Divider()
+        HStack(alignment: .top, spacing: 12) {
+            // Quantity as a chip — clearer than "2 X $12.00" run together, and it lets the
+            // money column line up down the card.
+            Text("\(productOrder.quantity)×")
+                .font(.custom(Constants.AppFont.semiBoldFont, size: 12))
+                .foregroundColor(Constants.AppColor.secondaryBlack)
+                .frame(minWidth: 30)
+                .padding(.vertical, 5)
+                .background(Color(hex: "F2F4F7"))
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+
+            Text(productOrder.name)
+                .font(.custom(Constants.AppFont.regularFont, size: 14))
+                .foregroundColor(Constants.AppColor.primaryBlack)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 3)
+
+            Spacer(minLength: 8)
+
+            // WooCommerce's `total` is the line total after any discount, which is what the
+            // payment summary below adds up. Multiplying price × quantity here would
+            // disagree with it on a discounted line.
+            Text(getPriceAndCurrencySymbol(
+                price: Double(productOrder.total) ?? (productOrder.price * Double(productOrder.quantity)),
+                currency: "$",
+                currencyPosition: "left"
+            ))
+                .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
+                .foregroundColor(Constants.AppColor.primaryBlack)
+                .padding(.top, 3)
         }
-        .padding(.top)
     }
 }
 
 struct HistoryOrderProductItemView_Previews: PreviewProvider {
     static var previews: some View {
         HistoryOrderProductItemView()
+            .padding()
             .previewLayout(.sizeThatFits)
     }
 }
