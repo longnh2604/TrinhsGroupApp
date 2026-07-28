@@ -141,25 +141,10 @@ class MainServices: MainServicesProtocol {
             ])
         }
 
-        // Parse pickup datetime to separate date and time
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        dateFormatter.timeZone = TimeZone(identifier: "Australia/Sydney")
-        
-        var pickupDate = ""
-        var pickupTime = ""
-        
-        if let date = dateFormatter.date(from: pickupDateTime) {
-            let dateOnlyFormatter = DateFormatter()
-            dateOnlyFormatter.dateFormat = "Y-m-d"
-            dateOnlyFormatter.timeZone = TimeZone(identifier: "Australia/Sydney")
-            pickupDate = dateOnlyFormatter.string(from: date)
-            
-            let timeOnlyFormatter = DateFormatter()
-            timeOnlyFormatter.dateFormat = "H:i"
-            timeOnlyFormatter.timeZone = TimeZone(identifier: "Australia/Sydney")
-            pickupTime = timeOnlyFormatter.string(from: date)
-        }
+        // The pickup date/time used to be split apart here into the CodeRockz plugin's
+        // _pi_delivery_* meta keys. The server now derives those from the raw
+        // `pickup_datetime` string (see trinh_app_pickup_meta in trinh-app-api), so this
+        // parsing had become dead — the two locals were assigned and never read.
 
         // Use user.email as fallback if billing.email is empty
         let billingEmail = user.billing.email.isEmpty ? user.email : user.billing.email
