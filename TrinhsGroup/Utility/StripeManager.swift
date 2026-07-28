@@ -86,7 +86,7 @@ final class StripeManager: ObservableObject {
 
         // Try to get payment intent from WooCommerce custom endpoint
         // This endpoint should be created in WordPress to return payment intent for the order
-        api.request(endpoint: .getStripePaymentIntent(orderID: orderId), method: .GET) { [weak self] (result: Result<StripePaymentIntentResponse, Error>) in
+        api.request(endpoint: .myPaymentIntent(orderID: orderId), method: .GET) { [weak self] (result: Result<StripePaymentIntentResponse, Error>) in
             guard let self else { return }
             defer { Task { @MainActor in self.isPreparing = false } }
 

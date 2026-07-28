@@ -407,7 +407,7 @@ struct ProfileView: View {
                 }
             }
             // Redeem error alert
-            .alert("Redemption Failed", isPresented: $pointsViewModel.showRedeemError) {
+            .alert(pointsViewModel.alertKind.titleKey.localizedKey, isPresented: $pointsViewModel.showError) {
                 Button("OK", role: .cancel) {
                     pointsViewModel.clearError()
                 }
@@ -987,7 +987,8 @@ struct ProfileView: View {
         // Check if user has enough points
         guard pointsViewModel.canRedeem(points: points) else {
             pointsViewModel.message = "You need \(points) points to redeem a $\(amount) voucher."
-            pointsViewModel.showRedeemError = true
+            pointsViewModel.alertKind = .redeemFailed
+            pointsViewModel.showError = true
             return
         }
         

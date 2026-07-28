@@ -88,28 +88,31 @@ class MainViewModel: ObservableObject {
         }
     }
     
+    /// WooCommerce sends shipping cost as a string, and it is empty for free methods —
+    /// `Double("")` is nil, so force-unwrapping it crashed checkout.
+    private var shippingCost: Double {
+        Double(selectedShip.settings.cost.value) ?? 0
+    }
+
     var total: Double {
-        if items.count > 0 {
-            return subtotal + Double(selectedShip.settings.cost.value)!
-        } else {
-            return 0 + Double(selectedShip.settings.cost.value)!
-        }
+        // Both branches used to be identical: `subtotal` is already 0 for an empty cart.
+        subtotal + shippingCost
     }
-    
+
+    /// `Coupon.amount` is an optional string straight off the API, so neither the unwrap
+    /// nor the `Double(_:)` conversion is guaranteed.
+    private var couponAmount: Double? {
+        guard coupon.id != Coupon.default.id, let amount = coupon.amount else { return nil }
+        return Double(amount)
+    }
+
     var fixedDiscount: Double {
-        if coupon.id != Coupon.default.id {
-            return Double(coupon.amount!)!
-        } else {
-            return 0
-        }
+        couponAmount ?? 0
     }
-    
+
     var percentDiscount: Double {
-        if coupon.id != Coupon.default.id {
-            return (total * ( Double(coupon.amount!)! / 100))
-        } else {
-            return 0
-        }
+        guard let amount = couponAmount else { return 0 }
+        return total * (amount / 100)
     }
     
     func getNumberOfInCart(item: Product) -> Int {
@@ -276,9 +279,8 @@ class MainViewModel: ObservableObject {
             desiredStatus = "on-hold"
         }
 
-        // Calculate 5% discount on current total
-        let discountValue = total * 0.05
-        
+        // The 5% app discount is computed server-side from catalog prices, so it can't be
+        // inflated by a tampered request.
         service.onCreateOrder(
             user: user,
             paymentMethod: id,
@@ -287,7 +289,6 @@ class MainViewModel: ObservableObject {
             status: desiredStatus,
             productOrders: productOrders,
             pickupDateTime: pickupDateTime,
-            discountValue: discountValue,
             couponCode: couponCode,
             completion: completion
         )
@@ -313,11 +314,15 @@ class MainViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         print(decodedResponse)
                         
-                        if decodedResponse.code! != "not_found" {
-                            let minimumAmount = Double(String(describing:decodedResponse.minimum_amount!))!
-                            let maximumAmount = Double(String(describing:decodedResponse.maximum_amount!))!
+                        if (decodedResponse.code ?? "") != "not_found" {
+                            // All three fields are optional strings on Coupon, and the API
+                            // sends "" for unset amounts — every one of these unwraps could
+                            // crash. An absent maximum means "no upper limit"; the
+                            // eligibility gate below is otherwise unchanged.
+                            let minimumAmount = Double(decodedResponse.minimum_amount ?? "") ?? 0
+                            let maximumAmount = Double(decodedResponse.maximum_amount ?? "") ?? .greatestFiniteMagnitude
                             print(minimumAmount)
-                            
+
                             if self.total < minimumAmount {
 //                                self.dialogMessage = "Not meet min amount : \(decodedResponse.minimum_amount!)"
 //                                self.showDialog.toggle()

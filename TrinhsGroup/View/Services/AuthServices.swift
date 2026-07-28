@@ -51,27 +51,35 @@ class AuthServices: AuthServicesProtocol {
             case avatarURL = "avatar_url"
         }
     }
-    
+
+    private struct RegistrationResponse: Decodable {
+        let success: Bool
+        let id: Int
+        let email: String
+    }
+
+    /// Signup goes through the server-side `trinh-app/v1/register` route, which creates the
+    /// customer with WordPress's own APIs. That is why the app can ship a read-only
+    /// consumer key — account creation is the only write that predates having a JWT.
     func createUser(username: String, firstName: String, lastName: String, password: String, email: String) {
         self.isLoading.toggle()
-        let params = [
-            "email": "\(email)",
-            "first_name": "\(firstName)",
-            "last_name": "\(lastName)",
-            "username": "\(username)",
-            "password": "\(password)",
-        ] as [String : String]
-        
-        api.request(endpoint: .createCustomer, method: .POST, params: params) { (result: Result<User, Error>) in
+        let body: [String: Any] = [
+            "email": email,
+            "username": username,
+            "password": password,
+            "name": [firstName, lastName].filter { !$0.isEmpty }.joined(separator: " ")
+        ]
+
+        api.request(endpoint: .register, method: .POST, body: body) { (result: Result<RegistrationResponse, Error>) in
             DispatchQueue.main.async {
                 self.isLoading.toggle()
                 switch result {
                 case .success(let data):
-                    print(data)
+                    print("Registered customer \(data.id) <\(data.email)>")
                     self.isCreated = true
                 case .failure(let error):
                     if let wooError = error as? WooErrorResponse {
-                        print("WooCommerce error: \(wooError.message)")
+                        print("Registration error: \(wooError.message)")
                         self.error = wooError.message
                     } else {
                         print("Unexpected error: \(error.localizedDescription)")
@@ -158,7 +166,7 @@ class AuthServices: AuthServicesProtocol {
             body["password"] = password
         }
 
-        api.request(endpoint: .specificCustomer(customerID: user.id), method: .PUT, body: body) { [weak self] (result: Result<User, Error>) in
+        api.request(endpoint: .me, method: .PUT, body: body) { [weak self] (result: Result<User, Error>) in
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.isLoading = false
@@ -173,19 +181,19 @@ class AuthServices: AuthServicesProtocol {
         }
     }
     
-    func fetchingUserInfo(email: String) {
+    /// Loads the signed-in customer. The account is identified by the JWT, so no email
+    /// lookup is sent — the previous `?email=` query could read any customer in the store.
+    func fetchingUserInfo() {
         self.isLoading.toggle()
-        let params = ["email" : email]
-        api.request(endpoint: .getUserInfo, method: .GET, params: params) { (result: Result<[User], Error>) in
+        api.request(endpoint: .me, method: .GET) { (result: Result<User, Error>) in
             DispatchQueue.main.async {
                 self.isLoading.toggle()
                 switch result {
-                case .success(let data):
-                    guard let user = data.first else { return }
+                case .success(let user):
                     print(user)
                     self.user = user
                 case .failure(let error):
-                    print("Authentication failed: \(error.localizedDescription)")
+                    print("Fetching user failed: \(error.localizedDescription)")
                     self.error = error.localizedDescription
                 }
             }
@@ -220,14 +228,14 @@ class AuthServices: AuthServicesProtocol {
         }
     }
 
-    /// Permanently delete the customer account (WooCommerce requires force=true).
+    /// Permanently delete the signed-in customer's own account. The server resolves which
+    /// account from the JWT and passes force=true to WooCommerce itself.
     func deleteAccount(
-        userId: Int,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         DispatchQueue.main.async { self.isLoading = true }
 
-        api.request(endpoint: .specificCustomer(customerID: userId), method: .DELETE, params: ["force": "true"]) { [weak self] (result: Result<User, Error>) in
+        api.request(endpoint: .me, method: .DELETE) { [weak self] (result: Result<User, Error>) in
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.isLoading = false

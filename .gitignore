@@ -81,3 +81,13 @@ fastlane/test_output
 iOSInjectionProject/
 
 .scannerwork
+
+# Secrets
+#
+# Secrets.plist holds the read-only WooCommerce REST key used for public catalog reads.
+# It is required to build — copy the template and fill in the real values:
+#     cp TrinhsGroup/Secrets.example.plist TrinhsGroup/Secrets.plist
+# Secrets.example.plist stays tracked as the template; the .bak is written by
+# scripts/rotate-woo-key.sh and still contains the previous secret.
+TrinhsGroup/Secrets.plist
+TrinhsGroup/Secrets.plist.bak

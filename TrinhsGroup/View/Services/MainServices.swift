@@ -120,7 +120,6 @@ class MainServices: MainServicesProtocol {
         status: String,
         productOrders: [ProductOrder],
         pickupDateTime: String,
-        discountValue: Double,
         couponCode: String? = nil,
         completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
     ) {
@@ -176,13 +175,15 @@ class MainServices: MainServicesProtocol {
             return
         }
         
+        // customer_id and set_paid are deliberately absent: the server forces both from
+        // the JWT so an order can never be filed against another account or self-marked
+        // as paid. Line-item pricing and the 5% app discount are computed server-side
+        // from catalog prices for the same reason.
         var json: [String: Any] = [
-            "customer_id": user.id,
-            "set_paid": false,
             "payment_method": paymentMethod,            // e.g. "stripe"
             "payment_method_title": paymentMethodTitle,
             "customer_note": customerNote,
-            // Consider "pending" for unpaid orders; "on-hold" also works.
+            // Server allowlists this to "pending" or "on-hold".
             "status": status,
             "billing": [
                 "first_name": billingFirstName,
@@ -196,32 +197,15 @@ class MainServices: MainServicesProtocol {
                 "phone": user.billing.phone
             ],
             "line_items": lineItems,
-            "meta_data": [
-                [
-                    "key": "pickup_datetime",
-                    "value": pickupDateTime
-                ]
-            ]
+            "pickup_datetime": pickupDateTime
         ]
 
-        // Apply 5% discount as a negative fee line so order total reflects discount
-        if discountValue > 0 {
-            let feeLines: [[String: Any]] = [[
-                "name": "Discount 5%",
-                "total": String(format: "-%.2f", discountValue)
-            ]]
-            json["fee_lines"] = feeLines
-        }
-        
-        // Apply voucher coupon code if provided
+        // The server checks the voucher belongs to this account before applying it.
         if let couponCode = couponCode, !couponCode.isEmpty {
-            let couponLines: [[String: Any]] = [[
-                "code": couponCode
-            ]]
-            json["coupon_lines"] = couponLines
+            json["coupon_code"] = couponCode
         }
 
-        api.request(endpoint: .onCreateOrder, method: .POST, body: json) { (result: Result<Order, Error>) in
+        api.request(endpoint: .myOrders, method: .POST, body: json) { (result: Result<Order, Error>) in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
@@ -238,7 +222,7 @@ class MainServices: MainServicesProtocol {
     
     func onFetchPaymentMethods() {
         self.isLoading.toggle()
-        api.request(endpoint: .fetchPaymentMethods, method: .GET) { (result: Result<[Payment], Error>) in
+        api.request(endpoint: .paymentMethods, method: .GET) { (result: Result<[Payment], Error>) in
             DispatchQueue.main.async {
                 self.isLoading.toggle()
                 switch result {

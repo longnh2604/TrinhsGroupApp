@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CommonCrypto
 
 enum HTTPMethod: String {
     case GET = "GET"
@@ -17,28 +16,40 @@ enum HTTPMethod: String {
 
 let commonURL = "/wp-json/wc/v3"
 
+let appAPIURL = "/wp-json/trinh-app/v1"
+
 enum WooCommerceEndpoint {
+
+    // MARK: Unauthenticated
+
     case authenticate
     case forgotPassword
-    case customers
-    case createCustomer
-    case specificCustomer(customerID: Int)
-    case products
-    case specificOrder(orderID: Int)
-    case specificProduct(productID: Int)
+    /// Server-side signup, so the app never needs a write-capable consumer key.
+    case register
+
+    // MARK: Public catalog — read-only consumer key
+
     case fetchCategories
-    case getUserInfo
     case fetchPopularProducts
     case fetchProductsCategory(categoryID: Int)
-    case fetchPaymentMethods
-    case onCreateOrder
-    case fetchHistoryOrders(customerID: Int)
-    case getStripePaymentIntent(orderID: Int)
+
+    // MARK: Signed-in user — JWT, scoped server-side to the token's own account
+
+    /// Own customer record: GET to read, PUT to update, DELETE to close the account.
+    case me
+    case myOrders
+    case cancelMyOrder(orderID: Int)
+    case myPaymentIntent(orderID: Int)
+    case myVouchers
+    case paymentMethods
+    /// Own myCred balance. Deliberately NOT read from the customer record: WooCommerce's
+    /// customers controller only emits `meta_data` for administrators
+    /// (class-wc-rest-customers-v2-controller.php:82), so it is absent now that the app
+    /// authenticates as the customer rather than via an admin-owned consumer key.
+    case myPoints
+    case redeemPoints
+    case fcmRegister
     case customerAvatar(customerID: Int)
-    case redeemPoints  // Custom myCred endpoint
-    case userVouchers(userID: Int)  // Fetch user's available vouchers (custom endpoint)
-    case wcCoupons  // WooCommerce coupons API
-    case wcCouponByCode(code: String)  // Get specific coupon by code
 
     func urlPath() -> String {
         switch self {
@@ -46,160 +57,106 @@ enum WooCommerceEndpoint {
             return "/wp-json/jwt-auth/v1/token"
         case .forgotPassword:
             return "/wp-login.php?action=lostpassword"
-        case .createCustomer, .customers:
-            return "/wp-json/wc/v3/customers"
-        case .specificCustomer(let customerID):
-            return "/wp-json/wc/v3/customers/\(customerID)"
-        case .products:
-            return "/wp-json/wc/v3/products"
-        case .specificOrder(let orderID):
-            return "/wp-json/wc/v3/orders/\(orderID)"
-        case .specificProduct(let productID):
-            return "/wp-json/wc/v3/products/\(productID)"
+        case .register:
+            return "\(appAPIURL)/register"
+
         case .fetchCategories:
             return "\(commonURL)/products/categories"
-        case .getUserInfo:
-            return "\(commonURL)/customers"
         case .fetchPopularProducts:
             return "\(commonURL)/products?orderby=popularity&order=desc&per_page=10"
         case .fetchProductsCategory(let id):
             return "\(commonURL)/products?category=\(id)"
-        case .fetchPaymentMethods:
-            return "\(commonURL)/payment_gateways"
-        case .onCreateOrder:
-            return "\(commonURL)/orders"
-        case .fetchHistoryOrders(let customerID):
-            return "\(commonURL)/orders?customer=\(customerID)&page=1&per_page=100"
-        case .getStripePaymentIntent(let orderID):
-            return "\(commonURL)/orders/\(orderID)/stripe/payment-intent"
-        case .customerAvatar(let customerID):
-            return "\(commonURL)/customers/\(customerID)/avatar"
+
+        case .me:
+            return "\(appAPIURL)/me"
+        case .myOrders:
+            return "\(appAPIURL)/me/orders"
+        case .cancelMyOrder(let orderID):
+            return "\(appAPIURL)/me/orders/\(orderID)/cancel"
+        case .myPaymentIntent(let orderID):
+            return "\(appAPIURL)/me/orders/\(orderID)/payment-intent"
+        case .myVouchers:
+            return "\(appAPIURL)/me/vouchers"
+        case .paymentMethods:
+            return "\(appAPIURL)/payment-methods"
+        case .myPoints:
+            // user_id is filled in server-side by trinh-api-guard from the JWT.
+            return "/wp-json/bu/v1/me/points"
         case .redeemPoints:
             return "/wp-json/bu/v1/redeem"
-        case .userVouchers(let userID):
-            return "/wp-json/bu/v1/vouchers?user_id=\(userID)"
-        case .wcCoupons:
-            return "\(commonURL)/coupons"
-        case .wcCouponByCode(let code):
-            return "\(commonURL)/coupons?code=\(code)"
+        case .fcmRegister:
+            return "\(appAPIURL)/fcm/register"
+        case .customerAvatar(let customerID):
+            return "\(commonURL)/customers/\(customerID)/avatar"
+        }
+    }
+
+    /// `true` when the route authorises via the signed-in user's JWT rather than the
+    /// read-only consumer key. Everything touching a customer, order, voucher, payment
+    /// method or device token is server-scoped to the token's own account.
+    var requiresJWT: Bool {
+        switch self {
+        case .authenticate, .forgotPassword, .register,
+             .fetchCategories, .fetchPopularProducts, .fetchProductsCategory:
+            return false
+        case .me, .myOrders, .cancelMyOrder, .myPaymentIntent, .myVouchers,
+             .paymentMethods, .myPoints, .redeemPoints, .fcmRegister, .customerAvatar:
+            return true
         }
     }
 }
 
-extension String {
-    func addingPercentEncodingRFC3986() -> String? {
-        let allowedCharacters = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
-        return self.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
-    }
-}
 
 struct WooCommerceAPI {
-    private let consumerKey = "ck_964e801db7cd1929895596460ac9a366cbb3e6f4"
-    private let consumerSecret = "cs_f256c30430cf0c062bc19d374c260e9d4d0b1a32"
+    /// Read-only key, loaded from the untracked Secrets.plist. Used **only** for the
+    /// public catalog reads in `WooCommerceEndpoint.requiresJWT == false`.
+    private var consumerKey: String { AppSecrets.wooConsumerKey }
+    private var consumerSecret: String { AppSecrets.wooConsumerSecret }
     private let storeURL = "https://trinhsgroup.com.au"
 
-    /// Generate OAuth signature
-    private func generateOAuthSignature(httpMethod: HTTPMethod, endpoint: WooCommerceEndpoint, params: [String: String]) -> String {
-        let baseURL = "\(storeURL)\(endpoint.urlPath())"
 
-        var oauthParams: [String: String] = [
-            "oauth_consumer_key": consumerKey,
-            "oauth_nonce": UUID().uuidString,
-            "oauth_signature_method": "HMAC-SHA1",
-            "oauth_timestamp": String(Int(Date().timeIntervalSince1970)),
-            "oauth_version": "1.0"
-        ]
+    // MARK: - Authorization
 
-        // Merge request parameters into OAuth parameters
-        oauthParams.merge(params) { (_, new) in new }
-
-        // Sort parameters alphabetically by key
-        let sortedParams = oauthParams.sorted { $0.key < $1.key }
-        let parameterString = sortedParams.map { "\($0.key)=\($0.value.addingPercentEncodingRFC3986() ?? "")" }.joined(separator: "&")
-
-        let signatureBase = "\(httpMethod.rawValue)&" +
-                            "\(baseURL.addingPercentEncodingRFC3986() ?? "")&" +
-                            "\(parameterString.addingPercentEncodingRFC3986() ?? "")"
-
-        let signingKey = "\(consumerSecret)&"  // Token Secret not used in your case
-
-        return hmacSHA1(data: signatureBase, key: signingKey)
-    }
-
-    /// Generate HMAC-SHA1 signature
-    private func hmacSHA1(data: String, key: String) -> String {
-        let keyData = key.data(using: .utf8)!
-        let data = data.data(using: .utf8)!
-
-        var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
-
-        keyData.withUnsafeBytes { keyBytes in
-            data.withUnsafeBytes { dataBytes in
-                CCHmac(
-                    CCHmacAlgorithm(kCCHmacAlgSHA1),
-                    keyBytes.baseAddress, keyData.count,
-                    dataBytes.baseAddress, data.count,
-                    &digest
-                )
+    /// Attaches the correct credential for `endpoint`, or returns an error if a
+    /// JWT-backed route is called without a signed-in session.
+    private func applyAuthorization(to request: inout URLRequest, for endpoint: WooCommerceEndpoint) -> Error? {
+        guard endpoint.requiresJWT else {
+            let loginString = "\(consumerKey):\(consumerSecret)"
+            if let loginData = loginString.data(using: .utf8) {
+                request.setValue("Basic \(loginData.base64EncodedString())", forHTTPHeaderField: "Authorization")
             }
+            return nil
         }
 
-        let dataDigest = Data(digest)
-        return dataDigest.base64EncodedString()
+        guard let token = AuthTokenStore.token else {
+            print("🔐 Refusing \(endpoint.urlPath()) — no JWT for the current session")
+            NotificationCenter.default.post(name: .sessionExpired, object: nil)
+            return NSError(
+                domain: "WooCommerceAPI",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Your session has expired. Please log in again."]
+            )
+        }
+
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return nil
     }
 
-    // Old Oauth request
-    /// Generic API request function
-//    func request<T: Decodable>(
-//        endpoint: WooCommerceEndpoint,
-//        method: HTTPMethod,
-//        params: [String: String] = [:],
-//        body: [String: Any]? = nil,
-//        completion: @escaping (Result<T, Error>) -> Void
-//    ) {
-//        var oauthParams = params
-//        // Generate the OAuth signature
-//        let oauthSignature = generateOAuthSignature(httpMethod: method, endpoint: endpoint, params: oauthParams)
-//        oauthParams["oauth_signature"] = oauthSignature
-//
-//        let queryString = oauthParams.map { "\($0.key)=\($0.value.addingPercentEncodingRFC3986() ?? "")" }.joined(separator: "&")
-//        let requestURL = URL(string: "\(storeURL)\(endpoint.urlPath())?\(queryString)")!
-//
-//        var request = URLRequest(url: requestURL)
-//        request.httpMethod = method.rawValue
-//
-//        if let body = body {
-//            request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-//            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//        }
-//        print("Final Request URL: \(request.url?.absoluteString ?? "Invalid URL")")
-//        URLSession.shared.dataTask(with: request) { data, response, error in
-//            if let error = error {
-//                completion(.failure(error))
-//                return
-//            }
-//
-//            guard let data = data else {
-//                completion(.failure(NSError(domain: "No data", code: 500, userInfo: nil)))
-//                return
-//            }
-//
-//            if let jsonString = String(data: data, encoding: .utf8) {
-//                print("Received JSON: \(jsonString)")
-//            }
-//
-//            do {
-//                let decodedData = try JSONDecoder().decode(T.self, from: data)
-//                DispatchQueue.main.async {
-//                    completion(.success(decodedData))
-//                }
-//            } catch {
-//                DispatchQueue.main.async {
-//                    completion(.failure(error))
-//                }
-//            }
-//        }.resume()
-//    }
+    /// A rejected JWT means the session is gone — tell `AuthViewModel`, which is already
+    /// listening on `.sessionExpired`, so the user is bounced to login exactly once.
+    private func handleAuthFailure(statusCode: Int, endpoint: WooCommerceEndpoint) -> Error? {
+        guard endpoint.requiresJWT, statusCode == 401 || statusCode == 403 else { return nil }
+        print("🔐 \(statusCode) on \(endpoint.urlPath()) — session no longer valid")
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .sessionExpired, object: nil)
+        }
+        return NSError(
+            domain: "WooCommerceAPI",
+            code: statusCode,
+            userInfo: [NSLocalizedDescriptionKey: "Your session has expired. Please log in again."]
+        )
+    }
+
     
     func request<T: Decodable>(
         endpoint: WooCommerceEndpoint,
@@ -241,11 +198,11 @@ struct WooCommerceAPI {
         // Disable caching to always get fresh data
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
 
-        // Basic Auth header
-        let loginString = "\(consumerKey):\(consumerSecret)"
-        if let loginData = loginString.data(using: .utf8) {
-            let base64LoginString = loginData.base64EncodedString()
-            request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
+        // Authorization: Bearer JWT for user-scoped routes, read-only consumer key for
+        // public catalog reads.
+        if let authError = applyAuthorization(to: &request, for: endpoint) {
+            completion(.failure(authError))
+            return
         }
 
         // Add no-cache headers
@@ -266,6 +223,11 @@ struct WooCommerceAPI {
             if let httpResponse = response as? HTTPURLResponse {
                 print("📥 Response Status Code: \(httpResponse.statusCode)")
                 print("📋 Response Headers: \(httpResponse.allHeaderFields)")
+
+                if let authError = self.handleAuthFailure(statusCode: httpResponse.statusCode, endpoint: endpoint) {
+                    DispatchQueue.main.async { completion(.failure(authError)) }
+                    return
+                }
             }
 
             if let error = error {
@@ -331,8 +293,18 @@ struct WooCommerceAPI {
                     }
                 }
                 
-                // Try to decode WooCommerce error response
-                if let wooError = try? JSONDecoder().decode(WooErrorResponse.self, from: data) {
+                // Try to decode the custom bu/v1 redeem error shape, then WooCommerce's.
+                if let customError = try? JSONDecoder().decode(RedeemErrorResponse.self, from: data) {
+                    print("📋 Custom Error Response: \(customError.error)")
+                    let error = NSError(
+                        domain: "RedeemError",
+                        code: 400,
+                        userInfo: [NSLocalizedDescriptionKey: customError.error]
+                    )
+                    DispatchQueue.main.async {
+                        completion(.failure(error))
+                    }
+                } else if let wooError = try? JSONDecoder().decode(WooErrorResponse.self, from: data) {
                     print("📋 WooCommerce Error Response decoded")
                     DispatchQueue.main.async {
                         completion(.failure(wooError))
@@ -365,9 +337,10 @@ struct WooCommerceAPI {
         request.timeoutInterval = 120
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
-        let credentials = "\(consumerKey):\(consumerSecret)"
-        if let credentialData = credentials.data(using: .utf8) {
-            request.setValue("Basic \(credentialData.base64EncodedString())", forHTTPHeaderField: "Authorization")
+        let endpoint = WooCommerceEndpoint.customerAvatar(customerID: customerID)
+        if let authError = applyAuthorization(to: &request, for: endpoint) {
+            completion(.failure(authError))
+            return
         }
 
         var body = Data()
@@ -465,118 +438,6 @@ struct WooCommerceAPI {
             
             DispatchQueue.main.async {
                 completion(.success(true))
-            }
-        }.resume()
-    }
-    
-    /// Request without authentication - for custom WordPress REST API endpoints
-    /// that have permission_callback set to __return_true
-    func requestWithoutAuth<T: Decodable>(
-        endpoint: WooCommerceEndpoint,
-        method: HTTPMethod,
-        params: [String: String] = [:],
-        body: [String: Any]? = nil,
-        completion: @escaping (Result<T, Error>) -> Void
-    ) {
-        // Build URL with query parameters
-        var components = URLComponents(string: "\(storeURL)\(endpoint.urlPath())")!
-        
-        // Add existing params
-        var queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
-        
-        // Add cache-busting timestamp for GET requests to prevent stale data
-        if method == .GET {
-            queryItems.append(URLQueryItem(name: "_", value: String(Int(Date().timeIntervalSince1970 * 1000))))
-        }
-        
-        if !queryItems.isEmpty {
-            if components.queryItems != nil {
-                components.queryItems?.append(contentsOf: queryItems)
-            } else {
-                components.queryItems = queryItems
-            }
-        }
-        
-        guard let url = components.url else {
-            completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = method.rawValue
-        
-        // Disable caching to always get fresh data
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        
-        // NO Authorization header - this is for public/custom endpoints
-        
-        // Add no-cache headers
-        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
-
-        // Set body if needed
-        if let body = body {
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        }
-
-        print("🌐 Request URL (No Auth): \(request.url?.absoluteString ?? "Invalid URL")")
-        print("📤 Request Method: \(method.rawValue)")
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            // Check HTTP response
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📥 Response Status Code: \(httpResponse.statusCode)")
-            }
-            
-            if let error = error {
-                print("❌ Network Error: \(error.localizedDescription)")
-                completion(.failure(error))
-                return
-            }
-
-            guard let data = data else {
-                print("❌ No data received")
-                completion(.failure(NSError(domain: "No data", code: 500, userInfo: nil)))
-                return
-            }
-
-            // Print raw JSON response for debugging
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("📦 Raw JSON Response (\(data.count) bytes):")
-                print(jsonString)
-            }
-            
-            do {
-                let decodedData = try JSONDecoder().decode(T.self, from: data)
-                print("✅ Successfully decoded response")
-                DispatchQueue.main.async {
-                    completion(.success(decodedData))
-                }
-            } catch let decodingError {
-                print("❌ Decoding Error: \(decodingError)")
-                
-                // Try to decode custom error response
-                if let customError = try? JSONDecoder().decode(RedeemErrorResponse.self, from: data) {
-                    print("📋 Custom Error Response: \(customError.error)")
-                    let error = NSError(
-                        domain: "RedeemError",
-                        code: 400,
-                        userInfo: [NSLocalizedDescriptionKey: customError.error]
-                    )
-                    DispatchQueue.main.async {
-                        completion(.failure(error))
-                    }
-                } else if let wooError = try? JSONDecoder().decode(WooErrorResponse.self, from: data) {
-                    print("📋 WooCommerce Error Response decoded")
-                    DispatchQueue.main.async {
-                        completion(.failure(wooError))
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        completion(.failure(decodingError))
-                    }
-                }
             }
         }.resume()
     }

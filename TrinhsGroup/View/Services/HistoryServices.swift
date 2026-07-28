@@ -30,9 +30,11 @@ class HistoryServices: HistoryServicesProtocol {
     @Published private var error: String = ""
     @Published var orders = [Order]()
 
-    func onFetchHistoryOrders(id: Int) {
+    /// Orders for the signed-in customer. The server derives the customer from the JWT —
+    /// the previous `?customer=<id>` query could list any customer's order history.
+    func onFetchHistoryOrders() {
         self.isLoading.toggle()
-        api.request(endpoint: .fetchHistoryOrders(customerID: id), method: .GET) { (result: Result<[Order], Error>) in
+        api.request(endpoint: .myOrders, method: .GET) { (result: Result<[Order], Error>) in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let data):
@@ -45,11 +47,12 @@ class HistoryServices: HistoryServicesProtocol {
         }
     }
 
+    /// Cancels one of the caller's own orders. The server verifies ownership and refuses
+    /// orders that are already paid or fulfilled.
     func onCancelOrder(orderID: Int) {
         api.request(
-            endpoint: .specificOrder(orderID: orderID),
-            method: .PUT,
-            body: ["status": "cancelled"]
+            endpoint: .cancelMyOrder(orderID: orderID),
+            method: .POST
         ) { [weak self] (result: Result<Order, Error>) in
             DispatchQueue.main.async {
                 switch result {

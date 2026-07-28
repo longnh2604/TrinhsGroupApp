@@ -19,8 +19,9 @@ var ONBOARD_DATA: [Onboard] = [
 ]
 
 let WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
-let CONSUMER_KEY = ""
-let CONSUMER_SECRET_KEY = ""
+// CONSUMER_KEY / CONSUMER_SECRET_KEY used to live here as empty strings. Their only
+// consumers were the query-string WooCommerce calls in APIClient, which are gone. The
+// real read-only key now comes from the untracked Secrets.plist via `AppSecrets`.
 
 ///Settings
 var APP_NAME = "Trinhsgroup App"

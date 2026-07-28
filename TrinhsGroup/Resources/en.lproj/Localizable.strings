@@ -130,6 +130,7 @@
 "alert.voucherCreatedMessageFormat" = "Your voucher code is:\n%@\n\nValue: $%d\nRemaining points: %d";
 "alert.voucherCreatedSuccess" = "Your voucher has been created successfully!";
 "alert.redemptionFailedTitle" = "Redemption Failed";
+"alert.pointsLoadFailedTitle" = "Couldn't Load Points";
 "alert.avatarUpdateTitle" = "Update Avatar";
 "alert.avatarUpdateMessage" = "Choose how you want to update your avatar";
 "alert.chooseFromLibrary" = "Choose from Library";

@@ -86,7 +86,7 @@ class HistoryViewModel: ObservableObject {
 
     func fetchOrders(customerId: Int) {
         lastCustomerId = customerId
-        service.onFetchHistoryOrders(id: customerId)
+        service.onFetchHistoryOrders()
     }
 
     func cancelOrder(orderID: Int) {
@@ -112,7 +112,7 @@ class HistoryViewModel: ObservableObject {
         // Always set pending and trigger a fresh fetch so the detail shows the latest status.
         pendingNavigationOrderID = orderID
         if lastCustomerId > 0 {
-            service.onFetchHistoryOrders(id: lastCustomerId)
+            service.onFetchHistoryOrders()
         } else if let order = orders.first(where: { $0.id == orderID }) {
             // Cold-start fallback: no customerId yet — show cached order; MyOrdersView.onAppear will refresh
             selectedOrder = order

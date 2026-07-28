@@ -40,6 +40,8 @@
 		FD6733A4287423E30007F354 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A3287423E30007F354 /* NotificationModel.swift */; };
 		FD6733A6287424F40007F354 /* NotificationItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A5287424F40007F354 /* NotificationItemView.swift */; };
 		FD6733A8287425470007F354 /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A7287425470007F354 /* UserDefaultsManager.swift */; };
+		FD5EC0040000000000000004 /* AppSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5EC0030000000000000003 /* AppSecrets.swift */; };
+		FD5EC0060000000000000006 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5EC0050000000000000005 /* KeychainStore.swift */; };
 		FD6733AA287425700007F354 /* ProductModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A9287425700007F354 /* ProductModel.swift */; };
 		FD6733AC2874266A0007F354 /* ImageSliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733AB2874266A0007F354 /* ImageSliderView.swift */; };
 		FD6733AE287426AE0007F354 /* PagingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733AD287426AE0007F354 /* PagingView.swift */; };
@@ -63,6 +65,7 @@
 		FD8E6B9C288159D6007884C0 /* CheckBoxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */; };
 		FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */; };
 		FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */; };
+		FD5EC0020000000000000002 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = FD5EC0010000000000000001 /* Secrets.plist */; };
 		FD8EAEF52872C8C6004F9ED0 /* OnboardCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF42872C8C6004F9ED0 /* OnboardCardView.swift */; };
 		FD8EAEF72872C8EB004F9ED0 /* StartButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF62872C8EB004F9ED0 /* StartButtonView.swift */; };
 		FD8EAEF92872C8F9004F9ED0 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */; };
@@ -83,7 +86,6 @@
 		FD8EAF1D2872DD78004F9ED0 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF1C2872DD78004F9ED0 /* MainViewModel.swift */; };
 		FD8EAF1F2872E08B004F9ED0 /* AppSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF1E2872E08B004F9ED0 /* AppSetting.swift */; };
 		FD8EAF222872E24A004F9ED0 /* AuthServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF212872E24A004F9ED0 /* AuthServices.swift */; };
-		FD8EAF252872E31D004F9ED0 /* NetworkAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF242872E31D004F9ED0 /* NetworkAdapter.swift */; };
 		FD8EAF272872E6E9004F9ED0 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF262872E6E9004F9ED0 /* APIClient.swift */; };
 		FD94E3E7287C182400ED4B2C /* OrderReceivedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94E3E6287C182400ED4B2C /* OrderReceivedView.swift */; };
 		FD94E3E9287C184500ED4B2C /* HeaderOrderReceivedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94E3E8287C184500ED4B2C /* HeaderOrderReceivedView.swift */; };
@@ -113,7 +115,6 @@
 		FD9A223828759AFC009FDD65 /* OrderHistoryItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A223728759AFC009FDD65 /* OrderHistoryItemView.swift */; };
 		FD9A223A28759B37009FDD65 /* HistoryOrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9A223928759B37009FDD65 /* HistoryOrderDetailView.swift */; };
 		FDA32E33289390250005621A /* SwiftUICardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA32E32289390250005621A /* SwiftUICardFormView.swift */; };
-		FDA32E3528939A920005621A /* MyApiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA32E3428939A920005621A /* MyApiClient.swift */; };
 		FDA32E372893C8F90005621A /* StripeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA32E362893C8F90005621A /* StripeManager.swift */; };
 		FDA4747D287D21EB00319E02 /* MainServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA4747C287D21EB00319E02 /* MainServices.swift */; };
 		FDA842FA289BAE70002FB283 /* FloatingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA842F9289BAE70002FB283 /* FloatingButton.swift */; };
@@ -166,6 +167,8 @@
 		FD6733A3287423E30007F354 /* NotificationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		FD6733A5287424F40007F354 /* NotificationItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationItemView.swift; sourceTree = "<group>"; };
 		FD6733A7287425470007F354 /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
+		FD5EC0030000000000000003 /* AppSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSecrets.swift; sourceTree = "<group>"; };
+		FD5EC0050000000000000005 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		FD6733A9287425700007F354 /* ProductModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductModel.swift; sourceTree = "<group>"; };
 		FD6733AB2874266A0007F354 /* ImageSliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSliderView.swift; sourceTree = "<group>"; };
 		FD6733AD287426AE0007F354 /* PagingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagingView.swift; sourceTree = "<group>"; };
@@ -189,6 +192,7 @@
 		FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckBoxView.swift; sourceTree = "<group>"; };
 		FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		FD5EC0010000000000000001 /* Secrets.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 		FD8EAEF42872C8C6004F9ED0 /* OnboardCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardCardView.swift; sourceTree = "<group>"; };
 		FD8EAEF62872C8EB004F9ED0 /* StartButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartButtonView.swift; sourceTree = "<group>"; };
 		FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -209,7 +213,6 @@
 		FD8EAF1C2872DD78004F9ED0 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		FD8EAF1E2872E08B004F9ED0 /* AppSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSetting.swift; sourceTree = "<group>"; };
 		FD8EAF212872E24A004F9ED0 /* AuthServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServices.swift; sourceTree = "<group>"; };
-		FD8EAF242872E31D004F9ED0 /* NetworkAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAdapter.swift; sourceTree = "<group>"; };
 		FD8EAF262872E6E9004F9ED0 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		FD94E3E6287C182400ED4B2C /* OrderReceivedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderReceivedView.swift; sourceTree = "<group>"; };
 		FD94E3E8287C184500ED4B2C /* HeaderOrderReceivedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderOrderReceivedView.swift; sourceTree = "<group>"; };
@@ -239,7 +242,6 @@
 		FD9A223728759AFC009FDD65 /* OrderHistoryItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderHistoryItemView.swift; sourceTree = "<group>"; };
 		FD9A223928759B37009FDD65 /* HistoryOrderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderDetailView.swift; sourceTree = "<group>"; };
 		FDA32E32289390250005621A /* SwiftUICardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUICardFormView.swift; sourceTree = "<group>"; };
-		FDA32E3428939A920005621A /* MyApiClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyApiClient.swift; sourceTree = "<group>"; };
 		FDA32E362893C8F90005621A /* StripeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeManager.swift; sourceTree = "<group>"; };
 		FDA4747C287D21EB00319E02 /* MainServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainServices.swift; sourceTree = "<group>"; };
 		FDA842F9289BAE70002FB283 /* FloatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingButton.swift; sourceTree = "<group>"; };
@@ -335,6 +337,7 @@
 				FD8EAEF22872C84A004F9ED0 /* App */,
 				FD8EAEF32872C859004F9ED0 /* View */,
 				FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */,
+				FD5EC0010000000000000001 /* Secrets.plist */,
 				FD460EFF28696F0E004523FC /* Assets.xcassets */,
 				FDC6A91A289A1297002C4970 /* Resources */,
 				FD460F0128696F0E004523FC /* Preview Content */,
@@ -511,6 +514,8 @@
 				FD8EAF092872CD67004F9ED0 /* Extensions.swift */,
 				FD8EAF172872DB69004F9ED0 /* Constant.swift */,
 				FD6733A7287425470007F354 /* UserDefaultsManager.swift */,
+				FD5EC0030000000000000003 /* AppSecrets.swift */,
+				FD5EC0050000000000000005 /* KeychainStore.swift */,
 				FDB69C962877E3A900878117 /* FirestoreManager.swift */,
 				FDA32E362893C8F90005621A /* StripeManager.swift */,
 				873EB90F575D93F653FA522F /* L10n.swift */,
@@ -538,7 +543,6 @@
 				FD6733AD287426AE0007F354 /* PagingView.swift */,
 				FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */,
 				FDA32E32289390250005621A /* SwiftUICardFormView.swift */,
-				FDA32E3428939A920005621A /* MyApiClient.swift */,
 				FDC6A91F289A2107002C4970 /* LottieLoadingView.swift */,
 				FDA842F9289BAE70002FB283 /* FloatingButton.swift */,
 				2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */,
@@ -569,7 +573,6 @@
 		FD8EAF232872E30A004F9ED0 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
-				FD8EAF242872E31D004F9ED0 /* NetworkAdapter.swift */,
 				FD8EAF262872E6E9004F9ED0 /* APIClient.swift */,
 			);
 			path = Networking;
@@ -691,6 +694,7 @@
 				FD460F0028696F0E004523FC /* Assets.xcassets in Resources */,
 				FDC6A91C289A12B9002C4970 /* cookLoading.json in Resources */,
 				FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */,
+				FD5EC0020000000000000002 /* Secrets.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -786,6 +790,8 @@
 				FD6733AA287425700007F354 /* ProductModel.swift in Sources */,
 				FD8EAF112872CEA3004F9ED0 /* ForgetPasswordView.swift in Sources */,
 				FD6733A8287425470007F354 /* UserDefaultsManager.swift in Sources */,
+				FD5EC0040000000000000004 /* AppSecrets.swift in Sources */,
+				FD5EC0060000000000000006 /* KeychainStore.swift in Sources */,
 				FD8E6B9C288159D6007884C0 /* CheckBoxView.swift in Sources */,
 				FD6733BC287449B10007F354 /* EditProfileView.swift in Sources */,
 				FDAA000000000000000A0001 /* MyVouchersView.swift in Sources */,
@@ -828,13 +834,11 @@
 				22EC20BC2DA90DE70032C77B /* AppAssets.swift in Sources */,
 				FD94E3E9287C184500ED4B2C /* HeaderOrderReceivedView.swift in Sources */,
 				FD9A221128752A46009FDD65 /* SettingsRowView.swift in Sources */,
-				FD8EAF252872E31D004F9ED0 /* NetworkAdapter.swift in Sources */,
 				FD673393287421070007F354 /* SettingView.swift in Sources */,
 				FD9A223828759AFC009FDD65 /* OrderHistoryItemView.swift in Sources */,
 				FD67339C287421570007F354 /* ProfileView.swift in Sources */,
 				FD9A220F28752A1D009FDD65 /* SettingsLabelView.swift in Sources */,
 				FD673396287421200007F354 /* CategoryView.swift in Sources */,
-				FDA32E3528939A920005621A /* MyApiClient.swift in Sources */,
 				FD6733AE287426AE0007F354 /* PagingView.swift in Sources */,
 				FD673399287421400007F354 /* FavoriteView.swift in Sources */,
 				FD9A222E28757182009FDD65 /* ProductOrderModel.swift in Sources */,

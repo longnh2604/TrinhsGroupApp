@@ -145,6 +145,7 @@ enum L10n {
         static let voucherCreatedMessageFormat = "alert.voucherCreatedMessageFormat"
         static let voucherCreatedSuccess = "alert.voucherCreatedSuccess"
         static let redemptionFailedTitle = "alert.redemptionFailedTitle"
+        static let pointsLoadFailedTitle = "alert.pointsLoadFailedTitle"
         static let avatarUpdateTitle = "alert.avatarUpdateTitle"
         static let avatarUpdateMessage = "alert.avatarUpdateMessage"
         static let chooseFromLibrary = "alert.chooseFromLibrary"

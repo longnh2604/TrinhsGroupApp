@@ -58,7 +58,14 @@ func getPriceAndCurrencySymbol(price: Double, currency: String, currencyPosition
 }
 
 func getDiscountPercentage(regularPrice: Double, salePrice: Double) -> String {
-    let percentage: Int = Int((100 * regularPrice - salePrice) / regularPrice)
+    // The parentheses used to sit around `100 * regularPrice - salePrice`, which computed
+    // (1000 - 8) / 10 = 99 for a $10 item on sale at $8 — "99% OFF" instead of "20% OFF".
+    //
+    // The guard is not cosmetic: WooCommerce sends regular_price as "" for products that
+    // have no regular price, and ProductModel decodes that to 0. Dividing by it yields
+    // infinity, and Int(infinity) traps at runtime.
+    guard regularPrice > 0, salePrice > 0, salePrice < regularPrice else { return "" }
+    let percentage = Int(100 * (regularPrice - salePrice) / regularPrice)
     return "\(percentage)% OFF"
 }
 
@@ -208,7 +215,8 @@ enum AnyCodableValue: Codable, Equatable {
         case .integer(let s):
             return (Double(s))
         case .float(let s):
-            return (Double(s) ?? 0.0)
+            // Double(Float) is not failing, so the old `?? 0.0` here was unreachable.
+            return Double(s)
         default:
             return 0.0
         }

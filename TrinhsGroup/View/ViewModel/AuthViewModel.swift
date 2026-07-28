@@ -13,7 +13,19 @@ import UIKit
 class AuthViewModel: ObservableObject {
     
     @AppStorage("isLogin") var isLogin : Bool = false
-    @AppStorage("authJWTToken") private var persistedJWTToken: String = ""
+    /// Kept in the Keychain rather than `@AppStorage`: this token authorises every
+    /// customer, order, voucher and points request, so it is a bearer credential — see
+    /// `AuthTokenStore`. Computed so the existing call sites read and assign unchanged.
+    private var persistedJWTToken: String {
+        get { AuthTokenStore.token ?? "" }
+        set {
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                AuthTokenStore.clear()
+            } else {
+                AuthTokenStore.save(newValue)
+            }
+        }
+    }
     @AppStorage("authUserEmail") private var persistedAuthEmail: String = ""
     @AppStorage("authUsername") private var persistedAuthUsername: String = ""
     @AppStorage("authDisplayName") private var persistedAuthDisplayName: String = ""
@@ -264,17 +276,23 @@ class AuthViewModel: ObservableObject {
             print("📱 FCM register skipped — no token in UserDefaults yet")
             return
         }
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/trinh-app/v1/fcm/register") else {
+        guard let jwt = AuthTokenStore.token else {
+            print("📱 FCM register skipped — no JWT for the current session")
+            return
+        }
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)\(WooCommerceEndpoint.fcmRegister.urlPath())") else {
             print("📱 FCM register skipped — invalid URL")
             return
         }
 
-        print("📱 FCM register POST → \(url.absoluteString) user_id=\(userID) token_prefix=\(token.prefix(16))…")
+        print("📱 FCM register POST → \(url.absoluteString) token_prefix=\(token.prefix(16))…")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["user_id": userID, "fcm_token": token]
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        // No user_id — the server binds the device to the JWT's own account.
+        let body: [String: Any] = ["fcm_token": token]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -320,12 +338,9 @@ class AuthViewModel: ObservableObject {
     public func onGetUser() {
         restorePersistedAuthSession()
 
-        let emailToFetch = authUser?.email.nonEmptyValue
-            ?? user.email.nonEmptyValue
-            ?? persistedAuthEmail.nonEmptyValue
-
-        guard let emailToFetch else { return }
-        service.fetchingUserInfo(email: emailToFetch)
+        // The signed-in account is identified by the JWT, so nothing needs to be passed.
+        guard AuthTokenStore.token != nil else { return }
+        service.fetchingUserInfo()
     }
     
     public func onForgotPassword(email: String) {
@@ -390,7 +405,7 @@ class AuthViewModel: ObservableObject {
             return
         }
         showLoading = true
-        service.deleteAccount(userId: user.id) { [weak self] result in
+        service.deleteAccount { [weak self] result in
             guard let self = self else { return }
             self.showLoading = false
             switch result {
@@ -429,16 +444,6 @@ class AuthViewModel: ObservableObject {
             username: persistedAuthUsername,
             displayName: persistedAuthDisplayName
         )
-    }
-
-    private func resolvedJWTToken() -> String? {
-        if let token = authUser?.token.nonEmptyValue {
-            return token
-        }
-        if let token = persistedJWTToken.nonEmptyValue {
-            return token
-        }
-        return nil
     }
 }
 

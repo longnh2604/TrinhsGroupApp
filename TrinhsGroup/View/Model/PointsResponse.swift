@@ -12,75 +12,6 @@ struct PointsResponse: Decodable {
     }
 }
 
-// MARK: - WooCommerce Customer Response for Points
-struct WooCustomerMetaData: Decodable {
-    let id: Int
-    let key: String
-    let value: MetaValue
-    
-    enum MetaValue: Decodable {
-        case string(String)
-        case int(Int)
-        case double(Double)
-        case dictionary([String: AnyCodable])
-        case array([AnyCodable])
-        case null
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            
-            if let stringValue = try? container.decode(String.self) {
-                self = .string(stringValue)
-            } else if let intValue = try? container.decode(Int.self) {
-                self = .int(intValue)
-            } else if let doubleValue = try? container.decode(Double.self) {
-                self = .double(doubleValue)
-            } else if let dictValue = try? container.decode([String: AnyCodable].self) {
-                self = .dictionary(dictValue)
-            } else if let arrayValue = try? container.decode([AnyCodable].self) {
-                self = .array(arrayValue)
-            } else if container.decodeNil() {
-                self = .null
-            } else {
-                self = .null
-            }
-        }
-        
-        var doubleValue: Double? {
-            switch self {
-            case .string(let str):
-                return Double(str)
-            case .int(let intVal):
-                return Double(intVal)
-            case .double(let doubleVal):
-                return doubleVal
-            default:
-                return nil
-            }
-        }
-    }
-}
-
-struct WooCustomerPointsResponse: Decodable {
-    let id: Int
-    let metaData: [WooCustomerMetaData]
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case metaData = "meta_data"
-    }
-    
-    /// Extract mycred_default points from meta_data
-    func getMyCreditPoints() -> Double {
-        for meta in metaData {
-            if meta.key == "mycred_default" {
-                return meta.value.doubleValue ?? 0.0
-            }
-        }
-        return 0.0
-    }
-}
-
 // MARK: - Redeem Response Model
 struct RedeemResponse: Decodable {
     let couponCode: String
@@ -111,19 +42,6 @@ struct RedeemResponse: Decodable {
 struct RedeemErrorResponse: Decodable {
     let error: String
     let balance: Double?
-}
-
-// MARK: - User Vouchers Response
-struct UserVouchersResponse: Decodable {
-    let userId: Int
-    let vouchers: [VoucherResponse]
-    let count: Int
-    
-    enum CodingKeys: String, CodingKey {
-        case userId = "user_id"
-        case vouchers
-        case count
-    }
 }
 
 // MARK: - WooCommerce Coupon Response (from WC REST API)

@@ -1,13 +1,28 @@
 import Foundation
 import Combine
 
+/// Which points operation failed — drives the alert title so a failed balance load is
+/// never reported as a failed redemption.
+enum PointsAlertKind {
+    case loadFailed
+    case redeemFailed
+
+    var titleKey: String {
+        switch self {
+        case .loadFailed:   return L10n.Alert.pointsLoadFailedTitle
+        case .redeemFailed: return L10n.Alert.redemptionFailedTitle
+        }
+    }
+}
+
 final class PointsViewModel: ObservableObject {
     @Published var balance: Double?
     @Published var isLoading: Bool = false
     @Published var message: String = ""
     @Published var lastRedeemResponse: RedeemResponse?
     @Published var showRedeemSuccess: Bool = false
-    @Published var showRedeemError: Bool = false
+    @Published var showError: Bool = false
+    @Published var alertKind: PointsAlertKind = .redeemFailed
     @Published var availableVouchers: [VoucherResponse] = []
     @Published var isLoadingVouchers: Bool = false
     @Published var allVouchers: [VoucherResponse] = []
@@ -26,14 +41,24 @@ final class PointsViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .assign(to: &$isLoading)
 
+        // Failure to read the balance — not a redemption failure.
         service.errorPublisher
             .receive(on: RunLoop.main)
             .sink { [weak self] err in
-                guard let self = self else { return }
+                guard let self = self, !err.isEmpty else { return }
                 self.message = err
-                if !err.isEmpty {
-                    self.showRedeemError = true
-                }
+                self.alertKind = .loadFailed
+                self.showError = true
+            }
+            .store(in: &cancellableSet)
+
+        service.redeemErrorPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] err in
+                guard let self = self, !err.isEmpty else { return }
+                self.message = err
+                self.alertKind = .redeemFailed
+                self.showError = true
             }
             .store(in: &cancellableSet)
 
@@ -93,7 +118,8 @@ final class PointsViewModel: ObservableObject {
     func redeemPoints(userId: Int, points: Int) {
         guard userId > 0 else {
             self.message = "Invalid user ID"
-            self.showRedeemError = true
+            self.alertKind = .redeemFailed
+            self.showError = true
             return
         }
         
@@ -103,7 +129,8 @@ final class PointsViewModel: ObservableObject {
             } else {
                 self.message = "Invalid points amount. Must be at least 10 points."
             }
-            self.showRedeemError = true
+            self.alertKind = .redeemFailed
+            self.showError = true
             return
         }
         
@@ -117,7 +144,7 @@ final class PointsViewModel: ObservableObject {
     /// Reset error state
     func clearError() {
         message = ""
-        showRedeemError = false
+        showError = false
     }
     
     /// Reset success state
