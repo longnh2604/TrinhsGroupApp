@@ -42,6 +42,70 @@ run_suite() {  # run_suite <name> <dir>
     fi
 }
 
+# ── Suite: AppNotification decoding ─────────────────────────────────────────────
+# The bell history is persisted in UserDefaults on real devices, so this struct must keep
+# decoding entries written by older builds. A throw here would silently empty a customer's
+# notification list.
+suite_notification_decode() {
+    local d="$WORK/notification"; mkdir -p "$d"
+    python3 - "$SRC/View/Model/NotificationModel.swift" "$d/subject.swift" <<'PY' || exit 2
+import sys
+src = open(sys.argv[1]).read().split('\n')
+try:
+    s = next(i for i, l in enumerate(src) if l.startswith('struct AppNotification'))
+except StopIteration:
+    sys.exit("struct AppNotification not found — did it move or get renamed?")
+e = next(i for i, l in enumerate(src[s:], start=s) if l == '}')
+open(sys.argv[2], 'w').write('import Foundation\n\n' + '\n'.join(src[s:e + 1]) + '\n')
+PY
+    cat > "$d/main.swift" <<'SWIFT'
+import Foundation
+var fails = 0
+func check(_ ok: Bool, _ what: String, _ detail: String = "") {
+    print("  \(ok ? "✓" : "✗") \(what)\(detail.isEmpty ? "" : "  → \(detail)")")
+    if !ok { fails += 1 }
+}
+func decode(_ json: String) -> AppNotification? {
+    try? JSONDecoder().decode(AppNotification.self, from: Data(json.utf8))
+}
+
+// Entry written by a build that had no orderID at all.
+if let n = decode(#"{"id":"abc","title":"Order Ready","content":"Order #12 is complete.","isRead":true}"#) {
+    check(n.orderID == nil, "legacy entry (no orderID) decodes with orderID == nil", "\(String(describing: n.orderID))")
+    check(n.title == "Order Ready", "legacy entry keeps its title")
+} else { check(false, "legacy entry (no orderID) decodes") }
+
+// Oldest format: integer id, no date/isRead. Existing compatibility path.
+if let n = decode(#"{"id":7,"title":"T","content":"C"}"#) {
+    check(n.id == "7", "legacy Int id still coerces to String", n.id)
+    check(n.isRead == true, "legacy entry defaults to read")
+    check(n.orderID == nil, "legacy Int-id entry has no orderID")
+} else { check(false, "legacy Int-id entry decodes") }
+
+// New format.
+if let n = decode(#"{"id":"abc","title":"T","content":"C","isRead":false,"orderID":1234}"#) {
+    check(n.orderID == 1234, "new entry decodes orderID", "\(String(describing: n.orderID))")
+} else { check(false, "new entry with orderID decodes") }
+
+// Round trip.
+let original = AppNotification(id: "x", title: "T", content: "C", isRead: false, orderID: 99)
+if let data = try? JSONEncoder().encode(original), let back = decode(String(data: data, encoding: .utf8)!) {
+    check(back.orderID == 99, "orderID survives encode → decode", "\(String(describing: back.orderID))")
+} else { check(false, "orderID survives encode → decode") }
+
+// Payload parsing: the plugin sends order_id as a STRING.
+check(AppNotification.orderID(from: ["order_id": "1234"]) == 1234, "userInfo string \"1234\" → 1234")
+check(AppNotification.orderID(from: ["order_id": 1234]) == 1234, "userInfo Int 1234 → 1234")
+check(AppNotification.orderID(from: [:]) == nil, "userInfo without order_id → nil")
+check(AppNotification.orderID(from: ["order_id": "not-a-number"]) == nil, "non-numeric order_id → nil")
+check(AppNotification.orderID(from: ["order_id": ""]) == nil, "empty order_id → nil")
+
+print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
+exit(fails == 0 ? 0 : 1)
+SWIFT
+    run_suite "AppNotification decoding" "$d"
+}
+
 # ── Suite 1: discount percentage ────────────────────────────────────────────────
 # Regression cover for two defects: misplaced parentheses that rendered a $10→$8 sale as
 # "99% OFF", and a divide-by-zero that trapped on products WooCommerce sends with an empty
@@ -113,6 +177,7 @@ SWIFT
     run_suite "PointsResponse decoding" "$d"
 }
 
+suite_notification_decode
 suite_discount
 suite_points_decode
 

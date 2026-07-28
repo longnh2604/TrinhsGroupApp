@@ -12,12 +12,21 @@ struct HistoryOrderDetailView: View {
     @EnvironmentObject var historyViewModel: HistoryViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     var order: Order
-    
-    
+    /// How to dismiss. `nil` keeps the original behaviour — clearing
+    /// `showHistoryOrderDetail`, which is what MyOrdersView's overlay is driven by.
+    /// The in-app notification list passes its own closure instead, because it presents
+    /// this view from a different piece of state.
+    var onClose: (() -> Void)? = nil
+
+
     fileprivate func NavigationBarView() -> some View {
         return HStack {
             Button(action: {
-                historyViewModel.showHistoryOrderDetail = false
+                if let onClose {
+                    onClose()
+                } else {
+                    historyViewModel.showHistoryOrderDetail = false
+                }
             }) {
                 Image(systemName: "xmark")
                     .foregroundColor(Constants.AppColor.secondaryBlack)

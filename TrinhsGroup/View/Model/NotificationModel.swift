@@ -14,16 +14,25 @@ struct AppNotification: Identifiable, Codable, Equatable {
     var content: String
     var date: Date = Date()
     var isRead: Bool = false
+    /// WooCommerce order this notification is about, when the push carried one.
+    /// `nil` for entries stored before this field existed — those are not tappable.
+    var orderID: Int?
 
-    init(id: String = UUID().uuidString, title: String, content: String, date: Date = Date(), isRead: Bool = false) {
+    init(id: String = UUID().uuidString,
+         title: String,
+         content: String,
+         date: Date = Date(),
+         isRead: Bool = false,
+         orderID: Int? = nil) {
         self.id = id
         self.title = title
         self.content = content
         self.date = date
         self.isRead = isRead
+        self.orderID = orderID
     }
 
-    // Backward-compatible decoding: legacy entries had an Int id and no date/isRead
+    // Backward-compatible decoding: legacy entries had an Int id and no date/isRead/orderID
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         if let stringID = try? container.decode(String.self, forKey: .id) {
@@ -37,6 +46,17 @@ struct AppNotification: Identifiable, Codable, Equatable {
         content = try container.decode(String.self, forKey: .content)
         date = (try? container.decode(Date.self, forKey: .date)) ?? Date()
         isRead = (try? container.decode(Bool.self, forKey: .isRead)) ?? true
+        orderID = try? container.decodeIfPresent(Int.self, forKey: .orderID)
+    }
+
+    /// Pull the order id out of a push payload.
+    ///
+    /// `trinh-push-notify` sends it as a string (`'order_id' => (string) $order_id`), but
+    /// accept a number too so a future payload change cannot silently break navigation.
+    static func orderID(from userInfo: [AnyHashable: Any]) -> Int? {
+        if let value = userInfo["order_id"] as? Int { return value }
+        if let text = userInfo["order_id"] as? String { return Int(text) }
+        return nil
     }
 }
 
@@ -66,7 +86,12 @@ final class NotificationStore: ObservableObject {
     }
 
     /// Add a notification if it isn't already stored. Safe to call from any thread.
-    func add(id: String, title: String, content: String, date: Date = Date(), isRead: Bool = false) {
+    func add(id: String,
+             title: String,
+             content: String,
+             date: Date = Date(),
+             isRead: Bool = false,
+             orderID: Int? = nil) {
         guard !title.isEmpty || !content.isEmpty else { return }
         DispatchQueue.main.async {
             if let index = self.notifications.firstIndex(where: { $0.id == id }) {
@@ -74,9 +99,20 @@ final class NotificationStore: ObservableObject {
                     self.notifications[index].isRead = true
                     self.persist()
                 }
+                // An entry stored before this build had no order id. Backfill it so a
+                // notification that arrives again, or is re-synced from Notification
+                // Center, becomes tappable.
+                if self.notifications[index].orderID == nil, let orderID {
+                    self.notifications[index].orderID = orderID
+                    self.persist()
+                }
                 return
             }
-            self.notifications.insert(AppNotification(id: id, title: title, content: content, date: date, isRead: isRead), at: 0)
+            self.notifications.insert(
+                AppNotification(id: id, title: title, content: content,
+                                date: date, isRead: isRead, orderID: orderID),
+                at: 0
+            )
             self.notifications.sort(by: { $0.date > $1.date })
             self.persist()
         }
@@ -111,7 +147,8 @@ final class NotificationStore: ObservableObject {
                 self.add(id: item.request.identifier,
                          title: content.title,
                          content: content.body,
-                         date: item.date)
+                         date: item.date,
+                         orderID: AppNotification.orderID(from: content.userInfo))
             }
         }
     }

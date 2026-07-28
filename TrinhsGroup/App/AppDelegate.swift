@@ -107,7 +107,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         NotificationStore.shared.add(id: notification.request.identifier,
                                      title: content.title,
                                      content: content.body,
-                                     date: notification.date)
+                                     date: notification.date,
+                                     orderID: AppNotification.orderID(from: content.userInfo))
         completionHandler([.banner, .sound, .badge])
     }
 
@@ -117,13 +118,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let tappedContent = response.notification.request.content
+        let orderID = AppNotification.orderID(from: tappedContent.userInfo)
+
         NotificationStore.shared.add(id: response.notification.request.identifier,
                                      title: tappedContent.title,
                                      content: tappedContent.body,
                                      date: response.notification.date,
-                                     isRead: true)
-        let userInfo = response.notification.request.content.userInfo
-        if let orderIDString = userInfo["order_id"] as? String, let orderID = Int(orderIDString) {
+                                     isRead: true,
+                                     orderID: orderID)
+
+        if let orderID {
             // Store for cold-launch support; HistoryViewModel also reads this on orders load
             UserDefaults.standard.set(orderID, forKey: "pending_order_id")
             NotificationCenter.default.post(
@@ -135,10 +139,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         completionHandler()
     }
     
-    /// Configure Kingfisher image cache for optimal performance
-    fileprivate func configureKingfisherCache() {
-        // Set cache expiration to 7 days
-        let cache = ImageCache.default
     /// Dump every setting that decides whether a delivered notification is actually *shown*.
     ///
     /// A notification can be delivered — landing in Notification Center, where
@@ -193,6 +193,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
     }
 
+    /// Configure Kingfisher image cache for optimal performance
+    fileprivate func configureKingfisherCache() {
+        // Set cache expiration to 7 days
+        let cache = ImageCache.default
         cache.diskStorage.config.expiration = .days(7)
         cache.memoryStorage.config.expiration = .seconds(300) // 5 minutes in memory
         

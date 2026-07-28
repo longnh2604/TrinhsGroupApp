@@ -10,6 +10,9 @@ import SwiftUI
 struct NewNotificationsView: View {
 
     @ObservedObject var store = NotificationStore.shared
+    // Provided by MainView; inherited through HomeView's fullScreenCover.
+    @EnvironmentObject var historyViewModel: HistoryViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
 
     private var unread: [AppNotification] {
@@ -78,6 +81,24 @@ struct NewNotificationsView: View {
         .padding(.horizontal, 16)
     }
 
+    /// One row, used by both sections. Previously only the "New" section had a tap
+    /// gesture, which left every already-read notification inert.
+    @ViewBuilder
+    private func row(_ notification: AppNotification) -> some View {
+        NotificationItemView(notification: notification)
+            .padding(.horizontal, 16)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    store.markRead(notification)
+                }
+                // Entries stored before orderID existed simply mark read.
+                if let orderID = notification.orderID {
+                    historyViewModel.openOrderFromNotification(orderID: orderID)
+                }
+            }
+    }
+
     var body: some View {
         ZStack {
             Constants.AppColor.lightGrayColor
@@ -94,13 +115,7 @@ struct NewNotificationsView: View {
                             if !unread.isEmpty {
                                 sectionHeader("New")
                                 ForEach(unread) { notification in
-                                    NotificationItemView(notification: notification)
-                                        .padding(.horizontal, 16)
-                                        .onTapGesture {
-                                            withAnimation(.easeInOut(duration: 0.2)) {
-                                                store.markRead(notification)
-                                            }
-                                        }
+                                    row(notification)
                                 }
                             }
 
@@ -108,8 +123,7 @@ struct NewNotificationsView: View {
                                 sectionHeader("Earlier")
                                     .padding(.top, unread.isEmpty ? 0 : 8)
                                 ForEach(earlier) { notification in
-                                    NotificationItemView(notification: notification)
-                                        .padding(.horizontal, 16)
+                                    row(notification)
                                 }
                             }
                         }
@@ -118,9 +132,32 @@ struct NewNotificationsView: View {
                 }
             }
         }
+        .overlay {
+            if historyViewModel.isResolvingNotificationOrder {
+                LoadingView()
+                    .ignoresSafeArea()
+            }
+        }
         .onAppear(perform: {
             store.syncDeliveredNotifications()
         })
+        .fullScreenCover(item: $historyViewModel.notificationOrder) { order in
+            HistoryOrderDetailView(order: order) {
+                historyViewModel.dismissNotificationOrder()
+            }
+            .environmentObject(historyViewModel)
+            .environmentObject(authViewModel)
+        }
+        // Without this the failure paths — order deleted, fetch failed — would clear the
+        // spinner and then show nothing, leaving the tap looking like it did nothing.
+        .alert("Couldn't Open Order", isPresented: Binding(
+            get: { !historyViewModel.message.isEmpty },
+            set: { if !$0 { historyViewModel.message = "" } }
+        )) {
+            Button("OK", role: .cancel) { historyViewModel.message = "" }
+        } message: {
+            Text(historyViewModel.message)
+        }
     }
 }
 

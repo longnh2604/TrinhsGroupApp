@@ -19,10 +19,21 @@ class HistoryViewModel: ObservableObject {
     @Published var showCancelConfirm = false
     @Published var message: String = ""
 
+    /// Non-nil while the order detail opened from the in-app notification list is showing.
+    ///
+    /// Deliberately separate from `showHistoryOrderDetail`: that flag drives MyOrdersView's
+    /// overlay and MainView.swift:51 clears it on every tab change, which would cancel a
+    /// presentation started from the notification list.
+    @Published var notificationOrder: Order?
+    @Published var isResolvingNotificationOrder = false
+
     private var service: HistoryServices = HistoryServices()
     private var cancellableSet: Set<AnyCancellable> = []
     // Holds an order_id from a notification tap that arrived before orders were loaded
     private var pendingNavigationOrderID: Int?
+    // Separate from pendingNavigationOrderID so the notification-list flow and the
+    // OS-banner-tap flow cannot consume each other's pending request.
+    private var pendingNotificationOrderID: Int?
     // Last customer ID used for fetch — needed to re-fetch on notification tap
     private var lastCustomerId: Int = 0
 
@@ -46,6 +57,10 @@ class HistoryViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] error in
                 self?.message = error
+                // A failed fetch never reaches historyOrdersPublisher, so release the
+                // notification-list spinner here or it stays up forever.
+                self?.pendingNotificationOrderID = nil
+                self?.isResolvingNotificationOrder = false
             }
             .store(in: &cancellableSet)
 
@@ -60,6 +75,7 @@ class HistoryViewModel: ObservableObject {
                     self.selectedOrder = updated
                 }
                 self.resolvePendingNavigation()
+                self.resolvePendingNotificationOrder(in: orders)
             }
             .store(in: &cancellableSet)
 
@@ -126,5 +142,36 @@ class HistoryViewModel: ObservableObject {
         pendingNavigationOrderID = nil
         selectedOrder = order
         showHistoryOrderDetail = true
+    }
+
+    // MARK: - Order detail opened from the in-app notification list
+
+    /// Open the order detail for a notification the user tapped inside the app.
+    ///
+    /// Always re-fetches rather than trusting `orders`: a notification means the status
+    /// changed on the server, so a cached order could contradict the message the user just
+    /// tapped.
+    func openOrderFromNotification(orderID: Int) {
+        pendingNotificationOrderID = orderID
+        isResolvingNotificationOrder = true
+        message = ""
+        service.onFetchHistoryOrders()
+    }
+
+    func dismissNotificationOrder() {
+        notificationOrder = nil
+    }
+
+    private func resolvePendingNotificationOrder(in orders: [Order]) {
+        guard let orderID = pendingNotificationOrderID else { return }
+        pendingNotificationOrderID = nil
+        isResolvingNotificationOrder = false
+
+        if let order = orders.first(where: { $0.id == orderID }) {
+            notificationOrder = order
+        } else {
+            // Never let a tap appear to do nothing.
+            message = "That order is no longer available."
+        }
     }
 }
