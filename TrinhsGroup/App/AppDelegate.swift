@@ -38,9 +38,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
             UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
                 print("🔔 Notification authorization granted=\(granted) error=\(error?.localizedDescription ?? "none")")
-                UNUserNotificationCenter.current().getNotificationSettings { settings in
-                    print("🔔 Notification settings: auth=\(settings.authorizationStatus.rawValue) alert=\(settings.alertSetting.rawValue)")
-                }
+                Self.logNotificationSettings()
             }
         } else {
             let settings: UIUserNotificationSettings =
@@ -101,6 +99,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         let content = notification.request.content
+        // Reaching this method means the push arrived while the app was in the FOREGROUND.
+        // An empty title AND body would mean the payload carried no aps.alert — the store
+        // would drop it, and nothing would appear in the bell either.
+        print("🔔 foreground push: title=\"\(content.title)\" body=\"\(content.body)\" "
+              + "→ presenting banner+sound+badge")
         NotificationStore.shared.add(id: notification.request.identifier,
                                      title: content.title,
                                      content: content.body,
@@ -136,6 +139,60 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     fileprivate func configureKingfisherCache() {
         // Set cache expiration to 7 days
         let cache = ImageCache.default
+    /// Dump every setting that decides whether a delivered notification is actually *shown*.
+    ///
+    /// A notification can be delivered — landing in Notification Center, where
+    /// `NotificationStore.syncDeliveredNotifications()` picks it up for the in-app bell —
+    /// while iOS shows no banner at all. That happens when banners are switched off, when
+    /// the app is set to "Deliver Quietly", or when its notifications are being batched
+    /// into a Scheduled Summary. `authorizationStatus` alone does not distinguish those,
+    /// so log the individual switches.
+    static func logNotificationSettings() {
+        UNUserNotificationCenter.current().getNotificationSettings { s in
+            func name(_ setting: UNNotificationSetting) -> String {
+                switch setting {
+                case .enabled:       return "enabled"
+                case .disabled:      return "DISABLED"
+                case .notSupported:  return "notSupported"
+                @unknown default:    return "unknown"
+                }
+            }
+            var style = "unknown"
+            switch s.alertStyle {
+            case .none:   style = "NONE (no banner or alert)"
+            case .banner: style = "banner"
+            case .alert:  style = "alert"
+            @unknown default: break
+            }
+            var auth = "unknown"
+            switch s.authorizationStatus {
+            case .notDetermined:    auth = "notDetermined"
+            case .denied:           auth = "DENIED"
+            case .authorized:       auth = "authorized"
+            case .provisional:      auth = "PROVISIONAL (quiet delivery)"
+            case .ephemeral:        auth = "ephemeral"
+            @unknown default:       break
+            }
+
+            print("""
+            🔔 ── notification settings ──────────────────────────
+            🔔 authorization : \(auth)
+            🔔 alert style   : \(style)
+            🔔 banners       : \(name(s.alertSetting))          ← off ⇒ no pop-up, but still in Notification Center
+            🔔 lock screen   : \(name(s.lockScreenSetting))
+            🔔 notif. center : \(name(s.notificationCenterSetting))
+            🔔 sound         : \(name(s.soundSetting))
+            🔔 badge         : \(name(s.badgeSetting))
+            🔔 ─────────────────────────────────────────────────
+            """)
+            if s.alertSetting == .disabled && s.notificationCenterSetting == .enabled {
+                print("🔔 ⚠️ Banners are OFF but Notification Center is ON — this is exactly the "
+                      + "\"appears in the app's bell, never pops up\" symptom. "
+                      + "Settings → Notifications → TrinhsGroup → enable Banners.")
+            }
+        }
+    }
+
         cache.diskStorage.config.expiration = .days(7)
         cache.memoryStorage.config.expiration = .seconds(300) // 5 minutes in memory
         
