@@ -380,6 +380,20 @@ if let o = decodeOrder(orderJSON(lineItems: twoItems, feeLines: appFee,
 if let o = decodeOrder(orderJSON(lineItems: twoItems, total: "32.50")) {
     check(o.fees.isEmpty, "absent fee_lines reads as no fees")
 } else { check(false, "an order with no fee_lines decodes") }
+
+// orderJSON always emits a fee_lines key, so it cannot express the case that actually
+// matters: the plugin omits the key entirely on an undiscounted order. An empty array
+// decodes the same whether feeLines is optional or not, so only a genuinely absent key
+// exercises the optionality that keeps the Orders tab from going empty.
+let noFeeKey = """
+{"id":1,"number":"1234","status":"on-hold","date_created":"2026-07-29T08:00:00",
+ "date_modified":"2026-07-29T08:00:00","discount_total":"0.00","total":"32.50",
+ "customer_note":"","billing":\(BILLING),"shipping":\(SHIPPING),
+ "payment_method_title":"Card","line_items":\(twoItems),"shipping_lines":[]}
+"""
+if let o = decodeOrder(noFeeKey) {
+    check(o.fees.isEmpty, "an order with no fee_lines key at all still decodes")
+} else { check(false, "an order with no fee_lines key at all still decodes") }
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -452,7 +466,10 @@ Expected: `all 6 suite(s) passed`, exit 0.
 |---|---|
 | `amount` → `abs(Double(total) ?? 0)` | `a negative fee total parses` |
 | `fees` → `[]` | `fee_lines decodes` |
-| `var feeLines: [FeeLine]?` → `var feeLines: [FeeLine]` (non-optional) | `absent fee_lines reads as no fees` |
+| `var feeLines: [FeeLine]?` → `var feeLines: [FeeLine]` (non-optional), **and** `Order.default`'s `feeLines: nil` → `feeLines: []` so it still compiles | `an order with no fee_lines key at all still decodes` |
+
+`orderJSON` always emits a `fee_lines` key, so proving the optionality needs a payload that
+omits it outright — hence the raw literal.
 
 Restore with `git checkout -- TrinhsGroup/View/Model/OrderModel.swift` after each, and confirm
 the script exits 0 at the end.

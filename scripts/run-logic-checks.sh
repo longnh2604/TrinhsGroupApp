@@ -260,6 +260,20 @@ if let o = decodeOrder(orderJSON(lineItems: twoItems, total: "32.50")) {
     check(o.fees.isEmpty, "absent fee_lines reads as no fees")
 } else { check(false, "an order with no fee_lines decodes") }
 
+// orderJSON always emits a fee_lines key, so it cannot express the case that actually
+// matters: the plugin omits the key entirely on an undiscounted order. An empty array
+// decodes the same whether feeLines is optional or not, so only a genuinely absent key
+// exercises the optionality that keeps the Orders tab from going empty.
+let noFeeKey = """
+{"id":1,"number":"1234","status":"on-hold","date_created":"2026-07-29T08:00:00",
+ "date_modified":"2026-07-29T08:00:00","discount_total":"0.00","total":"32.50",
+ "customer_note":"","billing":\(BILLING),"shipping":\(SHIPPING),
+ "payment_method_title":"Card","line_items":\(twoItems),"shipping_lines":[]}
+"""
+if let o = decodeOrder(noFeeKey) {
+    check(o.fees.isEmpty, "an order with no fee_lines key at all still decodes")
+} else { check(false, "an order with no fee_lines key at all still decodes") }
+
 print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
 exit(fails == 0 ? 0 : 1)
 SWIFT
