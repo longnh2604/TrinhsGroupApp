@@ -80,11 +80,15 @@ struct LineItem: Codable, Identifiable {
     var subtotal: String
     var total: String
     var price: Double
+    /// Add-on selections and the customer's note, exactly as the app sent them at checkout.
+    /// Snake-cased to match `ProductOrder.meta_data`, the outbound model it mirrors.
+    var meta_data: [ProductMetaData] = []
 
     private enum CodingKeys: String, CodingKey {
         case id, name
         case productId = "product_id"
         case quantity, subtotal, total, price
+        case meta_data
     }
 
     static var `default`: LineItem {
@@ -97,6 +101,44 @@ struct LineItem: Codable, Identifiable {
             total: "0",
             price: 0
         )
+    }
+}
+
+// In an extension, not in the struct body, so the memberwise initialiser survives —
+// `LineItem.default` and the previews call it.
+extension LineItem {
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id        = try container.decode(Int.self, forKey: .id)
+        name      = try container.decode(String.self, forKey: .name)
+        productId = try container.decode(Int.self, forKey: .productId)
+        quantity  = try container.decode(Int.self, forKey: .quantity)
+        subtotal  = try container.decode(String.self, forKey: .subtotal)
+        total     = try container.decode(String.self, forKey: .total)
+        price     = try container.decode(Double.self, forKey: .price)
+        // `try?` on purpose. Swift's synthesised decoder ignores default values and throws on
+        // a missing key, and Woo omits meta_data on plain products. Beyond that, this model is
+        // nested inside Order: a line of add-on labels is not worth failing a customer's whole
+        // order history over.
+        meta_data = (try? container.decodeIfPresent([ProductMetaData].self, forKey: .meta_data)) ?? []
+    }
+
+    /// Add-on selections, customer-facing only.
+    ///
+    /// WooCommerce's internal line-item meta is underscore-prefixed (`_note`,
+    /// `_reduced_stock`) and must never render as something the customer chose.
+    var addOns: [ProductMetaData] {
+        meta_data.filter { !$0.key.hasPrefix("_") }
+    }
+
+    /// The customer's free-text note for this line.
+    ///
+    /// Blank reads as absent so the card does not draw an empty pair of quotes.
+    var note: String? {
+        guard let raw = meta_data.first(where: { $0.key == "_note" })?.value.stringValue,
+              !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return raw
     }
 }
 

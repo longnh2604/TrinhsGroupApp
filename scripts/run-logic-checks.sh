@@ -106,6 +106,118 @@ SWIFT
     run_suite "AppNotification decoding" "$d"
 }
 
+# ── Suite: order line items ─────────────────────────────────────────────────────
+# LineItem sits inside Order, which backs the whole Orders tab, so decoding here has to be
+# forgiving: a plugin's exotic line-item meta must cost us one label, never the customer's
+# order history. Also pins the add-on/note split, which is pure key convention and therefore
+# invisible to the compiler.
+suite_order_line_items() {
+    local d="$WORK/orderitems"; mkdir -p "$d"
+    cp "$SRC/View/Model/OrderModel.swift" \
+       "$SRC/View/Model/BillingModel.swift" \
+       "$SRC/View/Model/ShippingModel.swift" "$d/" || exit 2
+    python3 - "$SRC" "$d" <<'PY' || exit 2
+import sys
+S, d = sys.argv[1], sys.argv[2]
+
+def extract(path, decl, out):
+    """Pull one top-level declaration out by brace matching, so a rename fails loudly here
+    instead of silently testing nothing."""
+    src = open(path).read().split('\n')
+    try:
+        s = next(i for i, l in enumerate(src) if l.startswith(decl))
+    except StopIteration:
+        sys.exit(f"{decl} not found in {path} — did it move or get renamed?")
+    depth = 0
+    for i in range(s, len(src)):
+        depth += src[i].count('{') - src[i].count('}')
+        if depth == 0 and i > s:
+            open(out, 'w').write('import Foundation\n\n' + '\n'.join(src[s:i + 1]) + '\n')
+            return
+    sys.exit(f"unbalanced braces reading {decl} from {path}")
+
+extract(f'{S}/Utility/Constant.swift', 'enum AnyCodableValue', f'{d}/anycodable.swift')
+extract(f'{S}/View/Model/ProductModel.swift', 'struct ProductMetaData', f'{d}/meta.swift')
+PY
+    cat > "$d/fixture.swift" <<'SWIFT'
+import Foundation
+
+// The response shape trinh_app_create_my_order returns. Billing and Shipping are spelled out
+// in full because both models declare their fields non-optional — an empty object throws.
+let BILLING = #"{"first_name":"Long","last_name":"N","country":"AU","address_1":"1 Main St","city":"Gisborne","postcode":"3437","state":"VIC","email":"a@b.com","phone":"0400"}"#
+let SHIPPING = #"{"first_name":"Long","last_name":"N","country":"AU","address_1":"1 Main St","city":"Gisborne","postcode":"3437","state":"VIC"}"#
+
+func orderJSON(lineItems: String, feeLines: String = "[]",
+               discountTotal: String = "0.00", total: String = "30.87") -> String {
+    """
+    {"id":1,"number":"1234","status":"on-hold","date_created":"2026-07-29T08:00:00",
+     "date_modified":"2026-07-29T08:00:00","discount_total":"\(discountTotal)","total":"\(total)",
+     "customer_note":"","billing":\(BILLING),"shipping":\(SHIPPING),
+     "payment_method_title":"Card","line_items":\(lineItems),
+     "shipping_lines":[],"fee_lines":\(feeLines)}
+    """
+}
+
+func decodeOrder(_ json: String) -> Order? {
+    try? JSONDecoder().decode(Order.self, from: Data(json.utf8))
+}
+SWIFT
+    cat > "$d/main.swift" <<'SWIFT'
+import Foundation
+
+var fails = 0
+func check(_ ok: Bool, _ what: String, _ detail: String = "") {
+    print("  \(ok ? "✓" : "✗") \(what)\(detail.isEmpty ? "" : "  → \(detail)")")
+    if !ok { fails += 1 }
+}
+
+// ── Add-ons and notes ───────────────────────────────────────────────────────────
+let withMeta = #"""
+[{"id":9,"name":"Pho Bo","product_id":5,"quantity":2,"subtotal":"24.00","total":"24.00","price":12.0,
+  "meta_data":[{"id":1,"key":"Extra beef","value":"3"},
+               {"id":2,"key":"Extra chilli","value":"0"},
+               {"id":3,"key":"_note","value":"no coriander"},
+               {"id":4,"key":"_reduced_stock","value":"2"}]}]
+"""#
+if let item = decodeOrder(orderJSON(lineItems: withMeta))?.lineItems.first {
+    check(item.meta_data.count == 4, "every meta entry decodes", "\(item.meta_data.count)")
+    check(item.addOns.map(\.key) == ["Extra beef", "Extra chilli"],
+          "addOns keeps customer-facing keys, in order",
+          item.addOns.map(\.key).joined(separator: ", "))
+    check(!item.addOns.contains { $0.key.hasPrefix("_") },
+          "addOns excludes every underscore-prefixed key")
+    check(item.note == "no coriander", "note reads _note", item.note ?? "nil")
+} else { check(false, "a line item with meta_data decodes") }
+
+// Woo omits meta_data entirely on a product with no add-ons.
+let noMeta = #"[{"id":9,"name":"Spring Rolls","product_id":6,"quantity":1,"subtotal":"8.50","total":"8.50","price":8.5}]"#
+if let item = decodeOrder(orderJSON(lineItems: noMeta))?.lineItems.first {
+    check(item.meta_data.isEmpty, "absent meta_data decodes as empty")
+    check(item.addOns.isEmpty, "no meta → no addOns")
+    check(item.note == nil, "no meta → no note")
+} else { check(false, "a line item with no meta_data key decodes") }
+
+// A blank note must read as absent, not draw an empty pair of quotes on the card.
+let blankNote = #"[{"id":9,"name":"Pho","product_id":5,"quantity":1,"subtotal":"12.00","total":"12.00","price":12.0,"meta_data":[{"id":1,"key":"_note","value":"   "}]}]"#
+if let item = decodeOrder(orderJSON(lineItems: blankNote))?.lineItems.first {
+    check(item.note == nil, "a whitespace-only note reads as absent", item.note ?? "nil")
+} else { check(false, "a line item with a blank note decodes") }
+
+// Another plugin's array-valued meta: AnyCodableValue degrades it to .null, so the ORDER has
+// to survive. A throw here would blank the customer's order history.
+let exoticMeta = #"[{"id":9,"name":"Pho","product_id":5,"quantity":1,"subtotal":"12.00","total":"12.00","price":12.0,"meta_data":[{"id":1,"key":"Bundle","value":[{"x":1}]},{"id":2,"key":"_note","value":"ok"}]}]"#
+if let order = decodeOrder(orderJSON(lineItems: exoticMeta)) {
+    check(order.lineItems.count == 1, "an array-valued meta does not fail the order")
+    check(order.lineItems[0].note == "ok", "a sibling note still reads",
+          order.lineItems[0].note ?? "nil")
+} else { check(false, "an order carrying array-valued meta still decodes") }
+
+print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
+exit(fails == 0 ? 0 : 1)
+SWIFT
+    run_suite "order line items" "$d"
+}
+
 # ── Suite: order status presentation ───────────────────────────────────────────
 # The single source of truth for what an order status says, which animation it shows and
 # which stage it has reached. None of it is reachable from a unit test through the app, and
@@ -421,6 +533,7 @@ SWIFT
 }
 
 suite_notification_decode
+suite_order_line_items
 suite_order_status_presentation
 suite_order_history_decode
 suite_discount
