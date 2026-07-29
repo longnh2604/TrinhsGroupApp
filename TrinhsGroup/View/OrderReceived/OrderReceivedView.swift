@@ -47,7 +47,7 @@ struct OrderReceivedView: View {
                     
                     ScrollView(showsIndicators: false){
                         
-                        HeaderOrderReceivedView()
+                        HeaderOrderReceivedView(order: mainViewModel.receivedOrder)
                         
                         Divider()
                             .padding(.vertical)
