@@ -17,7 +17,7 @@ struct HistoryOrderItemsView: View {
         ) {
             VStack(spacing: 0) {
                 ForEach(Array(order.lineItems.enumerated()), id: \.element.id) { index, item in
-                    HistoryOrderProductItemView(productOrder: item)
+                    OrderLineItemRow(item: item)
 
                     if index < order.lineItems.count - 1 {
                         Rectangle()
