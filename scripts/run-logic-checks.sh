@@ -212,6 +212,22 @@ if let order = decodeOrder(orderJSON(lineItems: exoticMeta)) {
           order.lineItems[0].note ?? "nil")
 } else { check(false, "an order carrying array-valued meta still decodes") }
 
+// The `try?` guard's real job. AnyCodableValue never throws, so an array-valued *value* does
+// not exercise it — a non-array meta_data, or an entry missing its required key, is what does.
+let metaNotAnArray = #"[{"id":9,"name":"Pho","product_id":5,"quantity":1,"subtotal":"12.00","total":"12.00","price":12.0,"meta_data":{"key":"Extra beef","value":"3"}}]"#
+if let order = decodeOrder(orderJSON(lineItems: metaNotAnArray)) {
+    check(order.lineItems.count == 1, "meta_data as an object does not fail the order")
+    check(order.lineItems[0].meta_data.isEmpty, "undecodable meta_data degrades to empty",
+          "\(order.lineItems[0].meta_data.count)")
+} else { check(false, "an order whose meta_data is not an array still decodes") }
+
+// A meta entry missing the required `key`.
+let metaMissingKey = #"[{"id":9,"name":"Pho","product_id":5,"quantity":1,"subtotal":"12.00","total":"12.00","price":12.0,"meta_data":[{"id":1,"value":"3"}]}]"#
+if let order = decodeOrder(orderJSON(lineItems: metaMissingKey)) {
+    check(order.lineItems[0].meta_data.isEmpty, "a keyless meta entry degrades to empty",
+          "\(order.lineItems[0].meta_data.count)")
+} else { check(false, "an order with a keyless meta entry still decodes") }
+
 print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
 exit(fails == 0 ? 0 : 1)
 SWIFT

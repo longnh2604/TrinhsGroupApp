@@ -304,7 +304,12 @@ confirm the named assertion goes red, then `git checkout -- TrinhsGroup/View/Mod
 | `addOns` filter → `meta_data.filter { true }` | `addOns excludes every underscore-prefixed key` |
 | `note` key `"_note"` → `"note"` | `note reads _note` |
 | drop the `trimmingCharacters` guard from `note` | `a whitespace-only note reads as absent` |
-| `try?` → `try` on the `meta_data` line | `an array-valued meta does not fail the order` |
+| `try?` → `try` on the `meta_data` line | `undecodable meta_data degrades to empty` |
+
+`AnyCodableValue` never throws — it degrades arrays and objects to `.null` — so an
+array-valued *value* does not exercise the `try?` guard. A non-array `meta_data` or an entry
+missing its `key` is what makes `[ProductMetaData]` decoding throw, which is why the last two
+assertions exist.
 
 Confirm `./scripts/run-logic-checks.sh` exits 0 again after the last restore.
 
