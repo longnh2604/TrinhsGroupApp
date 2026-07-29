@@ -22,6 +22,13 @@ struct Order: Identifiable, Codable {
     var lineItems: [LineItem]
     var shippingLines: [ShippingLine]
 
+    /// Order-level fees. The app's 5% discount arrives as a negative fee line, never as
+    /// `discount_total`, which carries voucher discounts only.
+    ///
+    /// Optional because the plugin adds `fee_lines` only when the discount is non-zero, and
+    /// Swift's synthesised decoder throws on a missing key for a non-optional property.
+    var feeLines: [FeeLine]?
+
     // NEW (optional but important)
     var paymentURL: String?      // <- add this
     var orderKey: String?        // <- optional, sometimes useful
@@ -37,6 +44,7 @@ struct Order: Identifiable, Codable {
         case paymentMethodTitle = "payment_method_title"
         case lineItems = "line_items"
         case shippingLines = "shipping_lines"
+        case feeLines = "fee_lines"
         // NEW
         case paymentURL = "payment_url"
         case orderKey   = "order_key"
@@ -45,6 +53,11 @@ struct Order: Identifiable, Codable {
     // Convenience: numeric discount value
     var discount: Double {
         Double(discountTotal) ?? 0
+    }
+
+    /// Fees, defaulting to none. Prefer this over `feeLines` at every call site.
+    var fees: [FeeLine] {
+        feeLines ?? []
     }
 
     var subtotal: Double {
@@ -66,6 +79,7 @@ struct Order: Identifiable, Codable {
             paymentMethodTitle: "",
             lineItems: [],
             shippingLines: [],
+            feeLines: nil,
             paymentURL: nil,
             orderKey: nil
         )
@@ -139,6 +153,20 @@ extension LineItem {
         guard let raw = meta_data.first(where: { $0.key == "_note" })?.value.stringValue,
               !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
         return raw
+    }
+}
+
+struct FeeLine: Codable {
+    var name: String
+    var total: String
+
+    /// Negative for a discount, which is how the app's 5% is applied.
+    var amount: Double {
+        Double(total) ?? 0
+    }
+
+    static var `default`: FeeLine {
+        FeeLine(name: "", total: "0")
     }
 }
 

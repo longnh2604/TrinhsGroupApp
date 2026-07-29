@@ -228,6 +228,38 @@ if let order = decodeOrder(orderJSON(lineItems: metaMissingKey)) {
           "\(order.lineItems[0].meta_data.count)")
 } else { check(false, "an order with a keyless meta entry still decodes") }
 
+// ── Fee lines and reconciliation ───────────────────────────────────────────────
+// The app's 5% arrives as a negative fee_line, not as discount_total. Reading discountTotal
+// for it renders $0.00, which is the bug these assertions exist to prevent coming back.
+let twoItems = #"[{"id":9,"name":"Pho Bo","product_id":5,"quantity":2,"subtotal":"24.00","total":"24.00","price":12.0},{"id":10,"name":"Spring Rolls","product_id":6,"quantity":1,"subtotal":"8.50","total":"8.50","price":8.5}]"#
+let appFee = #"[{"name":"Discount 5%","total":"-1.63"}]"#
+
+if let o = decodeOrder(orderJSON(lineItems: twoItems, feeLines: appFee)) {
+    check(o.fees.count == 1, "fee_lines decodes", "\(o.fees.count)")
+    check(o.fees.first?.name == "Discount 5%", "the server's own label is carried through",
+          o.fees.first?.name ?? "nil")
+    check(o.fees.first?.amount == -1.63, "a negative fee total parses",
+          "\(o.fees.first?.amount ?? 0)")
+    check(abs(o.subtotal - 32.50) < 0.001, "subtotal sums the line items", "\(o.subtotal)")
+    // The whole point of the change: what the card prints has to add up to what was charged.
+    let printed = o.subtotal + o.fees.reduce(0) { $0 + $1.amount } - o.discount
+    check(abs(printed - (Double(o.total) ?? 0)) < 0.001,
+          "subtotal + fees − discount == total", "\(printed) vs \(o.total)")
+} else { check(false, "an order with fee_lines decodes") }
+
+// A voucher stacks on top: discount_total non-zero alongside the app fee.
+if let o = decodeOrder(orderJSON(lineItems: twoItems, feeLines: appFee,
+                                 discountTotal: "5.00", total: "25.87")) {
+    let printed = o.subtotal + o.fees.reduce(0) { $0 + $1.amount } - o.discount
+    check(abs(printed - 25.87) < 0.001, "reconciles with a voucher too", "\(printed)")
+} else { check(false, "an order with a voucher decodes") }
+
+// The plugin only adds fee_lines when the discount is non-zero, so absence is normal and
+// must not fail the order.
+if let o = decodeOrder(orderJSON(lineItems: twoItems, total: "32.50")) {
+    check(o.fees.isEmpty, "absent fee_lines reads as no fees")
+} else { check(false, "an order with no fee_lines decodes") }
+
 print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
 exit(fails == 0 ? 0 : 1)
 SWIFT
