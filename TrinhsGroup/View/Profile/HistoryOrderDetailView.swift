@@ -93,6 +93,16 @@ struct HistoryOrderDetailView: View {
             }
             historyViewModel.loadStatusHistory(orderID: order.id)
         }
+        // A status change landing while this screen is open leaves `statusHistory` describing
+        // the previous stage, so the stage the order just reached would draw with no time
+        // under it — and for a cancellation the rail would be trimmed on stale history.
+        //
+        // `.onAppear` cannot cover this: it does not re-fire for a view that is already
+        // presented, which is exactly the case when a push arrives and the app returns from
+        // the background with this screen still on top.
+        .onChange(of: liveOrder.status) { _ in
+            historyViewModel.loadStatusHistory(orderID: order.id)
+        }
     }
 }
 
