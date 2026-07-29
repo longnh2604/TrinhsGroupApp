@@ -11,14 +11,28 @@ import Lottie
 struct LottieView: UIViewRepresentable {
     typealias UIViewType = UIView
     let filename: String
-    let animationView = LottieAnimationView()
     let isStop: Bool
+
+    /// Owns the one `LottieAnimationView` that is actually in the view hierarchy.
+    ///
+    /// This must not be a stored property on the struct: SwiftUI re-creates the struct on
+    /// every render pass, so an inline `LottieAnimationView()` would hand `updateUIView` a
+    /// fresh, detached instance and every `play()`/`stop()` would miss the visible animation.
+    final class Coordinator {
+        let animationView = LottieAnimationView()
+        /// What `animationView.animation` currently holds, so we only pay for a reload when
+        /// the caller actually switches files.
+        var loadedFilename: String?
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeUIView(context: UIViewRepresentableContext<LottieView>) -> UIView {
         let view = UIView(frame: .zero)
+        let animationView = context.coordinator.animationView
 
-        let animation = LottieAnimation.named(filename)
-        animationView.animation = animation
         animationView.contentMode = .scaleAspectFit
         animationView.loopMode = .loop
 
@@ -34,7 +48,24 @@ struct LottieView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<LottieView>) {
-        isStop ? animationView.stop() : animationView.play()
+        let coordinator = context.coordinator
+        let animationView = coordinator.animationView
+
+        // Swap the composition when the caller changes files — an order moving from
+        // processing to ready keeps the same view identity, so this is the only place the
+        // new animation can be picked up.
+        if coordinator.loadedFilename != filename {
+            coordinator.loadedFilename = filename
+            animationView.animation = LottieAnimation.named(filename)
+        }
+
+        // Guarded because `updateUIView` runs on every re-render and a bare `play()` on an
+        // already-playing animation restarts it from frame zero, which reads as a stutter.
+        if isStop {
+            if animationView.isAnimationPlaying { animationView.stop() }
+        } else if !animationView.isAnimationPlaying {
+            animationView.play()
+        }
     }
 }
 
@@ -64,7 +95,7 @@ struct LottieLoadingView<Content>: View where Content: View {
                     .disabled(self.isShowing)
                     .blur(radius: self.isShowing ? 3 : 0)
                 VStack {
-                    LottieView(filename: "cookLoading", isStop: isShowing)
+                    LottieView(filename: "cookLoading", isStop: !isShowing)
                 }
                 .frame(width: geometry.size.width / 2,
                        height: geometry.size.height / 5)
