@@ -85,6 +85,7 @@
 		FD8EAF0F2872CE98004F9ED0 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF0E2872CE98004F9ED0 /* LoginView.swift */; };
 		FD8EAF112872CEA3004F9ED0 /* ForgetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF102872CEA3004F9ED0 /* ForgetPasswordView.swift */; };
 		FD8EAF142872D789004F9ED0 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF132872D789004F9ED0 /* LoadingView.swift */; };
+		D3E11ADFB8C28D2E360AA20E /* OrderDetailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */; };
 		FD8EAF162872D95D004F9ED0 /* CustomAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */; };
 		FD8EAF182872DB69004F9ED0 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF172872DB69004F9ED0 /* Constant.swift */; };
 		FD8EAF1B2872DD35004F9ED0 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF1A2872DD35004F9ED0 /* MainView.swift */; };
@@ -217,6 +218,7 @@
 		FD8EAF0E2872CE98004F9ED0 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		FD8EAF102872CEA3004F9ED0 /* ForgetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgetPasswordView.swift; sourceTree = "<group>"; };
 		FD8EAF132872D789004F9ED0 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderDetailCard.swift; sourceTree = "<group>"; };
 		FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomAlertView.swift; sourceTree = "<group>"; };
 		FD8EAF172872DB69004F9ED0 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		FD8EAF1A2872DD35004F9ED0 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
@@ -549,6 +551,7 @@
 			children = (
 				64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */,
 				FD8EAF132872D789004F9ED0 /* LoadingView.swift */,
+				08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */,
 				FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */,
 				FD6733AD287426AE0007F354 /* PagingView.swift */,
 				FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */,
@@ -796,6 +799,7 @@
 				FD8EAEFC2872C93C004F9ED0 /* Onboard.swift in Sources */,
 				FD8EAF0F2872CE98004F9ED0 /* LoginView.swift in Sources */,
 				FD8EAF142872D789004F9ED0 /* LoadingView.swift in Sources */,
+				D3E11ADFB8C28D2E360AA20E /* OrderDetailCard.swift in Sources */,
 				FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */,
 				FD8E6B8E28811EF3007884C0 /* HistoryOrderItemsView.swift in Sources */,
 				FD6733B6287428020007F354 /* WooImageModel.swift in Sources */,
