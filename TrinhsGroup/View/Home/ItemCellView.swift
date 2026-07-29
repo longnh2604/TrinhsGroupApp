@@ -72,17 +72,17 @@ struct ItemCellView: View {
                 HStack {
                     
                     if product.sale_price > 0 {
-                        Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
+                        Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "left"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
-                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(.gray) .strikethrough()
                         Text(getDiscountPercentage(regularPrice: product.regular_price, salePrice: product.sale_price))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(Constants.AppColor.secondaryRed)
                     } else {
-                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
                     }

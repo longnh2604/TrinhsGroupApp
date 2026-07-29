@@ -52,7 +52,7 @@ struct ShippingItemView: View {
                 .foregroundColor(Constants.AppColor.primaryBlack)
             Spacer()
             
-//            Text(getPriceAndCurrencySymbol(price: item.settings.cost.value, currency: "$", currencyPosition: "right"))
+//            Text(getPriceAndCurrencySymbol(price: item.settings.cost.value, currency: "$", currencyPosition: "left"))
 //                .font(.custom(Constants.AppFont.semiBoldFont, size: 16))
 //                .foregroundColor(Constants.AppColor.primaryBlack)
 //                .padding(.trailing, 5)

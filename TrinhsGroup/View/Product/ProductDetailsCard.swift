@@ -97,10 +97,10 @@ struct ProductDetailsCard: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 if product.sale_price > 0 {
-                    Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
+                    Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "left"))
                         .font(.custom(Constants.AppFont.extraBoldFont, size: 20))
                         .foregroundColor(Color("ColorPrimary"))
-                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                         .font(.custom(Constants.AppFont.regularFont, size: 15))
                         .foregroundColor(.gray)
                         .strikethrough()
@@ -112,7 +112,7 @@ struct ProductDetailsCard: View {
                         .background(Constants.AppColor.lightRose)
                         .clipShape(Capsule())
                 } else {
-                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                         .font(.custom(Constants.AppFont.extraBoldFont, size: 20))
                         .foregroundColor(Color("ColorPrimary"))
                 }
@@ -162,7 +162,7 @@ struct ProductDetailsCard: View {
                             Spacer()
 
                             if firestoreManager.productAddOns[index].value > 0 {
-                                Text("+\(getPriceAndCurrencySymbol(price: Double(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right"))")
+                                Text("+\(getPriceAndCurrencySymbol(price: Double(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "left"))")
                                     .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                                     .foregroundColor(Constants.AppColor.secondaryBlack)
                             }
@@ -308,7 +308,7 @@ struct ProductDetailsCard: View {
                         .font(.custom(Constants.AppFont.boldFont, size: 16))
                         .foregroundColor(.white)
                     Spacer()
-                    Text(getPriceAndCurrencySymbol(price: currentTotal, currency: "$", currencyPosition: "right"))
+                    Text(getPriceAndCurrencySymbol(price: currentTotal, currency: "$", currencyPosition: "left"))
                         .font(.custom(Constants.AppFont.boldFont, size: 16))
                         .foregroundColor(.white)
                 }

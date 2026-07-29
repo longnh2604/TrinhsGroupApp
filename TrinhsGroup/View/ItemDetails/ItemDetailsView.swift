@@ -162,17 +162,17 @@ struct ItemDetailsView: View {
 
                             HStack {
                                 if product.sale_price > 0 {
-                                    Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
+                                    Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "left"))
                                         .font(.custom(Constants.AppFont.boldFont, size: 14))
                                         .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                                         .font(.custom(Constants.AppFont.regularFont, size: 13))
                                         .foregroundColor(.gray) .strikethrough()
                                     Text(getDiscountPercentage(regularPrice: product.regular_price, salePrice: product.sale_price))
                                         .font(.custom(Constants.AppFont.regularFont, size: 13))
                                         .foregroundColor(Constants.AppColor.secondaryRed)
                                 } else {
-                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                                         .font(.custom(Constants.AppFont.boldFont, size: 14))
                                         .foregroundColor(Constants.AppColor.secondaryBlack)
                                 }
@@ -191,7 +191,7 @@ struct ItemDetailsView: View {
                                     CheckBoxView(checked: $firestoreManager.productAddOns[index].checked)
                                     Text("\(firestoreManager.productAddOns[index].content)")
                                     if firestoreManager.productAddOns[index].value > 0 {
-                                        Text("(+\(getPriceAndCurrencySymbol(price: Double(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right")))")
+                                        Text("(+\(getPriceAndCurrencySymbol(price: Double(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "left")))")
                                     }
                                     Spacer()
                                 }

@@ -245,14 +245,14 @@ struct CheckOutView: View {
                             HStack {
                                 Text("Subtotal").foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: originalTotal, currency: "$", currencyPosition: "right"))
+                                Text(getPriceAndCurrencySymbol(price: originalTotal, currency: "$", currencyPosition: "left"))
                             }
                             .padding(.top, 15)
                             
                             HStack {
                                 Text("Discount (5%)").foregroundColor(.gray)
                                 Spacer()
-                                Text("-" + getPriceAndCurrencySymbol(price: discountValue, currency: "$", currencyPosition: "right"))
+                                Text("-" + getPriceAndCurrencySymbol(price: discountValue, currency: "$", currencyPosition: "left"))
                             }
                             .padding(.top, 6)
                             
@@ -261,7 +261,7 @@ struct CheckOutView: View {
                                 HStack {
                                     Text("Voucher (\(voucher.code))").foregroundColor(.green)
                                     Spacer()
-                                    Text("-" + getPriceAndCurrencySymbol(price: voucher.amount, currency: "$", currencyPosition: "right"))
+                                    Text("-" + getPriceAndCurrencySymbol(price: voucher.amount, currency: "$", currencyPosition: "left"))
                                         .foregroundColor(.green)
                                 }
                                 .padding(.top, 6)
@@ -270,7 +270,7 @@ struct CheckOutView: View {
                             HStack {
                                 Text("Total:").foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: finalTotal, currency: "$", currencyPosition: "right"))
+                                Text(getPriceAndCurrencySymbol(price: finalTotal, currency: "$", currencyPosition: "left"))
                                     .bold()
                             }
                             if let msg = stripeManager.lastError {

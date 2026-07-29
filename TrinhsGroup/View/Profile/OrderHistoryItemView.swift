@@ -55,7 +55,7 @@ struct OrderHistoryItemView: View {
                 
                 Text(L10n.Common.total.localizedKey)
                 
-//                Text(getPriceAndCurrencySymbol(price: order.discountTotal, currency: "$", currencyPosition: "right"))
+//                Text(getPriceAndCurrencySymbol(price: order.discountTotal, currency: "$", currencyPosition: "left"))
 //                    .foregroundColor(Constants.AppColor.primaryBlack)
                 
             }
