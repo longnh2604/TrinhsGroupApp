@@ -274,6 +274,25 @@ if let o = decodeOrder(noFeeKey) {
     check(o.fees.isEmpty, "an order with no fee_lines key at all still decodes")
 } else { check(false, "an order with no fee_lines key at all still decodes") }
 
+// ── A voucher makes line subtotal and total diverge ────────────────────────────
+// Every other fixture here has subtotal == total, so nothing distinguished them. Order.subtotal
+// must sum the PRE-coupon line figure: the voucher is already shown as its own Discount row, and
+// summing the post-coupon `total` instead would subtract it twice — once inside the item rows and
+// again below them.
+let voucherItem = #"[{"id":9,"name":"Pho Bo","product_id":5,"quantity":2,"subtotal":"24.00","total":"19.00","price":9.5}]"#
+let preCouponFee = #"[{"name":"Discount 5%","total":"-1.20"}]"#
+if let o = decodeOrder(orderJSON(lineItems: voucherItem, feeLines: preCouponFee,
+                                 discountTotal: "5.00", total: "17.80")) {
+    check(o.lineItems[0].subtotal != o.lineItems[0].total,
+          "a voucher makes line subtotal and total differ",
+          "\(o.lineItems[0].subtotal) vs \(o.lineItems[0].total)")
+    check(abs(o.subtotal - 24.00) < 0.001,
+          "Order.subtotal sums the pre-coupon line subtotal", "\(o.subtotal)")
+    let printed = o.subtotal + o.fees.reduce(0) { $0 + $1.amount } - o.discount
+    check(abs(printed - 17.80) < 0.001,
+          "the card still reconciles with a voucher on the line", "\(printed)")
+} else { check(false, "an order with a coupon-discounted line decodes") }
+
 print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
 exit(fails == 0 ? 0 : 1)
 SWIFT

@@ -37,11 +37,12 @@ struct OrderLineItemRow: View {
 
                 Spacer(minLength: 8)
 
-                // WooCommerce's `total` is the line total after any discount, which is what the
-                // payment summary adds up. Multiplying price × quantity here would disagree
-                // with it on a discounted line.
+                // Every row here has to add up to the Subtotal below, so each reduction from
+                // it is explained by exactly one row. `subtotal` is the line's pre-discount
+                // figure; `total` is post-coupon, and summing that instead would double-count
+                // a voucher that the Discount row already shows.
                 Text(getPriceAndCurrencySymbol(
-                    price: Double(item.total) ?? (item.price * Double(item.quantity)),
+                    price: Double(item.subtotal) ?? (item.price * Double(item.quantity)),
                     currency: "$",
                     currencyPosition: "left"
                 ))
