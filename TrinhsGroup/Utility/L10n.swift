@@ -44,10 +44,6 @@ enum L10n {
         static let thankYouMessage = "orderReceived.thankYouMessage"
         static let checkout = "orderReceived.checkout"
         static let discount = "orderReceived.discount"
-        static let orderNo = "orderReceived.orderNo"
-        static let date = "orderReceived.date"
-        static let note = "orderReceived.note"
-        static let addition = "orderReceived.addition"
     }
     
     enum Profile {

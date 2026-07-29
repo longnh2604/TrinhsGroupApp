@@ -38,10 +38,6 @@
 "orderReceived.thankYouMessage" = "Thank you. Your order has \nbeen received.";
 "orderReceived.checkout" = "Checkout";
 "orderReceived.discount" = "Discount";
-"orderReceived.orderNo" = "Order No";
-"orderReceived.date" = "Date";
-"orderReceived.note" = "Note:";
-"orderReceived.addition" = "Addition:";
 
 /* Profile */
 "profile.orderNoFormat" = "Order No #%@";
