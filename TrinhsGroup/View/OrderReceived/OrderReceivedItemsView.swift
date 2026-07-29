@@ -8,25 +8,35 @@
 import SwiftUI
 
 struct OrderReceivedItemsView: View {
-    
-    @EnvironmentObject var mainViewModel: MainViewModel
-    
+
+    var order: Order
+
     var body: some View {
-        VStack(alignment: .leading){
-            Text(L10n.OrderReceived.items.localizedKey)
-                .fontWeight(.semibold)
-                .foregroundColor(Color("ColorPrimary"))
-            
-//            ForEach(mainViewModel.receivedOrder.lineItems) { item in
-//                OrderReceivedProductItemView(productOrder: item)
-//            }
+        OrderDetailCard(
+            title: L10n.OrderReceived.items.localized.uppercased(),
+            icon: "bag"
+        ) {
+            VStack(spacing: 0) {
+                ForEach(Array(order.lineItems.enumerated()), id: \.element.id) { index, item in
+                    OrderLineItemRow(item: item)
+
+                    if index < order.lineItems.count - 1 {
+                        Rectangle()
+                            .fill(Color(hex: "EDEFF2"))
+                            .frame(height: 1)
+                            .padding(.vertical, 10)
+                    }
+                }
+            }
         }
     }
 }
 
 struct OrderReceivedItemsView_Previews: PreviewProvider {
     static var previews: some View {
-        OrderReceivedItemsView()
+        OrderReceivedItemsView(order: Order.default)
+            .padding()
+            .background(Constants.AppColor.lightGrayColor)
             .previewLayout(.sizeThatFits)
     }
 }

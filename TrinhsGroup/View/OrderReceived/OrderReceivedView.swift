@@ -33,42 +33,26 @@ struct OrderReceivedView: View {
     
     var body: some View {
         ZStack {
-            
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
-            VStack(alignment: .leading, spacing: 5, content: {
-                // NAVBAR
-                NavigationBarView()
-                
-                Spacer()
-                
-                // DEATIL BOTTOM PART
-                VStack(alignment: .center, spacing: 0, content: {
-                    
-                    ScrollView(showsIndicators: false){
-                        
-                        HeaderOrderReceivedView(order: mainViewModel.receivedOrder)
-                        
-                        Divider()
-                            .padding(.vertical)
-                        
-                        OrderReceivedDetailView()
-                            .environmentObject(mainViewModel)
-                        
-                        Divider()
-                            .padding(.vertical)
-                        
-                        OrderReceivedItemsView()
-                            .environmentObject(mainViewModel)
+            Color.init(hex: "f9f9f9")
+                .edgesIgnoringSafeArea(.all)
 
+            VStack(spacing: 0) {
+                NavigationBarView()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
+                        HeaderOrderReceivedView(order: mainViewModel.receivedOrder)
+
+                        OrderReceivedItemsView(order: mainViewModel.receivedOrder)
+
+                        OrderPaymentSummaryCard(order: mainViewModel.receivedOrder)
+
+                        OrderReceivedDetailView(order: mainViewModel.receivedOrder)
                     }
-                    .padding(.horizontal)
-                    
-                    
-                })
-                .padding(.top)
-                
-            }).zIndex(0)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
+                }
+            }
         }
     }
 }
