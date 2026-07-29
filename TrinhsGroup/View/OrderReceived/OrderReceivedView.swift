@@ -43,7 +43,7 @@ struct OrderReceivedView: View {
                     VStack(spacing: 14) {
                         HeaderOrderReceivedView(order: mainViewModel.receivedOrder)
 
-                        OrderReceivedItemsView(order: mainViewModel.receivedOrder)
+                        OrderItemsCard(order: mainViewModel.receivedOrder)
 
                         OrderPaymentSummaryCard(order: mainViewModel.receivedOrder)
 

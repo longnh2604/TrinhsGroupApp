@@ -69,7 +69,7 @@ struct HistoryOrderDetailView: View {
                             events: historyViewModel.statusHistory
                         )
 
-                        HistoryOrderItemsView(order: liveOrder)
+                        OrderItemsCard(order: liveOrder)
 
                         OrderPaymentSummaryCard(order: liveOrder)
 
