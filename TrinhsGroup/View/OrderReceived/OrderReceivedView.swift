@@ -60,11 +60,7 @@ struct OrderReceivedView: View {
                         
                         OrderReceivedItemsView()
                             .environmentObject(mainViewModel)
-                        
-                        OrderReceivedPricesView()
-                            .padding(.bottom)
-                            .environmentObject(mainViewModel)
-                        
+
                     }
                     .padding(.horizontal)
                     

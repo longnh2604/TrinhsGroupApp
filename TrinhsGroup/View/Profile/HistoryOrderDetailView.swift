@@ -71,7 +71,7 @@ struct HistoryOrderDetailView: View {
 
                         HistoryOrderItemsView(order: liveOrder)
 
-                        HistoryOrderDetailPaymentView(order: liveOrder)
+                        OrderPaymentSummaryCard(order: liveOrder)
 
                         if !liveOrder.customerNote.isEmpty {
                             HistoryOrderNoteView(order: liveOrder)

@@ -1,13 +1,17 @@
 //
-//  HistoryOrderDetailPaymentView.swift
+//  OrderPaymentSummaryCard.swift
 //  TrinhsGroup
 //
-//  Created by long on 15/07/2022.
+//  The money breakdown, shared by the confirmation screen and the order history detail
+//  screen. One copy because the two previously disagreed: the confirmation screen
+//  reverse-engineered the discount as total / 0.95, and the history screen looked for it in
+//  discount_total, where the app discount never appears — so it showed a subtotal and a total
+//  with nothing in between to explain the gap.
 //
 
 import SwiftUI
 
-struct HistoryOrderDetailPaymentView: View {
+struct OrderPaymentSummaryCard: View {
 
     var order: Order
 
@@ -19,6 +23,19 @@ struct HistoryOrderDetailPaymentView: View {
             VStack(spacing: 9) {
                 row(L10n.Common.subtotal.localized, amount: order.subtotal)
 
+                // Each fee carries the server's own label and figure — "Discount 5%", "-1.63".
+                // The app deliberately does not know the rate: assuming it was the bug this
+                // replaces. Identified by offset because FeeLine has no id and two fees may
+                // legitimately share a name.
+                ForEach(Array(order.fees.enumerated()), id: \.offset) { _, fee in
+                    row(
+                        fee.name,
+                        amount: fee.amount,
+                        tint: fee.amount < 0 ? Color(hex: "57A733") : nil
+                    )
+                }
+
+                // discount_total is voucher discounts only.
                 if order.discount > 0 {
                     row(
                         L10n.OrderReceived.discount.localized,
@@ -87,9 +104,9 @@ struct HistoryOrderDetailPaymentView: View {
     }
 }
 
-struct HistoryOrderDetailPaymentView_Previews: PreviewProvider {
+struct OrderPaymentSummaryCard_Previews: PreviewProvider {
     static var previews: some View {
-        HistoryOrderDetailPaymentView(order: Order.default)
+        OrderPaymentSummaryCard(order: Order.default)
             .padding()
             .background(Constants.AppColor.lightGrayColor)
             .previewLayout(.sizeThatFits)
