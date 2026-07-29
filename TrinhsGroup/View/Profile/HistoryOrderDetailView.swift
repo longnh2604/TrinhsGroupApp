@@ -106,11 +106,6 @@ struct HistoryOrderDetailView: View {
     }
 }
 
-// MARK: - Card chrome
-
-/// One titled white card, so every section of this screen shares the same chrome as
-/// `OrderProgressCard`.
-
 private struct CancelOrderButton: View {
     var order: Order
     @EnvironmentObject var historyViewModel: HistoryViewModel
