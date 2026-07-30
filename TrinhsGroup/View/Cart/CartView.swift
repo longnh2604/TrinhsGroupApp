@@ -303,19 +303,21 @@ struct ItemCellTypeThree: View {
                     }
                 }
 
-                // Display other meta_data (addons) excluding note
-                let addons = product.meta_data.filter { $0.key != "_note" }
-                if addons.count > 0 {
+                // The chosen add-ons, read from the choices rather than from meta_data. The old
+                // meta entries keyed the line by the group label ("Addition") and bought
+                // nothing; each choice now names its own group, so "1st Pho: Beef" reads the
+                // way the kitchen ticket does.
+                if !product.addOnChoices.isEmpty {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Addition:")
-                            .font(.custom(Constants.AppFont.semiBoldFont, size: 12))
-                            .foregroundColor(Constants.AppColor.secondaryBlack)
-
-                        ForEach(addons, id:\.key) { meta in
+                        ForEach(Array(product.addOnChoices.enumerated()), id: \.offset) { _, choice in
                             HStack(spacing: 4) {
-                                Text(meta.key)
-                                if let value = Int(meta.value.stringValue), value > 0 {
-                                    Text("(+\(getPriceAndCurrencySymbol(price: Double(value), currency: "$", currencyPosition: "left")))")
+                                Text(choice.groupTitle.isEmpty
+                                     ? choice.label
+                                     : "\(choice.groupTitle): \(choice.label)")
+                                if choice.price != 0 {
+                                    Text("(" + (choice.price < 0 ? "-" : "+")
+                                         + getPriceAndCurrencySymbol(price: abs(choice.price), currency: "$", currencyPosition: "left")
+                                         + ")")
                                 }
                             }
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
@@ -334,7 +336,9 @@ struct ItemCellTypeThree: View {
                         plusButton()
                     }
                     Spacer()
-                    Text(getPriceAndCurrencySymbol(price: product.price, currency: "$", currencyPosition: "left"))
+                    // unitPrice, not price: the add-ons used to be folded into `price` itself,
+                    // and this line has to keep including them now that they no longer are.
+                    Text(getPriceAndCurrencySymbol(price: product.unitPrice, currency: "$", currencyPosition: "left"))
                         .font(.custom(Constants.AppFont.boldFont, size: 15))
                         .foregroundColor(Constants.AppColor.primaryBlack)
                 }

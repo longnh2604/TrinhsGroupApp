@@ -112,6 +112,86 @@ class MainServices: MainServicesProtocol {
         }
     }
     
+    /// The `line_items` payload, shared by ordering and quoting so the price the customer is
+    /// shown and the price they are charged are built from one description of the basket.
+    ///
+    /// `yith_wapo` is what actually buys the add-ons: the server hands it to YITH, which prices
+    /// the line and writes the choice the kitchen reads. `meta_data` still carries the note.
+    private func lineItemsPayload(from productOrders: [ProductOrder]) -> [[String: Any]] {
+        productOrders.map { p in
+            var metas: [[String: Any]] = []
+            for m in p.meta_data {
+                let jsonValue: Any = convertAnyCodableValueToJSON(m.value)
+                var meta: [String: Any] = ["key": m.key, "value": jsonValue]
+                if let id = m.id { meta["id"] = id }
+                metas.append(meta)
+            }
+
+            var line: [String: Any] = [
+                "product_id": p.product_id,
+                "quantity": p.quantity,
+                "meta_data": metas
+            ]
+
+            let pairs = p.addOnChoices.submitPairs
+            if !pairs.isEmpty {
+                line["yith_wapo"] = pairs
+            }
+
+            return line
+        }
+    }
+
+    /// Add-on groups for one product, from YITH by way of trinh-app-api.
+    ///
+    /// Handed back through a completion rather than published on this service, on purpose: the
+    /// Firestore add-ons it replaces lived on a shared manager keyed by category, so opening a
+    /// second product in the same category inherited the first one's ticks. These belong to the
+    /// screen that asked for them.
+    func fetchAddOnGroups(productId: Int, completion: @escaping (Result<[AddOnGroup], Error>) -> Void) {
+        api.request(endpoint: .productAddOns(productID: productId), method: .GET) { (result: Result<AddOnGroupsResponse, Error>) in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let response):
+                    completion(.success(response.addons))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    /// What this basket would cost, priced by the server, without creating an order.
+    ///
+    /// The payment method is part of the question, not decoration: the 5% cash-on-pickup
+    /// discount is a negative gateway fee, so the total depends on which gateway is chosen.
+    func fetchOrderQuote(
+        paymentMethod: String,
+        productOrders: [ProductOrder],
+        couponCode: String? = nil,
+        completion: @escaping (Result<OrderQuote, Error>) -> Void
+    ) {
+        var json: [String: Any] = [
+            "payment_method": paymentMethod,
+            "line_items": lineItemsPayload(from: productOrders)
+        ]
+
+        if let couponCode = couponCode, !couponCode.isEmpty {
+            json["coupon_code"] = couponCode
+        }
+
+        api.request(endpoint: .orderQuote, method: .POST, body: json) { (result: Result<OrderQuote, Error>) in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let quote):
+                    completion(.success(quote))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
     func onCreateOrder(
         user: User,
         paymentMethod: String,
@@ -125,21 +205,7 @@ class MainServices: MainServicesProtocol {
     ) {
         self.isLoading = true
 
-        var lineItems: [[String: Any]] = []
-        for p in productOrders {
-            var metas: [[String: Any]] = []
-            for m in p.meta_data {
-                let jsonValue: Any = convertAnyCodableValueToJSON(m.value)
-                var meta: [String: Any] = ["key": m.key, "value": jsonValue]
-                if let id = m.id { meta["id"] = id }
-                metas.append(meta)
-            }
-            lineItems.append([
-                "product_id": p.product_id,
-                "quantity": p.quantity,
-                "meta_data": metas
-            ])
-        }
+        let lineItems = lineItemsPayload(from: productOrders)
 
         // The pickup date/time used to be split apart here into the CodeRockz plugin's
         // _pi_delivery_* meta keys. The server now derives those from the raw
@@ -162,8 +228,9 @@ class MainServices: MainServicesProtocol {
         
         // customer_id and set_paid are deliberately absent: the server forces both from
         // the JWT so an order can never be filed against another account or self-marked
-        // as paid. Line-item pricing and the 5% app discount are computed server-side
-        // from catalog prices for the same reason.
+        // as paid. No price is sent either — the server builds a real WooCommerce cart, so
+        // YITH prices the add-ons and the 5% cash-on-pickup discount arrives as the gateway
+        // fee the website is configured with. POST /me/orders/preview quotes the same cart.
         var json: [String: Any] = [
             "payment_method": paymentMethod,            // e.g. "stripe"
             "payment_method_title": paymentMethodTitle,

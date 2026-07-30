@@ -15,6 +15,8 @@
 		FDAA000000000000000C0008 /* Order_refunded.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0007 /* Order_refunded.json */; };
 		FDAA000000000000000C000A /* Order_failed.json in Resources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000C0009 /* Order_failed.json */; };
 		FDAA000000000000000B0006 /* OrderStatusHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */; };
+		FDAA00000000000000000D02 /* AddOnModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA00000000000000000D01 /* AddOnModel.swift */; };
+		FDAA00000000000000000D04 /* OrderQuoteModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA00000000000000000D03 /* OrderQuoteModel.swift */; };
 		2205489B29D1835B00D24FFB /* CustomNavigationBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */; };
 		2248AA732EAE346A00CEBFB1 /* FavoriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */; };
 		2250732C2F486387006506B2 /* PointsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2250732B2F486386006506B2 /* PointsViewModel.swift */; };
@@ -85,6 +87,7 @@
 		D3E11ADFB8C28D2E360AA20E /* OrderDetailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */; };
 		11ACA093F1AA269B5040A5C5 /* OrderPaymentSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9410104D00BFB9FB3EAD6D47 /* OrderPaymentSummaryCard.swift */; };
 		0E09698C5C78563371E58013 /* OrderLineItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C8F7A3B2E270C190341CF2 /* OrderLineItemRow.swift */; };
+		FDAA00000000000000000D06 /* AddOnGroupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAA00000000000000000D05 /* AddOnGroupsView.swift */; };
 		64CE6DD5FEE2643FF664DD4F /* OrderItemsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F957E57E64CDAE22444598C /* OrderItemsCard.swift */; };
 		FD8EAF162872D95D004F9ED0 /* CustomAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */; };
 		FD8EAF182872DB69004F9ED0 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF172872DB69004F9ED0 /* Constant.swift */; };
@@ -140,6 +143,8 @@
 		FDAA000000000000000C0007 /* Order_refunded.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_refunded.json; sourceTree = "<group>"; };
 		FDAA000000000000000C0009 /* Order_failed.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Order_failed.json; sourceTree = "<group>"; };
 		FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderStatusHistoryModel.swift; sourceTree = "<group>"; };
+		FDAA00000000000000000D01 /* AddOnModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOnModel.swift; sourceTree = "<group>"; };
+		FDAA00000000000000000D03 /* OrderQuoteModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderQuoteModel.swift; sourceTree = "<group>"; };
 		2205489A29D1835B00D24FFB /* CustomNavigationBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationBarView.swift; sourceTree = "<group>"; };
 		2248AA722EAE346600CEBFB1 /* FavoriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteButton.swift; sourceTree = "<group>"; };
 		2250732B2F486386006506B2 /* PointsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsViewModel.swift; sourceTree = "<group>"; };
@@ -215,6 +220,7 @@
 		08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderDetailCard.swift; sourceTree = "<group>"; };
 		9410104D00BFB9FB3EAD6D47 /* OrderPaymentSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderPaymentSummaryCard.swift; sourceTree = "<group>"; };
 		A8C8F7A3B2E270C190341CF2 /* OrderLineItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderLineItemRow.swift; sourceTree = "<group>"; };
+		FDAA00000000000000000D05 /* AddOnGroupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOnGroupsView.swift; sourceTree = "<group>"; };
 		7F957E57E64CDAE22444598C /* OrderItemsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderItemsCard.swift; sourceTree = "<group>"; };
 		FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomAlertView.swift; sourceTree = "<group>"; };
 		FD8EAF172872DB69004F9ED0 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
@@ -474,6 +480,8 @@
 			isa = PBXGroup;
 			children = (
 				FDAA000000000000000B0005 /* OrderStatusHistoryModel.swift */,
+				FDAA00000000000000000D01 /* AddOnModel.swift */,
+				FDAA00000000000000000D03 /* OrderQuoteModel.swift */,
 				2250732F2F48644A006506B2 /* PointsResponse.swift */,
 				22EC20B72DA51C200032C77B /* WooErrorResponse.swift */,
 				FD8EAEFB2872C93C004F9ED0 /* Onboard.swift */,
@@ -545,6 +553,7 @@
 				08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */,
 				9410104D00BFB9FB3EAD6D47 /* OrderPaymentSummaryCard.swift */,
 				A8C8F7A3B2E270C190341CF2 /* OrderLineItemRow.swift */,
+				FDAA00000000000000000D05 /* AddOnGroupsView.swift */,
 				7F957E57E64CDAE22444598C /* OrderItemsCard.swift */,
 				FD8EAF152872D95D004F9ED0 /* CustomAlertView.swift */,
 				FD6733AD287426AE0007F354 /* PagingView.swift */,
@@ -768,6 +777,8 @@
 				FDAA000000000000000B0002 /* OrderStatusPresentation.swift in Sources */,
 				FDAA000000000000000B0004 /* OrderProgressCard.swift in Sources */,
 				FDAA000000000000000B0006 /* OrderStatusHistoryModel.swift in Sources */,
+				FDAA00000000000000000D02 /* AddOnModel.swift in Sources */,
+				FDAA00000000000000000D04 /* OrderQuoteModel.swift in Sources */,
 				FD9A222828757074009FDD65 /* PaymentItemView.swift in Sources */,
 				FDC6A920289A2107002C4970 /* LottieLoadingView.swift in Sources */,
 				FD8EAF1F2872E08B004F9ED0 /* AppSetting.swift in Sources */,
@@ -793,6 +804,7 @@
 				D3E11ADFB8C28D2E360AA20E /* OrderDetailCard.swift in Sources */,
 				11ACA093F1AA269B5040A5C5 /* OrderPaymentSummaryCard.swift in Sources */,
 				0E09698C5C78563371E58013 /* OrderLineItemRow.swift in Sources */,
+				FDAA00000000000000000D06 /* AddOnGroupsView.swift in Sources */,
 				64CE6DD5FEE2643FF664DD4F /* OrderItemsCard.swift in Sources */,
 				FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */,
 				FD6733B6287428020007F354 /* WooImageModel.swift in Sources */,

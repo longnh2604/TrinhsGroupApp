@@ -109,6 +109,36 @@ business. Returns per addon: `addon_id`, `type`, `title`, `required`, `descripti
 → verify: response for 11381 matches the table in §1 exactly; for 4486, five options with
 prices `3, 2, 0, 0, 0`.
 
+#### Written 2026-07-30, unverified pending deploy
+
+`GET /products/<id>/addons` (public, optional `?variation_id=`). Per group: `addon_id`, `type`,
+`title`, `description`, `required`, `selection_type`, `conditional`, `min`, `max`, `options`.
+Per option: `option_id`, `label`, `price`, `price_type`, `price_method`, and **`submit_key` +
+`submit_value`** — the exact pair to post back. That last part is deliberate: the key shape
+depends on the type (select/radio key the group and carry the choice in the value, checkbox keys
+both and carries `"1"`), and deriving it in the app would put one rule in two places, which is
+the shape of the bug this plan exists to fix. Enumeration is shared with the order path's
+required check (`trinh_app_yith_addons_for_product`) so the two cannot disagree.
+
+Three corrections to this phase as written:
+
+- **There is no save hook to bust the cache on.** YITH fires only
+  `yith_wapo_before/after_addons`, `_show_options_shortcode`, `_after_add_order_item_meta` and
+  `_migrated`. A 5-minute TTL is the honest ceiling on staleness.
+- **A transient keyed by product id would leak across roles.** `yith_wapo_get_blocks_by_product`
+  filters on login state, roles and membership plans, so the answer is per-customer. The key
+  carries that context. It also means a JWT-bearing caller sees exactly the groups the order
+  endpoint will validate against, while a guest sees the guest view — each self-consistent.
+- **Conditional-logic groups cannot be enforced.** `enable_rules` groups are shown or hidden by
+  browser-side rules. They are reported as `conditional: true` and the required check now skips
+  them: demanding an answer we cannot know is owed would reject baskets the website accepts.
+  If any group at Trinh's actually uses conditional logic, Phase 3 has to handle it.
+
+Also fixed in the Phase 2 code while here: `{"28": "default"}` used to satisfy the required
+check while producing nothing. `default` is the unchosen placeholder in a select
+(`templates/front/addons/select.php:34`) and YITH writes no meta for it, so it is now dropped
+like an empty value — otherwise 11690's pho-less Family Trio comes straight back.
+
 ### Phase 2 — write path (WP)
 
 Rework `trinh_app_create_my_order` to go through the cart instead of dispatching a
@@ -132,6 +162,48 @@ pre-priced `$body`:
 identical to 11613's, and an app order for 4486 with Add Meat + Add Tofu prices the line at
 **$16.50**, not $11.50.
 
+#### Written 2026-07-30 — `trinh-app-api` 1.3.0, unverified pending deploy
+
+`php -l` passes and every WooCommerce/YITH signature above was checked against plugin source,
+but neither verify step has been run: no DB, no deploy path (open question 2). Structure:
+`trinh_app_with_app_cart()` guards the session and builds the cart, then hands it to a
+callback — `trinh_app_create_order_from_cart()` or `trinh_app_preview_order_totals()`, so
+quoting and charging cannot drift. `trinh_app_validated_line_items()` is shared by both.
+
+Three things this plan had wrong or missing:
+
+- **Step 5 needs `WC_Checkout` specifically.** YITH's `add_order_item_meta` reads
+  `WC_Order_Item_Product::$legacy_values`, set in exactly one place in WooCommerce —
+  `WC_Checkout::create_order_line_items()` (`class-wc-checkout.php:539`). `wc_create_order()`
+  + `add_product()` would fire the hook with nothing for YITH to read.
+- **Step 7 was too late to protect the customer's website cart.** `WC_Cart_Session` hooks
+  `persistent_cart_update` on `woocommerce_add_to_cart` (`class-wc-cart-session.php:80`), and
+  a logged-in JWT user shares that session, so the damage lands on *add*, not on exit.
+  Now: park `session['cart']`, filter `woocommerce_persistent_cart_enabled` off, restore in
+  `finally`. Also nulls `order_awaiting_payment`, or a stale id from an abandoned web checkout
+  would make `create_order()` resume that order instead of opening a new one.
+- **Step 4 cannot be enforced unconditionally without breaking shipped binaries.** Old app
+  versions send add-ons as `meta_data` text and no `yith_wapo`, so Family Trio's three
+  required groups would reject every order on deploy. Enforcement turns on only when a request
+  carries at least one `yith_wapo` selection, and then applies to every line in that order so
+  a YITH-aware client cannot dodge a group by omitting its key. Tighten once old binaries age
+  out.
+
+### Phase 2b — quote endpoint (WP)
+
+`POST /wp-json/trinh-app/v1/me/orders/preview` — same body as order creation minus status,
+billing and pickup time; creates nothing. Returns `subtotal`, `discount_total`, `fee_lines`
+(the server's own labels, so the 5% row needs no rate in the app) and `total`. Fee totals are
+read from `$fee->total`, not `$fee->amount`: WooCommerce clamps a negative fee so it cannot
+take an order below zero and writes the clamped figure back (`class-wc-cart-totals.php:323`),
+and that is what `create_order_fee_lines()` puts on the order.
+
+This exists because the checkout screen cannot compute either half of its own total any more —
+add-on prices come from YITH, the discount from a gateway fee, and neither exists until a cart
+does.
+
+→ verify: a quote and the order subsequently placed from the same basket agree on `total`.
+
 ### Phase 3 — app (iOS)
 
 1. `AddOnGroup` / `AddOnOption` Codable models + fetch in the product service.
@@ -143,19 +215,65 @@ identical to 11613's, and an app order for 4486 with Add Meat + Add Tofu prices 
    `newPrice += Double(addon.value)` and overwrites `price`/`regular_price`) — the server is
    authoritative once Phase 2 lands.
 5. Retire the Firestore add-on read only after per-product parity is confirmed (§1).
+6. Show the server's total on the checkout screen from `POST /me/orders/preview` (Phase 2b)
+   instead of adding anything up locally. This is also what puts the 5% row back: `8bc7980`
+   removed it, and until the app reads the quote it will display a total ~5% above what a
+   cash-on-pickup order actually charges. The `fee_lines` read path is already there and
+   covered (`FeeLine`, plus the `Discount 5%` and `-1.63` cases in `run-logic-checks.sh`) —
+   the checkout screen is the only part that cannot see it.
 
 → verify: place a real app order for Family Trio; its meta matches a web order for the same
-choices. Add-on assertions in `scripts/run-logic-checks.sh` still pass (display is
-unaffected — `74ea283`).
+choices. The quote shown at checkout equals the placed order's `total`. Add-on assertions in
+`scripts/run-logic-checks.sh` still pass (display is unaffected — `74ea283`).
+
+#### Written 2026-07-30 — builds clean, 29 new assertions passing
+
+`AddOnModel.swift` (`AddOnGroup`, `AddOnOption`, `AddOnChoice`, `AddOnSelection`),
+`OrderQuoteModel.swift`, `AddOnGroupsView.swift`; `productAddOns` and `orderQuote` endpoints;
+`MainServices.fetchAddOnGroups` / `fetchOrderQuote` over a shared `lineItemsPayload`, so the
+quote and the order describe one basket. `xcodebuild` succeeds with no warning in any changed
+file, and a new `suite_addon_selection` in `run-logic-checks.sh` compiles the real
+`AddOnModel.swift` and pins 29 cases — submit-key shaping per type, string/number prices,
+decode tolerance, single-vs-multi toggling, required, conditional and min/max.
+
+- **Selection state is per screen, not shared.** The Firestore add-ons kept `checked` on a
+  singleton keyed by *category*, so two dishes in one category shared a set of ticks and the
+  fetch handed every dish the same options. `AddOnSelection` is `@State` on the card.
+- **`Product.price` is left alone.** `unitPrice` = `price` + chosen add-ons, and it is display
+  only. `cartIdentifier` now includes the submit pairs, or a second Family Trio with different
+  pho would just increment the first one's quantity.
+- **Two display paths had to move with it.** The cart read add-ons out of `meta_data` and its
+  unit-price line read `price`; both were only correct while add-ons were being written into
+  meta_data and folded into the price. They read `addOnChoices` and `unitPrice` now.
+- **`select` renders as a menu, `radio`/`checkbox` as lists**, mirroring the website. Required
+  groups disable Add to Cart with the reason shown, rather than a dimmed button and a later
+  400 from the server.
+
+Still open from this phase:
+
+- **Item 5 is the live risk.** The app now reads YITH only, so any product where Firestore held
+  an option YITH lacks silently loses it. YITH is a superset for 4486; §1's audit of every other
+  product is still not done. `FirestoreManager.fetchProductAddOns` and `ProductAddOns` are left
+  in place — nothing calls them now, so reverting is a one-line change until that audit lands.
+- Pre-existing dead code found while working here, untouched: `ItemDetailsView.swift` is never
+  instantiated (it holds the second, older copy of the add-on UI), and `CartView.swift:27` has a
+  `return false` short-circuiting the Monday-closed check.
 
 ---
 
 ## 4. Open questions — need Long's answer
 
-1. ~~**Discount base.**~~ **Resolved 2026-07-30** — the 5% was withdrawn entirely
-   (`8bc7980` app-side, plus the `fee_lines` block removed from `trinh-app-api.php`). There
-   is no discount base to decide, and Todo 3 is closed with it: `CheckOutView.swift` no
-   longer computes a rate. Add-on pricing now flows straight through as full price.
+1. ~~**Discount base.**~~ **Resolved 2026-07-30, twice.** First reading was that the 5% had
+   been withdrawn outright (`8bc7980` app-side, plus the `fee_lines` block removed from
+   `trinh-app-api.php`). That was only half true: what was withdrawn is the app *computing*
+   it. The discount itself lives on the website as a **negative gateway fee** on cash on
+   pickup — `alg_gateways_fees_value_other_payment = -5`, type `percent`, read by
+   `checkout-fees-for-woocommerce`. So there is still no base to decide, but for the opposite
+   reason: the plugin decides it, on `WC()->cart->cart_contents_total`
+   (`class-alg-wc-checkout-fees.php:941`) — line totals, i.e. **after** add-ons are priced in
+   and **after** any voucher. Going through the cart earns the discount back for free, with
+   no rate in the app, and only on cash on pickup rather than on every payment method as the
+   withdrawn version did.
 2. **Deployment.** Phases 1-2 are production PHP on Hostinger. No local DB (port 3306
    closed) and no deploy path from this machine. Needs a staging target, or SFTP, or Long
    deploys by hand.

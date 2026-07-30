@@ -25,19 +25,36 @@ struct Product: Identifiable, Codable {
     var attributes = [Attribute]()
     var categories = [Category]()
     var meta_data = [ProductMetaData]()
-    
+
     var color: String = ""
     var size: String = ""
-    
-    var totalPrice: Double { return price * Double(quantity) }
-    
+
+    /// YITH add-on options the customer picked. Not part of the catalog payload — set when the
+    /// line goes into the cart, and sent as `yith_wapo` so the server prices it.
+    var addOnChoices = [AddOnChoice]()
+
+    /// What the chosen add-ons add to one unit. Display only: `price` stays the catalog price,
+    /// because the server is what prices an order and overwriting it here only ever made the
+    /// app disagree with the receipt.
+    var addOnUnitPrice: Double { addOnChoices.displayTotal }
+
+    var unitPrice: Double { price + addOnUnitPrice }
+
+    var totalPrice: Double { return unitPrice * Double(quantity) }
+
     var cartIdentifier: String {
         // Always sort to make the identifier order-independent!
         let metaString = meta_data
             .sorted { $0.key < $1.key }
             .map { "\($0.key)=\($0.value.stringValue)" }
             .joined(separator: "&")
-        return name + "|" + metaString
+        // Two Family Trios with different pho are different lines, so the choices have to be
+        // part of the identity — otherwise the second one just increments the first's quantity.
+        let addOnString = addOnChoices
+            .map { "\($0.submitKey)=\($0.submitValue)" }
+            .sorted()
+            .joined(separator: "&")
+        return name + "|" + metaString + "|" + addOnString
     }
     
     func getProductAddonOnly() -> [ProductMetaData] {

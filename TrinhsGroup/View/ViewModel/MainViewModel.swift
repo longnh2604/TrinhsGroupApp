@@ -254,6 +254,25 @@ class MainViewModel: ObservableObject {
     func onFetchSelectedCategoryProducts(id: Int) {
         service.fetchSelectedCategoryProducts(id: id)
     }
+
+    func onFetchAddOnGroups(productId: Int, completion: @escaping (Result<[AddOnGroup], Error>) -> Void) {
+        service.fetchAddOnGroups(productId: productId, completion: completion)
+    }
+
+    /// Prices the current basket server-side. Nothing is created; the payment method is part of
+    /// the question because the 5% cash-on-pickup discount is a gateway fee.
+    func onFetchOrderQuote(
+        productOrders: [ProductOrder],
+        couponCode: String? = nil,
+        completion: @escaping (Result<OrderQuote, Error>) -> Void
+    ) {
+        service.fetchOrderQuote(
+            paymentMethod: selectedPayment?.id ?? "",
+            productOrders: productOrders,
+            couponCode: couponCode,
+            completion: completion
+        )
+    }
     
     func onCreateOrder(
         user: User,

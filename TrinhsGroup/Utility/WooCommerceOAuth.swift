@@ -32,12 +32,19 @@ enum WooCommerceEndpoint {
     case fetchCategories
     case fetchPopularProducts
     case fetchProductsCategory(categoryID: Int)
+    /// Add-on groups YITH offers for one product. Public, like the product page it mirrors,
+    /// so the menu is still browsable before anyone signs in. The server answers a guest as
+    /// the website answers a guest; a role-restricted add-on block would therefore be
+    /// invisible here, which is fine while Trinh's has none.
+    case productAddOns(productID: Int)
 
     // MARK: Signed-in user — JWT, scoped server-side to the token's own account
 
     /// Own customer record: GET to read, PUT to update, DELETE to close the account.
     case me
     case myOrders
+    /// What the basket would cost, priced by the server. Creates nothing.
+    case orderQuote
     case cancelMyOrder(orderID: Int)
     /// Timestamped status timeline for one order, so the progress rail can date every
     /// stage instead of only the current one.
@@ -70,11 +77,15 @@ enum WooCommerceEndpoint {
             return "\(commonURL)/products?orderby=popularity&order=desc&per_page=10"
         case .fetchProductsCategory(let id):
             return "\(commonURL)/products?category=\(id)"
+        case .productAddOns(let productID):
+            return "\(appAPIURL)/products/\(productID)/addons"
 
         case .me:
             return "\(appAPIURL)/me"
         case .myOrders:
             return "\(appAPIURL)/me/orders"
+        case .orderQuote:
+            return "\(appAPIURL)/me/orders/preview"
         case .cancelMyOrder(let orderID):
             return "\(appAPIURL)/me/orders/\(orderID)/cancel"
         case .myOrderHistory(let orderID):
@@ -105,9 +116,9 @@ enum WooCommerceEndpoint {
     var requiresJWT: Bool {
         switch self {
         case .authenticate, .forgotPassword, .register,
-             .fetchCategories, .fetchPopularProducts, .fetchProductsCategory:
+             .fetchCategories, .fetchPopularProducts, .fetchProductsCategory, .productAddOns:
             return false
-        case .me, .myOrders, .cancelMyOrder, .myOrderHistory, .myPaymentIntent, .myVouchers,
+        case .me, .myOrders, .orderQuote, .cancelMyOrder, .myOrderHistory, .myPaymentIntent, .myVouchers,
              .paymentMethods, .myPoints, .redeemPoints, .fcmRegister, .fcmUnregister,
              .customerAvatar:
             return true

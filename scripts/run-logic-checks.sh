@@ -693,7 +693,154 @@ SWIFT
     run_suite "PointsResponse decoding" "$d"
 }
 
+# ── Suite: YITH add-on selection ────────────────────────────────────────────────
+# AddOnModel stands between the customer's taps and the `yith_wapo` map that actually buys the
+# add-ons, and every rule in it fails quietly. A wrong submit key charges nothing — that was
+# order 11690's missing $5.00. A `select` treated as multi-select sends two answers to a
+# one-answer group. A required check that counts conditional groups refuses baskets the website
+# accepts. The file imports nothing but Foundation, so the real one compiles as-is.
+suite_addon_selection() {
+    local d="$WORK/addon"; mkdir -p "$d"
+    cp "$SRC/View/Model/AddOnModel.swift" "$d/subject.swift"
+    cat > "$d/main.swift" <<'SWIFT'
+import Foundation
+var fails = 0
+func check(_ ok: Bool, _ what: String, _ detail: String = "") {
+    print("  \(ok ? "✓" : "✗") \(what)\(detail.isEmpty ? "" : "  → \(detail)")")
+    if !ok { fails += 1 }
+}
+
+let decoder = JSONDecoder()
+
+// Family Trio (11381) and 13. Crispy Pork BanhMi (4486), in the shape
+// GET /products/<id>/addons returns — two select groups keyed by addon id, a checkbox group
+// keyed addon-option, and money as a formatted string.
+let payload = #"""
+{"product_id":11381,"addons":[
+ {"addon_id":28,"type":"select","title":"1st Pho","description":"","required":true,
+  "selection_type":"single","conditional":false,"min":null,"max":null,"options":[
+   {"option_id":"0","label":"Chicken","price":"0.00","price_type":"fixed","price_method":"free","submit_key":"28","submit_value":"0"},
+   {"option_id":"1","label":"Beef","price":"0.00","price_type":"fixed","price_method":"free","submit_key":"28","submit_value":"1"}]},
+ {"addon_id":30,"type":"checkbox","title":"Addition","description":"Pick your sides","required":true,
+  "selection_type":"multiple","conditional":false,"min":null,"max":2,"options":[
+   {"option_id":"0","label":"2 Fresh Rice Paper Rolls","price":"0.00","price_type":"fixed","price_method":"free","submit_key":"30-0","submit_value":"1"},
+   {"option_id":"1","label":"5 Chicken Wings + Small Fries","price":"0.00","price_type":"fixed","price_method":"free","submit_key":"30-1","submit_value":"1"}]},
+ {"addon_id":2,"type":"checkbox","title":"BanhMi Addition","description":"","required":false,
+  "selection_type":"multiple","conditional":false,"min":null,"max":null,"options":[
+   {"option_id":"0","label":"Add Meat","price":"3.00","price_type":"fixed","price_method":"increase","submit_key":"2-0","submit_value":"1"},
+   {"option_id":"1","label":"Add Tofu","price":"2.00","price_type":"fixed","price_method":"increase","submit_key":"2-1","submit_value":"1"},
+   {"option_id":"2","label":"No Chili","price":"0.00","price_type":"fixed","price_method":"free","submit_key":"2-2","submit_value":"1"}]}]}
+"""#
+
+guard let response = try? decoder.decode(AddOnGroupsResponse.self, from: Data(payload.utf8)) else {
+    print("  ✗ the real payload must decode"); exit(1)
+}
+check(response.productId == 11381 && response.addons.count == 3,
+      "live payload decodes", "\(response.addons.count) groups")
+
+let pho = response.addons[0]
+let addition = response.addons[1]
+let banhMi = response.addons[2]
+
+// select and radio take one answer; checkbox takes several. Getting this wrong sends a
+// one-answer group two values.
+check(!pho.allowsMultiple, "select takes one answer")
+check(addition.allowsMultiple, "checkbox takes several")
+check(!AddOnGroup(addonId: 9, type: "checkbox", title: "x", selectionType: "single",
+                  options: []).allowsMultiple,
+      "checkbox pinned to single by YITH's own setting takes one answer")
+check(!AddOnGroup(addonId: 9, type: "radio", title: "x", options: []).allowsMultiple,
+      "radio takes one answer")
+
+// The submit pair is the whole point of the endpoint: select carries the choice in the value,
+// checkbox keys both halves and carries "1".
+check(pho.options[1].submitKey == "28" && pho.options[1].submitValue == "1",
+      "select submits <addon_id> = <option_id>")
+check(addition.options[0].submitKey == "30-0" && addition.options[0].submitValue == "1",
+      "checkbox submits <addon_id>-<option_id> = 1")
+
+// Money arrives as a string, and may arrive as a number.
+check(banhMi.options[0].price == 3.0, "string price \"3.00\" → 3.0")
+let numericPrice = #"{"option_id":"0","label":"x","price":3,"submit_key":"7","submit_value":"0"}"#
+check((try? decoder.decode(AddOnOption.self, from: Data(numericPrice.utf8)))?.price == 3.0,
+      "JSON-number price 3 → 3.0")
+
+// Tolerance: a group that loses an optional field still decodes, because losing the array
+// would leave a required dish impossible to order at all.
+let sparse = #"{"addon_id":5,"type":"radio","options":[]}"#
+check((try? decoder.decode(AddOnGroup.self, from: Data(sparse.utf8)))?.addonId == 5,
+      "group missing every optional field still decodes")
+// But an option with no submit pair is useless and must not masquerade as orderable.
+let noPair = #"{"option_id":"0","label":"Add Meat","price":"3.00"}"#
+check((try? decoder.decode(AddOnOption.self, from: Data(noPair.utf8))) == nil,
+      "option without a submit key must NOT decode")
+
+// displayPrice exists so the screen never prints a percentage as dollars.
+check(banhMi.options[0].displayPrice == 3.0, "increase shows +3.0")
+check(pho.options[0].displayPrice == nil, "free option shows no price")
+check(AddOnOption(optionId: "0", label: "x", price: 10, priceType: "percent",
+                  priceMethod: "increase", submitKey: "7", submitValue: "0").displayPrice == nil,
+      "percent option shows no dollar price")
+check(AddOnOption(optionId: "0", label: "x", price: 2, priceMethod: "decrease",
+                  submitKey: "7", submitValue: "0").displayPrice == -2.0,
+      "decrease shows a negative")
+
+// Toggling. A one-answer group replaces, a multi-answer group accumulates, and tapping the
+// chosen option again clears it so an optional choice can be undone.
+var selection = AddOnSelection()
+selection.toggle(group: pho, option: pho.options[0])
+selection.toggle(group: pho, option: pho.options[1])
+check(selection.chosenCount(group: pho) == 1 && selection.isChosen(group: pho, option: pho.options[1]),
+      "second answer replaces the first in a one-answer group")
+selection.toggle(group: banhMi, option: banhMi.options[0])
+selection.toggle(group: banhMi, option: banhMi.options[1])
+check(selection.chosenCount(group: banhMi) == 2, "a multi-answer group accumulates")
+selection.toggle(group: banhMi, option: banhMi.options[1])
+check(selection.chosenCount(group: banhMi) == 1, "tapping a chosen option clears it")
+check(selection.chosenLabel(group: pho) == "Beef", "the chosen label reads back for the menu")
+
+// The exact map that goes out as yith_wapo, and what it adds for display.
+selection.toggle(group: addition, option: addition.options[0])
+let choices = selection.choices(in: response.addons)
+check(choices.submitPairs == ["28": "1", "30-0": "1", "2-0": "1"],
+      "yith_wapo map", "\(choices.submitPairs.sorted { $0.key < $1.key })")
+check(choices.displayTotal == 3.0, "display total adds only the priced option")
+
+// Required groups. Order 11690's Family Trio reached the kitchen with no pho, so this is the
+// check that has to hold.
+check(AddOnSelection().missingRequired(in: response.addons)?.addonId == 28,
+      "an untouched required group is reported")
+check(selection.missingRequired(in: response.addons) == nil,
+      "a fully answered basket reports nothing missing")
+let conditionalRequired = AddOnGroup(addonId: 40, type: "radio", title: "Sauce",
+                                     required: true, conditional: true, options: [])
+check(AddOnSelection().missingRequired(in: [conditionalRequired]) == nil,
+      "a conditional required group is never demanded")
+
+// min/max counts options, and an untouched optional group is not 'too few'.
+var ranged = AddOnSelection()
+check(ranged.outOfRange(in: [addition]) == nil, "untouched group with a max is in range")
+ranged.toggle(group: addition, option: addition.options[0])
+ranged.toggle(group: addition, option: addition.options[1])
+check(ranged.outOfRange(in: [addition]) == nil, "at the max is in range")
+let tightMax = AddOnGroup(addonId: 30, type: "checkbox", title: "Addition",
+                          selectionType: "multiple", max: 1, options: addition.options)
+check(ranged.outOfRange(in: [tightMax])?.addonId == 30, "over the max is reported")
+let needsTwo = AddOnGroup(addonId: 30, type: "checkbox", title: "Addition",
+                          selectionType: "multiple", min: 2, options: addition.options)
+check(AddOnSelection().outOfRange(in: [needsTwo]) == nil, "an untouched group is not below its min")
+var one = AddOnSelection()
+one.toggle(group: needsTwo, option: needsTwo.options[0])
+check(one.outOfRange(in: [needsTwo])?.addonId == 30, "one of a required two is reported")
+
+print(fails == 0 ? "\n  ALL PASS" : "\n  \(fails) FAILURE(S)")
+exit(fails == 0 ? 0 : 1)
+SWIFT
+    run_suite "YITH add-on selection" "$d"
+}
+
 suite_notification_decode
+suite_addon_selection
 suite_order_line_items
 suite_order_status_presentation
 suite_order_history_decode

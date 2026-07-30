@@ -10,7 +10,6 @@ import Kingfisher
 
 struct ProductDetailsCard: View {
     @EnvironmentObject var mainViewModel: MainViewModel
-    @EnvironmentObject var firestoreManager: FirestoreManager
     @State private var isFavorite: Bool = false
     @State var product: Product
     @State var index = 0
@@ -20,21 +19,49 @@ struct ProductDetailsCard: View {
     @FocusState private var isNoteFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
 
+    /// Add-on groups as YITH offers them, and what this customer has ticked. Both are local to
+    /// this screen: the Firestore add-ons these replace kept their ticks on a shared manager
+    /// keyed by category, so opening a second product in the same category inherited the
+    /// first one's selections.
+    @State private var addOnGroups: [AddOnGroup] = []
+    @State private var addOnSelection = AddOnSelection()
+    @State private var addOnError: String = ""
+
     var topInset: CGFloat {
         UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first?.windows.first?.safeAreaInsets.top ?? 0
     }
 
-    /// Live total: product price plus checked add-ons
+    private var addOnChoices: [AddOnChoice] {
+        addOnSelection.choices(in: addOnGroups)
+    }
+
+    /// Live total: catalog price plus the chosen add-ons, using YITH's own prices. Indicative —
+    /// the amount charged comes from the server, and the checkout screen quotes it.
     private var currentTotal: Double {
-        var total = product.price
-        firestoreManager.productAddOns.forEach { addon in
-            if addon.checked {
-                total += Double(addon.value)
-            }
+        product.price + addOnChoices.displayTotal
+    }
+
+    /// Why this cannot go in the basket yet, or nil. The website enforces required groups, so
+    /// the app has to as well — and the server refuses the order either way.
+    private var blockingReason: String? {
+        if let missing = addOnSelection.missingRequired(in: addOnGroups) {
+            return "Please choose \(missing.title)"
         }
-        return total
+
+        if let group = addOnSelection.outOfRange(in: addOnGroups) {
+            let count = addOnSelection.chosenCount(group: group)
+            if let max = group.max, count > max {
+                return "Choose at most \(max) from \(group.title)"
+            }
+            if let min = group.min {
+                return "Choose at least \(min) from \(group.title)"
+            }
+            return "Check your \(group.title) selection"
+        }
+
+        return nil
     }
 
     // MARK: Image Slider
@@ -129,57 +156,19 @@ struct ProductDetailsCard: View {
                 .font(.custom(Constants.AppFont.boldFont, size: 15))
                 .foregroundColor(Constants.AppColor.primaryBlack)
 
-            VStack(spacing: 0) {
-                ForEach(firestoreManager.productAddOns.indices, id: \.self) { index in
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            firestoreManager.productAddOns[index].checked.toggle()
-                        }
-                    }) {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 7)
-                                    .fill(firestoreManager.productAddOns[index].checked
-                                          ? Color("ColorPrimary")
-                                          : Color.white)
-                                RoundedRectangle(cornerRadius: 7)
-                                    .stroke(firestoreManager.productAddOns[index].checked
-                                            ? Color("ColorPrimary")
-                                            : Color.gray.opacity(0.4), lineWidth: 1.5)
-                                if firestoreManager.productAddOns[index].checked {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.white)
-                                }
-                            }
-                            .frame(width: 22, height: 22)
-
-                            Text(firestoreManager.productAddOns[index].content)
-                                .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
-                                .foregroundColor(Constants.AppColor.primaryBlack)
-                                .multilineTextAlignment(.leading)
-
-                            Spacer()
-
-                            if firestoreManager.productAddOns[index].value > 0 {
-                                Text("+\(getPriceAndCurrencySymbol(price: Double(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "left"))")
-                                    .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
-                                    .foregroundColor(Constants.AppColor.secondaryBlack)
-                            }
-                        }
-                        .padding(.vertical, 12)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    if index < firestoreManager.productAddOns.count - 1 {
-                        Divider()
-                    }
-                }
+            if addOnError.isEmpty {
+                AddOnGroupsView(groups: addOnGroups, selection: $addOnSelection)
+            } else {
+                // Never silent: a dish whose choices did not load cannot be ordered correctly,
+                // and a required group would be refused by the server with no explanation.
+                Text(addOnError)
+                    .font(.custom(Constants.AppFont.regularFont, size: 13))
+                    .foregroundColor(Constants.AppColor.secondaryBlack)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(Constants.AppColor.lightGrayColor)
+                    .cornerRadius(14)
             }
-            .padding(.horizontal, 14)
-            .background(Constants.AppColor.lightGrayColor)
-            .cornerRadius(14)
         }
     }
 
@@ -257,13 +246,12 @@ struct ProductDetailsCard: View {
             withAnimation(.spring()){
                 var newProduct = product
                 newProduct.meta_data = []
-                var newPrice = product.price
-                firestoreManager.productAddOns.forEach { addon in
-                    if addon.checked {
-                        newProduct.meta_data.append(ProductMetaData(id: addon.id, key: addon.content, value: .string(String(addon.value))))
-                        newPrice += Double(addon.value)
-                    }
-                }
+
+                // The chosen options travel as choices, not as meta_data text, and price is
+                // left at the catalog figure. Writing add-ons into meta_data bought nothing —
+                // the server took them as labels and charged for none of them — and folding
+                // their price into `price` only made the app disagree with the receipt.
+                newProduct.addOnChoices = addOnChoices
 
                 // Add product note to meta_data if not empty
                 if !productNote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -274,13 +262,11 @@ struct ProductDetailsCard: View {
                     ))
                 }
 
-                newProduct.price = Double(newPrice)
-                newProduct.regular_price = Double(newPrice)
-                newProduct.meta_data = newProduct.meta_data.filter({ return !$0.key.contains("_") || $0.key == "_note" })
                 mainViewModel.add(item: newProduct)
 
-                // Reset note after adding to cart
+                // Reset note and choices after adding to cart
                 productNote = ""
+                addOnSelection = AddOnSelection()
             }
             // Animation trigger
             withAnimation {
@@ -320,7 +306,24 @@ struct ProductDetailsCard: View {
             .cornerRadius(16)
             .shadow(color: Color("ColorPrimary").opacity(0.35), radius: 10, x: 0, y: 4)
         }
+        .disabled(blockingReason != nil)
+        .opacity(blockingReason == nil ? 1 : 0.45)
         .animation(.easeInOut(duration: 0.2), value: isAdded)
+    }
+
+    /// Says which choice is still outstanding, rather than leaving a dimmed button unexplained.
+    @ViewBuilder
+    fileprivate func BlockingReasonLabel() -> some View {
+        if let reason = blockingReason {
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .font(.system(size: 12))
+                Text(reason)
+                    .font(.custom(Constants.AppFont.semiBoldFont, size: 12))
+            }
+            .foregroundColor(Color("ColorPrimary"))
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     var body: some View {
@@ -337,7 +340,7 @@ struct ProductDetailsCard: View {
                             VStack(alignment: .leading, spacing: 20) {
                                 TitlePriceSection()
 
-                                if !firestoreManager.productAddOns.isEmpty {
+                                if !addOnGroups.isEmpty || !addOnError.isEmpty {
                                     AddOnsSection()
                                 }
 
@@ -357,7 +360,10 @@ struct ProductDetailsCard: View {
                 }
 
                 // Bottom action bar
-                AddToCartButton()
+                VStack(spacing: 8) {
+                    BlockingReasonLabel()
+                    AddToCartButton()
+                }
                     .padding(.horizontal, 16)
                     .padding(.top, 10)
                     .padding(.bottom, 12)
@@ -372,10 +378,17 @@ struct ProductDetailsCard: View {
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            // existing code
-            firestoreManager.productAddOns = []
-            if let id = product.categories.first?.id {
-                firestoreManager.fetchProductAddOns(categoryId: id)
+            // Add-ons are fetched per product, not per category: YITH attaches them to the
+            // product, and the old category query handed every dish in a category the same set.
+            addOnError = ""
+            mainViewModel.onFetchAddOnGroups(productId: product.id) { result in
+                switch result {
+                case .success(let groups):
+                    addOnGroups = groups
+                case .failure:
+                    addOnGroups = []
+                    addOnError = "Options could not be loaded. Please try again."
+                }
             }
 
             // init favorite state from MainViewModel

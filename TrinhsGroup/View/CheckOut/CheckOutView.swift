@@ -19,7 +19,51 @@ struct CheckOutView: View {
     @State private var selectedVoucher: VoucherResponse? = nil
     @State private var showVoucherPicker: Bool = false
     @State private var orderError: String? = nil
-    
+    /// The server's price for this basket. Nil until it answers, or when it could not be asked.
+    @State private var quote: OrderQuote? = nil
+
+    /// The basket as line items. One description of it, shared by the quote and both order
+    /// paths, so the figure quoted and the figure ordered cannot come from different baskets.
+    private var productOrders: [ProductOrder] {
+        mainViewModel.items.map { item in
+            ProductOrder(
+                id: 0,
+                product_id: item.id,
+                name: item.name,
+                quantity: item.quantity,
+                subtotal: "",
+                total: item.regular_price,
+                price: item.regular_price,
+                meta_data: item.meta_data,
+                addOnChoices: item.addOnChoices
+            )
+        }
+    }
+
+    /// Asks the server what this basket costs. Re-asked whenever the answer could change: the
+    /// add-ons are priced by YITH and the 5% cash-on-pickup discount is a gateway fee, so both
+    /// the basket and the chosen payment method are part of the question.
+    private func refreshQuote() {
+        guard !mainViewModel.items.isEmpty, mainViewModel.selectedPayment != nil else {
+            quote = nil
+            return
+        }
+
+        mainViewModel.onFetchOrderQuote(
+            productOrders: productOrders,
+            couponCode: selectedVoucher?.code
+        ) { result in
+            switch result {
+            case .success(let fresh):
+                quote = fresh
+            case .failure:
+                // Fall back to the local sum rather than blocking checkout. It can only be low
+                // by the discount, never high, and the order itself is still priced server-side.
+                quote = nil
+            }
+        }
+    }
+
     // Computed property: enable only when payments fetched and a method selected, and pickup time chosen
     private var isSubmitEnabled: Bool {
         let availablePayments = mainViewModel.payments.filter { $0.enabled }
@@ -51,19 +95,6 @@ struct CheckOutView: View {
 
             if mainViewModel.selectedPayment?.id == "stripe" {
                 // Handle Stripe payment flow with Payment Sheet
-                let productOrders = mainViewModel.items.map { item in
-                    return ProductOrder(
-                        id: 0,
-                        product_id: item.id,
-                        name: item.name,
-                        quantity: item.quantity,
-                        subtotal: "",
-                        total: item.regular_price,
-                        price: item.regular_price,
-                        meta_data: item.meta_data
-                    )
-                }
-
                 // Create order first
                 mainViewModel.onCreateOrder(
                     user: authViewModel.user,
@@ -142,18 +173,6 @@ struct CheckOutView: View {
                 return
             }
 
-            let productOrders = mainViewModel.items.map { order_item in
-                return ProductOrder(
-                    id: 0,
-                    product_id: order_item.id,
-                    name: order_item.name,
-                    quantity: order_item.quantity,
-                    subtotal: "",
-                    total: order_item.regular_price,
-                    price: order_item.regular_price,
-                    meta_data: order_item.meta_data
-                )
-            }
             mainViewModel.onCreateOrder(
                 user: authViewModel.user,
                 productOrders: productOrders,
@@ -236,25 +255,42 @@ struct CheckOutView: View {
                             )
                             .padding(.top, 20)
                             
-                            // Subtotal, Voucher Discount, and final Total
-                            let originalTotal = mainViewModel.total
-                            let voucherDiscount = selectedVoucher?.amount ?? 0
-                            let finalTotal = max(0, originalTotal - voucherDiscount)
+                            // Totals. The server's quote when it has answered — it is the only
+                            // thing that knows what YITH charges for the add-ons and what the
+                            // cash-on-pickup gateway fee takes off. The local sum is the
+                            // fallback, and can only be missing a discount, never adding a charge.
+                            let subtotal = quote?.subtotalValue ?? mainViewModel.total
+                            let voucherDiscount = quote?.discountValue ?? (selectedVoucher?.amount ?? 0)
+                            let finalTotal = quote?.totalValue
+                                ?? max(0, mainViewModel.total - (selectedVoucher?.amount ?? 0))
 
                             HStack {
                                 Text("Subtotal").foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: originalTotal, currency: "$", currencyPosition: "left"))
+                                Text(getPriceAndCurrencySymbol(price: subtotal, currency: "$", currencyPosition: "left"))
                             }
                             .padding(.top, 15)
 
-                            // Show voucher discount if voucher is selected
-                            if let voucher = selectedVoucher {
+                            if voucherDiscount > 0 {
                                 HStack {
-                                    Text("Voucher (\(voucher.code))").foregroundColor(.green)
-                                    Spacer()
-                                    Text("-" + getPriceAndCurrencySymbol(price: voucher.amount, currency: "$", currencyPosition: "left"))
+                                    Text(selectedVoucher.map { "Voucher (\($0.code))" } ?? "Voucher")
                                         .foregroundColor(.green)
+                                    Spacer()
+                                    Text("-" + getPriceAndCurrencySymbol(price: voucherDiscount, currency: "$", currencyPosition: "left"))
+                                        .foregroundColor(.green)
+                                }
+                                .padding(.top, 6)
+                            }
+
+                            // Fee rows carry the server's own labels, so the 5% shows up as the
+                            // website named it and no rate is held in the app.
+                            ForEach(Array((quote?.fees ?? []).enumerated()), id: \.offset) { _, fee in
+                                HStack {
+                                    Text(fee.name).foregroundColor(fee.amount < 0 ? .green : .gray)
+                                    Spacer()
+                                    Text((fee.amount < 0 ? "-" : "")
+                                         + getPriceAndCurrencySymbol(price: abs(fee.amount), currency: "$", currencyPosition: "left"))
+                                        .foregroundColor(fee.amount < 0 ? .green : .gray)
                                 }
                                 .padding(.top, 6)
                             }
@@ -289,7 +325,16 @@ struct CheckOutView: View {
                     mainViewModel.onFetchPaymentMethods()
                     // Fetch user's available vouchers
                     pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
+                    refreshQuote()
                 }
+            }
+            // The gateway decides the fee and the voucher decides the discount, so either one
+            // changing makes the displayed total stale.
+            .onChange(of: mainViewModel.selectedPayment?.id) { _ in
+                refreshQuote()
+            }
+            .onChange(of: selectedVoucher?.code) { _ in
+                refreshQuote()
             }
             // Present Safari for the checkout
             .sheet(isPresented: $showSafari, onDismiss: {
