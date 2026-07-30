@@ -152,10 +152,10 @@ unaffected — `74ea283`).
 
 ## 4. Open questions — need Long's answer
 
-1. **Discount base.** The 5% `fee_line` is currently `round($subtotal * 0.05, 2)` off
-   catalog prices. Once add-ons are charged, does the 5% apply to the add-on-inclusive
-   subtotal? This changes what customers pay. Ties directly into Todo 3
-   (`CheckOutView.swift:241` hardcodes `originalTotal * 0.05`).
+1. ~~**Discount base.**~~ **Resolved 2026-07-30** — the 5% was withdrawn entirely
+   (`8bc7980` app-side, plus the `fee_lines` block removed from `trinh-app-api.php`). There
+   is no discount base to decide, and Todo 3 is closed with it: `CheckOutView.swift` no
+   longer computes a rate. Add-on pricing now flows straight through as full price.
 2. **Deployment.** Phases 1-2 are production PHP on Hostinger. No local DB (port 3306
    closed) and no deploy path from this machine. Needs a staging target, or SFTP, or Long
    deploys by hand.
