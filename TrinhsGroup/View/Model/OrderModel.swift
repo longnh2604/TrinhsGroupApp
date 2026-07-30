@@ -22,11 +22,13 @@ struct Order: Identifiable, Codable {
     var lineItems: [LineItem]
     var shippingLines: [ShippingLine]
 
-    /// Order-level fees. The app's 5% discount arrives as a negative fee line, never as
-    /// `discount_total`, which carries voucher discounts only.
+    /// Order-level fees, each rendered with the server's own label. `discount_total` is
+    /// separate and carries voucher discounts only.
     ///
-    /// Optional because the plugin adds `fee_lines` only when the discount is non-zero, and
-    /// Swift's synthesised decoder throws on a missing key for a non-optional property.
+    /// Orders placed before the app's 5% discount was withdrawn still carry it here as a
+    /// negative fee line, so this has to keep decoding. Optional because most orders have no
+    /// fees at all, and Swift's synthesised decoder throws on a missing key for a
+    /// non-optional property.
     var feeLines: [FeeLine]?
 
     // NEW (optional but important)

@@ -236,26 +236,18 @@ struct CheckOutView: View {
                             )
                             .padding(.top, 20)
                             
-                            // Subtotal (original, pre-discount), Discount 5%, Voucher Discount, and final Total
+                            // Subtotal, Voucher Discount, and final Total
                             let originalTotal = mainViewModel.total
-                            let discountValue = originalTotal * 0.05
                             let voucherDiscount = selectedVoucher?.amount ?? 0
-                            let finalTotal = max(0, originalTotal - discountValue - voucherDiscount)
-                            
+                            let finalTotal = max(0, originalTotal - voucherDiscount)
+
                             HStack {
                                 Text("Subtotal").foregroundColor(.gray)
                                 Spacer()
                                 Text(getPriceAndCurrencySymbol(price: originalTotal, currency: "$", currencyPosition: "left"))
                             }
                             .padding(.top, 15)
-                            
-                            HStack {
-                                Text("Discount (5%)").foregroundColor(.gray)
-                                Spacer()
-                                Text("-" + getPriceAndCurrencySymbol(price: discountValue, currency: "$", currencyPosition: "left"))
-                            }
-                            .padding(.top, 6)
-                            
+
                             // Show voucher discount if voucher is selected
                             if let voucher = selectedVoucher {
                                 HStack {
