@@ -51,11 +51,13 @@ struct OrderLineItemRow: View {
                     .padding(.top, 3)
             }
 
-            // Names only, never a price. The server prices every line from the catalog and
-            // treats add-on meta as text, so it never charges for these — a "+$3.00" here
-            // would reconcile with nothing in the payment card below.
-            if !item.addOns.isEmpty {
-                Text(item.addOns.map(\.key).joined(separator: " · "))
+            // The customer's choices, never a bare price of our own. A web order's choice text
+            // can carry YITH's own "+$3.00", and that is honest: YITH folded it into the line
+            // price, so it reconciles with the Subtotal above. App orders show names only,
+            // because the app path prices every line from the catalog and never charges for
+            // add-ons — see `LineItem.addOnLabels`.
+            if !item.addOnLabels.isEmpty {
+                Text(item.addOnLabels.joined(separator: " · "))
                     .font(.custom(Constants.AppFont.regularFont, size: 11))
                     .foregroundColor(Constants.AppColor.secondaryBlack)
                     .fixedSize(horizontal: false, vertical: true)

@@ -228,6 +228,86 @@ if let order = decodeOrder(orderJSON(lineItems: metaMissingKey)) {
           "\(order.lineItems[0].meta_data.count)")
 } else { check(false, "an order with a keyless meta entry still decodes") }
 
+// ── Add-on labels ──────────────────────────────────────────────────────────────
+// Bug A: the card used to render `addOns.map(\.key)`, which on a web order printed the
+// group label ("Addition") instead of what the customer picked ("Extra Beef (+$3.00)").
+// Every meta_data shape below is verbatim from a live order — the earlier fixtures in this
+// suite only carried the app shape, which is why they passed while the bug was live.
+
+func labels(_ lineItems: String) -> [String] {
+    decodeOrder(orderJSON(lineItems: lineItems))?.lineItems.first?.addOnLabels ?? []
+}
+func checkLabels(_ got: [String], _ want: [String], _ what: String) {
+    check(got == want, what, got == want ? "" : "got \(got)")
+}
+
+// Order 11584 — a ticked checkbox group repeats its key once per chosen option. The
+// _ywapo_meta_data sibling is YITH's own bookkeeping and must never reach the customer.
+let yithCheckbox = #"""
+[{"id":9,"name":"21. Chicken and Rare Beef Pho","product_id":5,"quantity":2,"subtotal":"57.60","total":"57.60","price":28.8,
+  "meta_data":[{"id":1,"key":"Addition","value":"Extra Beef (+$3.00)"},
+               {"id":2,"key":"Addition","value":"Extra Chicken (+$3.00)"},
+               {"id":3,"key":"Addition","value":"Extra Vegies (+$3.00)"},
+               {"id":4,"key":"_ywapo_meta_data","value":"[{\"4-0\":{\"display_label\":\"Addition\"}}]"}]}]
+"""#
+checkLabels(labels(yithCheckbox),
+            ["Addition: Extra Beef (+$3.00), Extra Chicken (+$3.00), Extra Vegies (+$3.00)"],
+            "a repeated checkbox key collapses to one group, values in order")
+if let item = decodeOrder(orderJSON(lineItems: yithCheckbox))?.lineItems.first {
+    check(!item.addOnLabels.contains { $0.contains("ywapo") },
+          "YITH's _ywapo_meta_data never renders")
+} else { check(false, "the YITH checkbox order decodes") }
+
+// Order 11616 — radio groups whose labels are the only thing telling the phos apart,
+// alongside a two-option checkbox group.
+let yithRadios = #"""
+[{"id":9,"name":"Family Share Box","product_id":7,"quantity":1,"subtotal":"69.90","total":"69.90","price":69.9,
+  "meta_data":[{"id":1,"key":"1st Pho","value":"Beef"},
+               {"id":2,"key":"2nd Pho","value":"Chicken"},
+               {"id":3,"key":"4 Fresh Rice Paper Rolls","value":"Prawn"},
+               {"id":4,"key":"Addition","value":"10 Chicken Wings + 1 Large Fries"},
+               {"id":5,"key":"Addition","value":"6 Crispy Wontons"}]}]
+"""#
+checkLabels(labels(yithRadios),
+            ["1st Pho: Beef", "2nd Pho: Chicken", "4 Fresh Rice Paper Rolls: Prawn",
+             "Addition: 10 Chicken Wings + 1 Large Fries, 6 Crispy Wontons"],
+            "each radio group keeps its own label")
+
+// Order 11587 — two slots share the label "1 Pho" and both hold Chicken. Deduplicating
+// would silently drop a pho the customer paid for. Empty values are options YITH stored
+// with no display value, where the key itself is the choice.
+let yithDupsAndEmpties = #"""
+[{"id":9,"name":"Family Share Box","product_id":7,"quantity":1,"subtotal":"69.90","total":"69.90","price":69.9,
+  "meta_data":[{"id":1,"key":"1 Pho","value":"Chicken"},
+               {"id":2,"key":"1 Pho","value":"Chicken"},
+               {"id":3,"key":"4 Fresh Rice Paper Rolls","value":"Chicken"},
+               {"id":4,"key":"10 Chicken Wings","value":""},
+               {"id":5,"key":"1 Large Fries","value":""},
+               {"id":6,"key":"6 Crispy Wontons","value":""}]}]
+"""#
+checkLabels(labels(yithDupsAndEmpties),
+            ["1 Pho: Chicken, Chicken", "4 Fresh Rice Paper Rolls: Chicken",
+             "10 Chicken Wings", "1 Large Fries", "6 Crispy Wontons"],
+            "a repeated choice is kept, and an empty value falls back to its key")
+
+// The app path, built by ProductDetailsCard.AddToCartButton: key is the choice, value is
+// the price. Rendering the value would show a charge the app path never bills.
+checkLabels(labels(withMeta), ["Extra beef", "Extra chilli"],
+            "an app-shape price value is dropped, leaving the choice")
+
+let numericForms = #"[{"id":9,"name":"Pho","product_id":5,"quantity":1,"subtotal":"12.00","total":"12.00","price":12.0,"meta_data":[{"id":1,"key":"Extra beef","value":"3.00"},{"id":2,"key":"Extra chilli","value":"0"},{"id":3,"key":"Sauce","value":" 2.5 "},{"id":4,"key":"Herbs","value":4}]}]"#
+checkLabels(labels(numericForms), ["Extra beef", "Extra chilli", "Sauce", "Herbs"],
+            "a decimal, a zero, a padded and a JSON-number price are all dropped")
+
+// AnyCodableValue degrades an array to .null, whose stringValue is "".
+checkLabels(labels(exoticMeta), ["Bundle"], "an undecodable value falls back to its key")
+
+let groupWithBlank = #"[{"id":9,"name":"Pho","product_id":5,"quantity":1,"subtotal":"12.00","total":"12.00","price":12.0,"meta_data":[{"id":1,"key":"Addition","value":""},{"id":2,"key":"Addition","value":"Meat (+$3.00)"}]}]"#
+checkLabels(labels(groupWithBlank), ["Addition: Meat (+$3.00)"],
+            "a blank sibling does not add an empty choice to its group")
+
+checkLabels(labels(noMeta), [], "no add-ons means no labels")
+
 // ── Fee lines and reconciliation ───────────────────────────────────────────────
 // The app's 5% arrives as a negative fee_line, not as discount_total. Reading discountTotal
 // for it renders $0.00, which is the bug these assertions exist to prevent coming back.

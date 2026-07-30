@@ -146,6 +146,42 @@ extension LineItem {
         meta_data.filter { !$0.key.hasPrefix("_") }
     }
 
+    /// What the customer actually chose, one entry per option group, in the order the
+    /// server listed them.
+    ///
+    /// The two order paths spell an add-on the opposite way round:
+    ///
+    /// - Web (YITH) puts the group label in the key and the choice in the value —
+    ///   `"1st Pho"` / `"Beef"`. A ticked checkbox group repeats the key once per option,
+    ///   so `"Addition"` arrives three times with three different values; grouping is what
+    ///   turns that into one readable line.
+    /// - The app puts the choice in the key and its price in the value —
+    ///   `"Extra beef"` / `"3"` (see `ProductDetailsCard.AddToCartButton`).
+    ///
+    /// So a value that parses as a number is a price, never a label, and is dropped —
+    /// rendering it would show a charge that the app path never actually billed. An empty
+    /// value means YITH stored the option without a display value, and there too the key is
+    /// the choice. Either way the group falls back to showing just its key.
+    var addOnLabels: [String] {
+        var groups: [String] = []
+        var choices: [String: [String]] = [:]
+
+        for meta in addOns {
+            if choices[meta.key] == nil {
+                groups.append(meta.key)
+                choices[meta.key] = []
+            }
+            let chosen = meta.value.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !chosen.isEmpty, Double(chosen) == nil else { continue }
+            choices[meta.key]?.append(chosen)
+        }
+
+        return groups.map { key in
+            guard let picked = choices[key], !picked.isEmpty else { return key }
+            return "\(key): \(picked.joined(separator: ", "))"
+        }
+    }
+
     /// The customer's free-text note for this line.
     ///
     /// Blank reads as absent so the card does not draw an empty pair of quotes.
