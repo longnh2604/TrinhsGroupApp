@@ -52,6 +52,7 @@ enum WooCommerceEndpoint {
     case myPoints
     case redeemPoints
     case fcmRegister
+    case fcmUnregister
     case customerAvatar(customerID: Int)
 
     func urlPath() -> String {
@@ -91,6 +92,8 @@ enum WooCommerceEndpoint {
             return "/wp-json/bu/v1/redeem"
         case .fcmRegister:
             return "\(appAPIURL)/fcm/register"
+        case .fcmUnregister:
+            return "\(appAPIURL)/fcm/unregister"
         case .customerAvatar(let customerID):
             return "\(commonURL)/customers/\(customerID)/avatar"
         }
@@ -105,7 +108,8 @@ enum WooCommerceEndpoint {
              .fetchCategories, .fetchPopularProducts, .fetchProductsCategory:
             return false
         case .me, .myOrders, .cancelMyOrder, .myOrderHistory, .myPaymentIntent, .myVouchers,
-             .paymentMethods, .myPoints, .redeemPoints, .fcmRegister, .customerAvatar:
+             .paymentMethods, .myPoints, .redeemPoints, .fcmRegister, .fcmUnregister,
+             .customerAvatar:
             return true
         }
     }

@@ -305,6 +305,48 @@ class AuthViewModel: ObservableObject {
         }.resume()
     }
 
+    /// Detach this device from the account signing out, so its order pushes stop arriving.
+    ///
+    /// Takes the JWT as an argument rather than reading `AuthTokenStore` itself, because
+    /// `logout()` clears that Keychain entry on the very next line and the request needs the
+    /// credential of the session being ended.
+    ///
+    /// Best effort, and deliberately not awaited — a customer signing out must not wait on
+    /// the network. Two of the four logout paths fire *because* the session expired, so the
+    /// server will reject those with a 401 and the binding survives; the server clears a
+    /// stale binding on the next `/fcm/register` instead. The local token stays in
+    /// `UserDefaults`: it identifies the device, not the account, and the next account to
+    /// sign in on this phone re-registers the same one.
+    private func unregisterFCMToken(jwt: String?) {
+        guard let jwt = jwt, !jwt.isEmpty else {
+            print("📱 FCM unregister skipped — no JWT for the session being ended")
+            return
+        }
+        guard let token = UserDefaults.standard.string(forKey: "fcm_token"), !token.isEmpty else {
+            print("📱 FCM unregister skipped — no token in UserDefaults")
+            return
+        }
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)\(WooCommerceEndpoint.fcmUnregister.urlPath())") else {
+            print("📱 FCM unregister skipped — invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["fcm_token": token])
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("📱 FCM unregister ❌ network error: \(error.localizedDescription)")
+                return
+            }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let bodyText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
+            print("📱 FCM unregister response status=\(status) body=\(bodyText)")
+        }.resume()
+    }
+
     // MARK: - Public Methods
 
     public func createUser() {
@@ -419,6 +461,11 @@ class AuthViewModel: ObservableObject {
     }
 
     public func logout() {
+        // First, while the JWT still exists: without this the server keeps pushing this
+        // account's order updates to the device after sign-out, and if another account signs
+        // in here both end up holding the same device token.
+        unregisterFCMToken(jwt: AuthTokenStore.token)
+
         authUser = nil
         user = .empty
         isLogin = false
