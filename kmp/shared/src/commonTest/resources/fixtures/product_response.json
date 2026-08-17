@@ -1,0 +1,65 @@
+{
+  "id": 456,
+  "name": "Pad Thai",
+  "slug": "pad-thai",
+  "permalink": "https://trinhskitchen.com.au/product/pad-thai/",
+  "date_created": "2024-01-15T10:00:00",
+  "date_modified": "2024-06-01T12:30:00",
+  "type": "simple",
+  "status": "publish",
+  "featured": true,
+  "catalog_visibility": "visible",
+  "description": "<p>Traditional Thai stir-fried rice noodles with eggs, tofu, and peanuts.</p>",
+  "short_description": "Classic Pad Thai",
+  "sku": "PT001",
+  "price": "18.50",
+  "regular_price": "18.50",
+  "sale_price": "",
+  "on_sale": false,
+  "purchasable": true,
+  "total_sales": 250,
+  "virtual": false,
+  "downloadable": false,
+  "stock_quantity": null,
+  "stock_status": "instock",
+  "weight": "",
+  "dimensions": {
+    "length": "",
+    "width": "",
+    "height": ""
+  },
+  "categories": [
+    {
+      "id": 15,
+      "name": "Thai",
+      "slug": "thai"
+    }
+  ],
+  "tags": [],
+  "images": [
+    {
+      "id": 789,
+      "src": "https://trinhskitchen.com.au/wp-content/uploads/pad-thai.jpg",
+      "name": "pad-thai",
+      "alt": "Pad Thai"
+    }
+  ],
+  "attributes": [
+    {
+      "id": 1,
+      "name": "Spice Level",
+      "position": 0,
+      "visible": true,
+      "variation": false,
+      "options": ["Mild", "Medium", "Hot"]
+    }
+  ],
+  "meta_data": [
+    {
+      "id": 2001,
+      "key": "_product_addons",
+      "value": []
+    }
+  ],
+  "menu_order": 0
+}

@@ -1,0 +1,50 @@
+{
+  "id": 457,
+  "name": "Green Curry",
+  "slug": "green-curry",
+  "permalink": "https://trinhskitchen.com.au/product/green-curry/",
+  "date_created": "2024-01-15T10:00:00",
+  "date_modified": "2024-06-01T12:30:00",
+  "type": "simple",
+  "status": "publish",
+  "featured": false,
+  "catalog_visibility": "visible",
+  "description": "<p>Authentic Thai green curry with coconut milk.</p>",
+  "short_description": "Spicy green curry",
+  "sku": "GC001",
+  "price": "16.00",
+  "regular_price": "20.00",
+  "sale_price": "16.00",
+  "on_sale": true,
+  "purchasable": true,
+  "total_sales": 180,
+  "virtual": false,
+  "downloadable": false,
+  "stock_quantity": null,
+  "stock_status": "instock",
+  "weight": "",
+  "dimensions": {
+    "length": "",
+    "width": "",
+    "height": ""
+  },
+  "categories": [
+    {
+      "id": 15,
+      "name": "Thai",
+      "slug": "thai"
+    }
+  ],
+  "tags": [],
+  "images": [
+    {
+      "id": 790,
+      "src": "https://trinhskitchen.com.au/wp-content/uploads/green-curry.jpg",
+      "name": "green-curry",
+      "alt": "Green Curry"
+    }
+  ],
+  "attributes": [],
+  "meta_data": [],
+  "menu_order": 1
+}

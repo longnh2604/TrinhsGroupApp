@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "931919626638",
+    "project_id": "trinhsgroup-befce",
+    "storage_bucket": "trinhsgroup-befce.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:931919626638:android:6cc7e69f4c8171c91e24df",
+        "android_client_info": {
+          "package_name": "com.trinhskitchen.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDz-n6fmZGxZbSvLGmIc0lgsxzHwGnGulE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

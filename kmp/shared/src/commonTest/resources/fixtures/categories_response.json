@@ -1,0 +1,45 @@
+[
+  {
+    "id": 15,
+    "name": "Thai",
+    "slug": "thai",
+    "parent": 0,
+    "description": "Authentic Thai cuisine",
+    "display": "default",
+    "image": {
+      "id": 801,
+      "src": "https://trinhskitchen.com.au/wp-content/uploads/thai-category.jpg",
+      "name": "thai-category",
+      "alt": "Thai Food"
+    },
+    "menu_order": 0,
+    "count": 12
+  },
+  {
+    "id": 16,
+    "name": "Vietnamese",
+    "slug": "vietnamese",
+    "parent": 0,
+    "description": "Fresh Vietnamese dishes",
+    "display": "default",
+    "image": {
+      "id": 802,
+      "src": "https://trinhskitchen.com.au/wp-content/uploads/vietnamese-category.jpg",
+      "name": "vietnamese-category",
+      "alt": "Vietnamese Food"
+    },
+    "menu_order": 1,
+    "count": 8
+  },
+  {
+    "id": 17,
+    "name": "Japanese",
+    "slug": "japanese",
+    "parent": 0,
+    "description": "Japanese cuisine",
+    "display": "default",
+    "image": null,
+    "menu_order": 2,
+    "count": 6
+  }
+]

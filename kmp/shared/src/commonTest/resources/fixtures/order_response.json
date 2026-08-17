@@ -1,0 +1,102 @@
+{
+  "id": 1001,
+  "parent_id": 0,
+  "status": "processing",
+  "currency": "AUD",
+  "currency_symbol": "$",
+  "date_created": "2024-06-15T14:30:00",
+  "date_modified": "2024-06-15T14:35:00",
+  "discount_total": "2.00",
+  "shipping_total": "0.00",
+  "total": "52.50",
+  "total_tax": "0.00",
+  "customer_id": 123,
+  "billing": {
+    "first_name": "Test",
+    "last_name": "User",
+    "company": "",
+    "address_1": "123 Test Street",
+    "address_2": "",
+    "city": "Sydney",
+    "state": "NSW",
+    "postcode": "2000",
+    "country": "AU",
+    "email": "test@example.com",
+    "phone": "0412345678"
+  },
+  "shipping": {
+    "first_name": "Test",
+    "last_name": "User",
+    "company": "",
+    "address_1": "123 Test Street",
+    "address_2": "",
+    "city": "Sydney",
+    "state": "NSW",
+    "postcode": "2000",
+    "country": "AU"
+  },
+  "payment_method": "stripe",
+  "payment_method_title": "Credit Card (Stripe)",
+  "customer_note": "Please add extra napkins",
+  "line_items": [
+    {
+      "id": 101,
+      "name": "Pad Thai",
+      "product_id": 456,
+      "quantity": 2,
+      "subtotal": "37.00",
+      "total": "37.00",
+      "price": 18.5,
+      "sku": "PT001",
+      "image": {
+        "id": 789,
+        "src": "https://trinhskitchen.com.au/wp-content/uploads/pad-thai.jpg"
+      },
+      "meta_data": [
+        {
+          "id": 5001,
+          "key": "Spice Level",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Green Curry",
+      "product_id": 457,
+      "quantity": 1,
+      "subtotal": "16.00",
+      "total": "16.00",
+      "price": 16.0,
+      "sku": "GC001",
+      "image": {
+        "id": 790,
+        "src": "https://trinhskitchen.com.au/wp-content/uploads/green-curry.jpg"
+      },
+      "meta_data": []
+    }
+  ],
+  "shipping_lines": [
+    {
+      "id": 201,
+      "method_id": "flat_rate",
+      "method_title": "Pickup",
+      "total": "0.00"
+    }
+  ],
+  "fee_lines": [
+    {
+      "id": 301,
+      "name": "5% Discount",
+      "total": "-2.65"
+    }
+  ],
+  "coupon_lines": [],
+  "meta_data": [
+    {
+      "id": 6001,
+      "key": "pickup_datetime",
+      "value": "2024-06-15 18:30:00"
+    }
+  ]
+}

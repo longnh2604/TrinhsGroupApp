@@ -1,0 +1,65 @@
+[
+  {
+    "id": "stripe",
+    "title": "Credit Card (Stripe)",
+    "description": "Pay with your credit or debit card via Stripe.",
+    "order": 0,
+    "enabled": true,
+    "method_title": "Stripe",
+    "method_description": "Stripe payment gateway",
+    "settings": {
+      "title": {
+        "id": "title",
+        "label": "Title",
+        "value": "Credit Card (Stripe)"
+      },
+      "enabled": {
+        "id": "enabled",
+        "label": "Enable/Disable",
+        "value": "yes"
+      }
+    }
+  },
+  {
+    "id": "cod",
+    "title": "Pay on Pickup",
+    "description": "Pay when you collect your order.",
+    "order": 1,
+    "enabled": true,
+    "method_title": "Cash on Delivery",
+    "method_description": "Payment collected at pickup",
+    "settings": {
+      "title": {
+        "id": "title",
+        "label": "Title",
+        "value": "Pay on Pickup"
+      },
+      "enabled": {
+        "id": "enabled",
+        "label": "Enable/Disable",
+        "value": "yes"
+      }
+    }
+  },
+  {
+    "id": "bacs",
+    "title": "Bank Transfer",
+    "description": "Direct bank transfer.",
+    "order": 2,
+    "enabled": false,
+    "method_title": "Direct Bank Transfer",
+    "method_description": "Bank transfer payment",
+    "settings": {
+      "title": {
+        "id": "title",
+        "label": "Title",
+        "value": "Bank Transfer"
+      },
+      "enabled": {
+        "id": "enabled",
+        "label": "Enable/Disable",
+        "value": "no"
+      }
+    }
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "payment_intent": "pi_3O1234567890abcdefghijk",
+  "customer": "cus_ABC123DEF456",
+  "ephemeral_key": "ek_test_YWNjdF8xSGdWWWNIbHNEMXBzaENZ",
+  "publishable_key": "pk_test_51HgVYcHlsD1pshCY0000000"
+}
