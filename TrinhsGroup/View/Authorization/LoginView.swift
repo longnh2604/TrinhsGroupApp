@@ -8,35 +8,13 @@
 import SwiftUI
 
 struct LogInView: View {
-    
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State var isShowForgetPasswordView : Bool = false
+    @State var isShowSignUp : Bool = false
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    
-    fileprivate func NavigationBarView() -> some View {
-        return HStack(alignment: .center) {
-            Button(action: {
-                self.presentationMode.wrappedValue.dismiss()
-            }) {
-                Image(systemName: "arrow.left")
-                    .foregroundColor(.black)
-            }
-            .padding(.leading, 10)
-            .frame(width: 40, height: 40)
-            Spacer()
-        }
-        .frame(width: UIScreen.main.bounds.width, height: 45)
-        .overlay(
-            Text("Login")
-                .font(.headline)
-                .padding(.horizontal, 10)
-                .background(Color.init(hex: "f9f9f9"))
-            , alignment: .center)
-    }
     
     fileprivate func AppIcon() -> some View {
         return HStack {
-            Image("logo")
+            Image(AppAssets.logo)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 100, height: 100, alignment: .center)
@@ -52,7 +30,7 @@ struct LogInView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $authViewModel.email)
+            TextField(L10n.Auth.email.localizedKey, text: $authViewModel.email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -72,7 +50,7 @@ struct LogInView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            SecureField("Password", text: $authViewModel.password)
+            SecureField(L10n.Auth.password.localizedKey, text: $authViewModel.password)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -88,7 +66,7 @@ struct LogInView: View {
         return Button(action: {
             authViewModel.onAuthUser()
         }) {
-            Text("Login")
+            Text(L10n.Auth.login.localizedKey)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
@@ -98,35 +76,29 @@ struct LogInView: View {
         }
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
+        .padding(.bottom, 20)
     }
     
     fileprivate func ForgetPasswordButton() -> some View {
         return Button(action: {
-            self.isShowForgetPasswordView.toggle()
+            authViewModel.isShowForgot = true
         }) {
-            Text("Forget your password?")
+            Text(L10n.Auth.forgetPassword.localizedKey)
                 .foregroundColor(.gray)
                 .padding()
-        }.sheet(isPresented: $isShowForgetPasswordView) {
+        }.sheet(isPresented: $authViewModel.isShowForgot) {
             ForgetPasswordView()
+                .environmentObject(authViewModel)
         }
     }
     
-    fileprivate func GoogleLogInButton() -> some View {
+    fileprivate func GoToSignUp() -> some View {
         return Button(action: {
-            
+            self.isShowSignUp.toggle()
         }) {
-            Image("google")
-                .renderingMode(.original)
-        }
-    }
-    
-    fileprivate func FacebookLogInButton() -> some View {
-        return Button(action: {
-            
-        }) {
-            Image("facebook")
-                .renderingMode(.original)
+            Text(L10n.Auth.dontHaveAccount.localizedKey)
+                .foregroundColor(.gray)
+                .padding()
         }
     }
     
@@ -136,21 +108,13 @@ struct LogInView: View {
                 Color.init(hex: "F9F9F9")
                     .edgesIgnoringSafeArea(.all)
                 VStack {
-                    NavigationBarView()
                     AppIcon()
                     EmailTextFiels()
                         .padding(.top, 30)
                     PasswordTextField()
                     LoginButton()
                     ForgetPasswordButton()
-                    Spacer()
-                    Text("Login with social account")
-                        .foregroundColor(.gray)
-                        .padding(.bottom, 10)
-                    HStack {
-                        GoogleLogInButton()
-                        FacebookLogInButton()
-                    }
+                    GoToSignUp()
                 }
                 if authViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
@@ -158,8 +122,12 @@ struct LogInView: View {
                 if !authViewModel.message.isEmpty {
                     CustomAlertView(message: authViewModel.message)
                 }
+                
+                NavigationLink(destination: SignupView().environmentObject(authViewModel), isActive: $isShowSignUp) {
+                    EmptyView()
+                }
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
+            .navigationBarTitle(Text(L10n.Common.emptyString.localizedKey), displayMode: .inline)
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
         }

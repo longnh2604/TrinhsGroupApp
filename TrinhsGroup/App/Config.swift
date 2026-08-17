@@ -18,12 +18,10 @@ var ONBOARD_DATA: [Onboard] = [
     Onboard(title: "Payment Method", headline: "Multiple Payment method like bank transfer, payid", image: "onboard-3", gradientColors: [Color("ColorRed"), Color("ColorRed")])
 ]
 
-///Woocommerce
-var WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
-var CONSUMER_KEY = "ck_20e71704fe5ead42ac978651c0a072dedbef5bff"
-var CONSUMER_SECRET_KEY = "cs_c64dee9d58f39cf9dacc483c770a7067d96df850"
-
-var SECURITY_CODE = "8V06LupAaMBLtQqyqTxmcN42nn27FlejvaoSM3zXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+let WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
+// CONSUMER_KEY / CONSUMER_SECRET_KEY used to live here as empty strings. Their only
+// consumers were the query-string WooCommerce calls in APIClient, which are gone. The
+// real read-only key now comes from the untracked Secrets.plist via `AppSecrets`.
 
 ///Settings
 var APP_NAME = "Trinhsgroup App"
@@ -31,5 +29,5 @@ var APP_DESCRIPTION = "Trinhsgroup App is the mobile app order for Trinhsgroup.c
 var DEVELOPER = "Trinhsgroup"
 var COMPABILITY = "iOS 13 or above"
 var WEBSITE_LABEL = "Trinhsgroup"
-var WEBSITE_LINK = "https://trinhsgroup.com.au"
+var WEBSITE_LINK = "https://trinhsgroup.au"
 var VERSION = "1.0.0"

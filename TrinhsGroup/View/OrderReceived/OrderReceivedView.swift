@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct OrderReceivedView: View {
-    
     @EnvironmentObject var mainViewModel: MainViewModel
     
     fileprivate func NavigationBarView() -> some View {
@@ -25,7 +24,7 @@ struct OrderReceivedView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
-            Text("Checkout")
+            Text(L10n.OrderReceived.checkout.localizedKey)
                 .font(.headline)
                 .padding(.horizontal, 10)
                 .background(Color.init(hex: "f9f9f9"))
@@ -34,46 +33,26 @@ struct OrderReceivedView: View {
     
     var body: some View {
         ZStack {
-            
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
-            VStack(alignment: .leading, spacing: 5, content: {
-                // NAVBAR
+            Color.init(hex: "f9f9f9")
+                .edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 0) {
                 NavigationBarView()
-                
-                Spacer()
-                
-                // DEATIL BOTTOM PART
-                VStack(alignment: .center, spacing: 0, content: {
-                    
-                    ScrollView(showsIndicators: false){
-                        
-                        HeaderOrderReceivedView()
-                        
-                        Divider()
-                            .padding(.vertical)
-                        
-                        OrderReceivedDetailView()
-                            .environmentObject(mainViewModel)
-                        
-                        Divider()
-                            .padding(.vertical)
-                        
-                        OrderReceivedItemsView()
-                            .environmentObject(mainViewModel)
-                        
-                        OrderReceivedPricesView()
-                            .padding(.bottom)
-                            .environmentObject(mainViewModel)
-                        
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
+                        HeaderOrderReceivedView(order: mainViewModel.receivedOrder)
+
+                        OrderItemsCard(order: mainViewModel.receivedOrder)
+
+                        OrderPaymentSummaryCard(order: mainViewModel.receivedOrder)
+
+                        OrderReceivedDetailView(order: mainViewModel.receivedOrder)
                     }
-                    .padding(.horizontal)
-                    
-                    
-                })
-                .padding(.top)
-                
-            }).zIndex(0)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
+                }
+            }
         }
     }
 }

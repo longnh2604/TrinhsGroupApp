@@ -14,7 +14,6 @@ struct ItemCellView: View {
     @EnvironmentObject var firestoreManager: FirestoreManager
     
     var product: Product
-    @State var show = false
     @State var isFavorite: Bool = false
     
     fileprivate func TopLabel() -> some View {
@@ -27,52 +26,37 @@ struct ItemCellView: View {
             .foregroundColor(.white)
     }
     
-    fileprivate func FevoriteButton() -> some View {
+    fileprivate func FavoriteButton() -> some View {
         return Button(action: {
-            if UserDefaultsManager.isFavorite(product.id) {
-                UserDefaultsManager.removeFavorite(product)
-                print("Remove: \(self.product.name)")
-            }else{
-                UserDefaultsManager.saveFavorite(product)
-                print("Save: \(self.product.name)")
-            }
+            // Toggle favorite without triggering navigation
+            mainViewModel.toggleFavorite(product: product)
             isFavorite.toggle()
         }) {
             Image(systemName: isFavorite ? "heart.fill" : "heart")
-                .foregroundColor(isFavorite ? .red :.gray)
+                .foregroundColor(isFavorite ? .red : .gray)
                 .frame(width: 30, height: 30)
                 .background(Color.white)
         }
         .cornerRadius(20)
         .opacity(0.9)
         .shadow(color: Color.init(hex: "dddddd"), radius: 0.5, x: 0.3, y: 0.3)
+        .buttonStyle(PlainButtonStyle()) // Prevent default button behavior
     }
     
     var body: some View {
         ZStack {
-            NavigationLink(destination: ItemDetailsView(product: product, show: self.$show).environmentObject(mainViewModel).environmentObject(firestoreManager), isActive: self.$show) {
-                Text("")
-            }
             VStack(alignment: .leading) {
-                Group{
-                    if product.images.count > 0 {
-                        KFImage(URL(string:product.images[0].src))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    }else{
-                        Image(systemName: "photo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(Color("ColorGray"))
-                    }
-                }
-                .frame(width: UIScreen.main.bounds.width / 2 - 40, height: 190)
-                .padding(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .cornerRadius(1)
+                OptimizedKFImage(
+                    url: product.images.first.flatMap { image in URL(string: image.src) },
+                    width: UIScreen.main.bounds.width / 2 - 40,
+                    height: 190,
+                    contentMode: .fill,
+                    cornerRadius: 1,
+                    placeholder: Image(systemName: "photo")
+                )
                 .overlay(
-                    FevoriteButton()
-                        .padding(5), alignment: .topTrailing)
+                    FavoriteButton()
+                        .padding(5), alignment: .bottomTrailing)
                 
                 Text(product.short_description.decodingHTMLEntities())
                     .font(.custom(Constants.AppFont.semiBoldFont, size: 14))
@@ -87,18 +71,18 @@ struct ItemCellView: View {
                     .padding(.top, 2)
                 HStack {
                     
-                    if product.sale_price != "" {
-                        Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
+                    if product.sale_price > 0 {
+                        Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "left"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
-                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(.gray) .strikethrough()
                         Text(getDiscountPercentage(regularPrice: product.regular_price, salePrice: product.sale_price))
                             .font(.custom(Constants.AppFont.regularFont, size: 11))
                             .foregroundColor(Constants.AppColor.secondaryRed)
-                    }else{
-                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                    } else {
+                        Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                             .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
                             .foregroundColor(Constants.AppColor.primaryBlack)
                     }
@@ -113,18 +97,9 @@ struct ItemCellView: View {
             .background(Color.white)
             .cornerRadius(2)
             .clipped()
-            .onTapGesture {
-                self.show.toggle()
-            }
         }
         .onAppear(){
-            isFavorite = UserDefaultsManager.isFavorite(product.id)
+            isFavorite = mainViewModel.isFavorite(productId: product.id)
         }
-    }
-}
-
-struct ItemCellView_Previews: PreviewProvider {
-    static var previews: some View {
-        ItemCellView(product: Product.default)
     }
 }

@@ -16,3 +16,8 @@ struct AppSetting: Codable {
     var decimal_separator: String
     var number_of_decimals: String
 }
+
+struct PasswordResetResponse: Decodable {
+    let message: String
+}
+

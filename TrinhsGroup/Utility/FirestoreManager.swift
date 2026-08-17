@@ -36,7 +36,7 @@ class FirestoreManager: ObservableObject {
     func fetchProductAddOns(categoryId: Int) {
         let db = Firestore.firestore()
 
-        let docRef = db.collection("productAddons").whereField("categoryId", isEqualTo: categoryId)
+        let docRef = db.collection("productAddons").whereField("categoryId", arrayContains: categoryId)
         docRef.getDocuments { querySnapshot, error in
             if let error = error {
                 print("Error getting documents: \(error)")

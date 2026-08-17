@@ -23,9 +23,10 @@ struct ItemDetailsView: View {
     fileprivate func ImageSlider() -> some View {
         return PagingView(index: $index.animation(), maxIndex: product.images.count - 1) {
             ForEach(product.images) { image in
-                KFImage(URL(string:image.src))
-                    .resizable()
-                    .scaledToFill()
+                OptimizedKFImage(
+                    url: URL(string: image.src),
+                    contentMode: .fill
+                )
             }
         }
         .aspectRatio(4/3, contentMode: .fit)
@@ -103,15 +104,15 @@ struct ItemDetailsView: View {
     fileprivate func AddToCartButton() -> some View {
         Button(action: {
             withAnimation(.spring()){
-                var newPrice = Float(product.price) ?? 0
+                var newPrice = product.price
                 firestoreManager.productAddOns.forEach { addon in
                     if addon.checked {
                         product.meta_data.append(ProductMetaData(id: addon.id, key: addon.content, value: .string(String(addon.value))))
-                        newPrice += Float(addon.value)
+                        newPrice += Double(addon.value)
                     }
                 }
-                product.price = String(newPrice)
-                product.regular_price = String(newPrice)
+                product.price = Double(newPrice)
+                product.regular_price = Double(newPrice)
                 product.meta_data = product.meta_data.filter({ return !$0.key.contains("_") })
                 mainViewModel.add(item: product)
                 show.toggle()
@@ -160,18 +161,18 @@ struct ItemDetailsView: View {
                                 .padding(.bottom, 5)
 
                             HStack {
-                                if product.sale_price != "" {
-                                    Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "right"))
+                                if product.sale_price > 0 {
+                                    Text(getPriceAndCurrencySymbol(price: product.sale_price, currency: "$", currencyPosition: "left"))
                                         .font(.custom(Constants.AppFont.boldFont, size: 14))
                                         .foregroundColor(Constants.AppColor.secondaryBlack)
-                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                                         .font(.custom(Constants.AppFont.regularFont, size: 13))
                                         .foregroundColor(.gray) .strikethrough()
                                     Text(getDiscountPercentage(regularPrice: product.regular_price, salePrice: product.sale_price))
                                         .font(.custom(Constants.AppFont.regularFont, size: 13))
                                         .foregroundColor(Constants.AppColor.secondaryRed)
-                                }else{
-                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "right"))
+                                } else {
+                                    Text(getPriceAndCurrencySymbol(price: product.regular_price, currency: "$", currencyPosition: "left"))
                                         .font(.custom(Constants.AppFont.boldFont, size: 14))
                                         .foregroundColor(Constants.AppColor.secondaryBlack)
                                 }
@@ -190,12 +191,11 @@ struct ItemDetailsView: View {
                                     CheckBoxView(checked: $firestoreManager.productAddOns[index].checked)
                                     Text("\(firestoreManager.productAddOns[index].content)")
                                     if firestoreManager.productAddOns[index].value > 0 {
-                                        Text("(+\(getPriceAndCurrencySymbol(price: String(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "right")))")
+                                        Text("(+\(getPriceAndCurrencySymbol(price: Double(firestoreManager.productAddOns[index].value), currency: "$", currencyPosition: "left")))")
                                     }
                                     Spacer()
                                 }
                             }
-                            
                         }
                         .padding(.bottom, 5)
                         .background(Color.white)
@@ -233,11 +233,5 @@ struct ItemDetailsView: View {
         .navigationBarBackButtonHidden(true).alert(isPresented: $showDialog, content: {
             Alert(title: Text("Size or Color Empty"), message: Text("Select Size and Color please"), dismissButton: .default(Text("OK")))
         })
-    }
-}
-
-struct ItemDetailsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ItemDetailsView(product: Product.default, show: .constant(false))
     }
 }

@@ -38,20 +38,34 @@ func getPrice(value: String)->String{
     return format.string(from: NSNumber(value: Float(value) ?? 0)) ?? ""
 }
 
-func getPriceAndCurrencySymbol(price: String, currency: String, currencyPosition: String)->String{
-    if currencyPosition == "right" {
-        return "\(price)\(currency)"
-    } else if currencyPosition == "right_space" {
-        return "\(price) \(currency)"
-    } else if currencyPosition == "left" {
-        return "\(currency)\(price)"
-    } else {
-        return "\(currency) \(price)"
+func getPriceAndCurrencySymbol(price: Double, currency: String, currencyPosition: String)->String{
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    formatter.minimumFractionDigits = 2
+    formatter.maximumFractionDigits = 2
+    let priceString = formatter.string(from: NSNumber(value: price)) ?? String(format: "%.2f", price)
+    
+    switch currencyPosition {
+    case "right":
+        return "\(priceString)\(currency)"
+    case "right_space":
+        return "\(priceString) \(currency)"
+    case "left":
+        return "\(currency)\(priceString)"
+    default:
+        return "\(currency) \(priceString)"
     }
 }
 
-func getDiscountPercentage(regularPrice: String, salePrice: String)->String{
-    let percentage: Int = (100 * (Int(regularPrice)! - Int(salePrice)!)) / Int(regularPrice)!
+func getDiscountPercentage(regularPrice: Double, salePrice: Double) -> String {
+    // The parentheses used to sit around `100 * regularPrice - salePrice`, which computed
+    // (1000 - 8) / 10 = 99 for a $10 item on sale at $8 — "99% OFF" instead of "20% OFF".
+    //
+    // The guard is not cosmetic: WooCommerce sends regular_price as "" for products that
+    // have no regular price, and ProductModel decodes that to 0. Dividing by it yields
+    // infinity, and Int(infinity) traps at runtime.
+    guard regularPrice > 0, salePrice > 0, salePrice < regularPrice else { return "" }
+    let percentage = Int(100 * (regularPrice - salePrice) / regularPrice)
     return "\(percentage)% OFF"
 }
 
@@ -60,8 +74,9 @@ struct Constants {
         static let primaryBlack = Color.init(hex: "1F1F1F")
         static let secondaryBlack = Color.init(hex: "464B5F")
         static let lightGrayColor = Color.init(hex: "F9F9F9")
-        static let primaryRed = Color.init(hex: "CB2D3E")
+        static let primaryRed = Color.init(hex: "D50003")
         static let secondaryRed = Color.init(hex: "EF473A")
+        static let lightRose = Color.init(hex: "f7ebeb")
         static let gradientRedHorizontal = LinearGradient(gradient: Gradient(colors: [Color.init(hex: "CB2D3E"), Color.init(hex: "EF473A")]), startPoint: .leading, endPoint: .trailing)
         static let gradientRedVertical = LinearGradient(gradient: Gradient(colors: [Color.init(hex: "CB2D3E"), Color.init(hex: "EF473A")]), startPoint: .bottom, endPoint: .top)
         static let shadowColor = Color.init(hex: "dddddd")
@@ -119,12 +134,13 @@ enum AnyCodableValue: Codable, Equatable {
                  return
              }
         
-        if let _ = try? container.decodeNil() {
-                 self = .string("")
-                 return
-             }
-        
-        throw DecodingError.typeMismatch(AnyCodableValue.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type"))
+        if container.decodeNil() {
+            self = .null
+            return
+        }
+
+        // Arrays and nested objects (e.g. meta_data value:[{...}]) — treat as null
+        self = .null
     }
     
     
@@ -142,8 +158,7 @@ enum AnyCodableValue: Codable, Equatable {
         case .boolean(let x):
             try container.encode(x)
         case .null:
-            try container.encode(self)
-            break
+            try container.encodeNil()
         }
     }
     
@@ -200,7 +215,8 @@ enum AnyCodableValue: Codable, Equatable {
         case .integer(let s):
             return (Double(s))
         case .float(let s):
-            return (Double(s) ?? 0.0)
+            // Double(Float) is not failing, so the old `?? 0.0` here was unreachable.
+            return Double(s)
         default:
             return 0.0
         }
@@ -219,6 +235,4 @@ enum AnyCodableValue: Codable, Equatable {
             return false
         }
     }
-
-    
 }

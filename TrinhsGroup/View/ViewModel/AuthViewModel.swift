@@ -8,11 +8,31 @@
 import SwiftUI
 import SwiftyJSON
 import Combine
+import UIKit
 
 class AuthViewModel: ObservableObject {
     
     @AppStorage("isLogin") var isLogin : Bool = false
-    @Published var user : User = User.default
+    /// Kept in the Keychain rather than `@AppStorage`: this token authorises every
+    /// customer, order, voucher and points request, so it is a bearer credential — see
+    /// `AuthTokenStore`. Computed so the existing call sites read and assign unchanged.
+    private var persistedJWTToken: String {
+        get { AuthTokenStore.token ?? "" }
+        set {
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                AuthTokenStore.clear()
+            } else {
+                AuthTokenStore.save(newValue)
+            }
+        }
+    }
+    @AppStorage("authUserEmail") private var persistedAuthEmail: String = ""
+    @AppStorage("authUsername") private var persistedAuthUsername: String = ""
+    @AppStorage("authDisplayName") private var persistedAuthDisplayName: String = ""
+    @AppStorage("tokenExpirationDate") private var tokenExpirationTimestamp: Double = 0
+    @AppStorage("localAvatarURL") var localAvatarURL: String = ""
+    @Published var user : User = .empty
+    @Published var authUser: UserAuth?
     @Published var username = ""
     @Published var email = ""
     @Published var password = ""
@@ -22,33 +42,182 @@ class AuthViewModel: ObservableObject {
     @Published var showEditAddress = false
     @Published var isUpdatedUser = false
     @Published var isCreatedUser = false
+    @Published var isShowForgot = false
+    @Published var isTokenExpired = false
     
     private var service: AuthServices = AuthServices()
     private var cancellableSet: Set<AnyCancellable> = []
     
     init(service: AuthServices = AuthServices()) {
         self.service = service
+        validateAndRestoreSession()
         self.bindingData()
     }
     
+    // MARK: - Token Validation
+    
+    /// Validate token expiration and restore session if valid
+    private func validateAndRestoreSession() {
+        // Check if we have stored credentials
+        guard persistedJWTToken.nonEmptyValue != nil,
+              persistedAuthEmail.nonEmptyValue != nil else {
+            // No stored session, user needs to login
+            print("🔐 No stored session found")
+            isLogin = false
+            return
+        }
+        
+        // Check if token is expired
+        if isTokenExpiredCheck() {
+            print("🔐 Token expired, clearing session")
+            clearExpiredSession()
+            isTokenExpired = true
+            return
+        }
+        
+        // Token is still valid, restore session
+        print("🔐 Token valid, restoring session")
+        restorePersistedAuthSession()
+    }
+    
+    /// Check if the stored token has expired
+    func isTokenExpiredCheck() -> Bool {
+        // First try to decode expiration from JWT token
+        if let expDate = decodeJWTExpiration(token: persistedJWTToken) {
+            let isExpired = expDate < Date()
+            print("🔐 JWT expiration date: \(expDate), isExpired: \(isExpired)")
+            return isExpired
+        }
+        
+        // Fallback to stored expiration timestamp
+        if tokenExpirationTimestamp > 0 {
+            let expDate = Date(timeIntervalSince1970: tokenExpirationTimestamp)
+            let isExpired = expDate < Date()
+            print("🔐 Stored expiration date: \(expDate), isExpired: \(isExpired)")
+            return isExpired
+        }
+        
+        // If we can't determine expiration, assume token is valid
+        print("🔐 No expiration info found, assuming token is valid")
+        return false
+    }
+    
+    /// Decode JWT token to extract expiration date
+    private func decodeJWTExpiration(token: String) -> Date? {
+        let segments = token.components(separatedBy: ".")
+        guard segments.count == 3 else {
+            print("🔐 Invalid JWT format")
+            return nil
+        }
+        
+        // JWT payload is the second segment (Base64 encoded)
+        var base64String = segments[1]
+        
+        // Add padding if needed (Base64 requires length to be multiple of 4)
+        let remainder = base64String.count % 4
+        if remainder > 0 {
+            base64String += String(repeating: "=", count: 4 - remainder)
+        }
+        
+        // Replace URL-safe characters
+        base64String = base64String
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        
+        guard let payloadData = Data(base64Encoded: base64String) else {
+            print("🔐 Failed to decode JWT Base64")
+            return nil
+        }
+        
+        guard let payload = try? JSONSerialization.jsonObject(with: payloadData) as? [String: Any] else {
+            print("🔐 Failed to parse JWT payload JSON")
+            return nil
+        }
+        
+        // JWT standard uses "exp" claim (Unix timestamp). JSONSerialization returns
+        // integer JSON values as NSNumber, so cast via NSNumber to cover Int and Double.
+        if let exp = (payload["exp"] as? NSNumber)?.doubleValue {
+            let expirationDate = Date(timeIntervalSince1970: exp)
+            print("🔐 Decoded JWT expiration: \(expirationDate)")
+            return expirationDate
+        }
+
+        print("🔐 No 'exp' claim found in JWT")
+        return nil
+    }
+    
+    /// Clear expired session data
+    private func clearExpiredSession() {
+        authUser = nil
+        user = .empty
+        isLogin = false
+        persistedJWTToken = ""
+        persistedAuthEmail = ""
+        persistedAuthUsername = ""
+        persistedAuthDisplayName = ""
+        tokenExpirationTimestamp = 0
+        localAvatarURL = ""
+    }
+    
+    /// Called to dismiss token expired message
+    public func dismissTokenExpiredMessage() {
+        isTokenExpired = false
+    }
+    
+    /// Save token expiration timestamp when login
+    private func saveTokenExpiration(token: String) {
+        if let expDate = decodeJWTExpiration(token: token) {
+            tokenExpirationTimestamp = expDate.timeIntervalSince1970
+            print("🔐 Saved token expiration: \(expDate)")
+        }
+    }
+    
+    // MARK: - Binding Data
+    
     func bindingData() {
         service.loadingPublisher
-            .dropFirst()
             .receive(on: RunLoop.main)
-            .assign(to: &$showLoading)
+            .sink { [weak self] isLoading in
+                self?.showLoading = isLoading
+            }
+            .store(in: &cancellableSet)
         
         service.errorPublisher
             .receive(on: RunLoop.main)
-            .sink { error in
-                self.message = error
+            .sink { [weak self] error in
+                self?.message = error
             }
             .store(in: &cancellableSet)
         
         service.userPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$user)
+            .sink { [weak self] user in
+                self?.user = user
+                if user.id > 0 {
+                    self?.registerFCMTokenIfNeeded(userID: user.id)
+                }
+            }
+            .store(in: &cancellableSet)
+
+        NotificationCenter.default.publisher(for: Notification.Name("FCMToken"))
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self = self, self.user.id > 0 else { return }
+                self.registerFCMTokenIfNeeded(userID: self.user.id)
+            }
+            .store(in: &cancellableSet)
+
+        NotificationCenter.default.publisher(for: .sessionExpired)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self = self, self.isLogin else { return }
+                self.logout()
+                self.isTokenExpired = true
+            }
+            .store(in: &cancellableSet)
         
         service.loginPublisher
+            .dropFirst()
             .receive(on: RunLoop.main)
             .sink { isLogined in
                 self.isLogin = isLogined
@@ -74,14 +243,118 @@ class AuthViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellableSet)
+        
+        service.forgotPublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { isReset in
+                self.isShowForgot = !isReset
+            }
+            .store(in: &cancellableSet)
+        
+        service.authenticatePublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { authUser in
+                self.authUser = authUser
+                if let authUser {
+                    self.persistedJWTToken = authUser.token
+                    self.persistedAuthEmail = authUser.email
+                    self.persistedAuthUsername = authUser.username
+                    self.persistedAuthDisplayName = authUser.displayName
+                    // Save token expiration when login
+                    self.saveTokenExpiration(token: authUser.token)
+                }
+            }
+            .store(in: &cancellableSet)
     }
     
+    // MARK: - FCM Token Registration
+
+    private func registerFCMTokenIfNeeded(userID: Int) {
+        guard let token = UserDefaults.standard.string(forKey: "fcm_token"), !token.isEmpty else {
+            print("📱 FCM register skipped — no token in UserDefaults yet")
+            return
+        }
+        guard let jwt = AuthTokenStore.token else {
+            print("📱 FCM register skipped — no JWT for the current session")
+            return
+        }
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)\(WooCommerceEndpoint.fcmRegister.urlPath())") else {
+            print("📱 FCM register skipped — invalid URL")
+            return
+        }
+
+        print("📱 FCM register POST → \(url.absoluteString) token_prefix=\(token.prefix(16))…")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        // No user_id — the server binds the device to the JWT's own account.
+        let body: [String: Any] = ["fcm_token": token]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("📱 FCM register ❌ network error: \(error.localizedDescription)")
+                return
+            }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let bodyText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
+            print("📱 FCM register response status=\(status) body=\(bodyText)")
+        }.resume()
+    }
+
+    /// Detach this device from the account signing out, so its order pushes stop arriving.
+    ///
+    /// Takes the JWT as an argument rather than reading `AuthTokenStore` itself, because
+    /// `logout()` clears that Keychain entry on the very next line and the request needs the
+    /// credential of the session being ended.
+    ///
+    /// Best effort, and deliberately not awaited — a customer signing out must not wait on
+    /// the network. Two of the four logout paths fire *because* the session expired, so the
+    /// server will reject those with a 401 and the binding survives; the server clears a
+    /// stale binding on the next `/fcm/register` instead. The local token stays in
+    /// `UserDefaults`: it identifies the device, not the account, and the next account to
+    /// sign in on this phone re-registers the same one.
+    private func unregisterFCMToken(jwt: String?) {
+        guard let jwt = jwt, !jwt.isEmpty else {
+            print("📱 FCM unregister skipped — no JWT for the session being ended")
+            return
+        }
+        guard let token = UserDefaults.standard.string(forKey: "fcm_token"), !token.isEmpty else {
+            print("📱 FCM unregister skipped — no token in UserDefaults")
+            return
+        }
+        guard let url = URL(string: "\(WOOCOMMERCE_URL)\(WooCommerceEndpoint.fcmUnregister.urlPath())") else {
+            print("📱 FCM unregister skipped — invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["fcm_token": token])
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("📱 FCM unregister ❌ network error: \(error.localizedDescription)")
+                return
+            }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let bodyText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
+            print("📱 FCM unregister response status=\(status) body=\(bodyText)")
+        }.resume()
+    }
+
+    // MARK: - Public Methods
+
     public func createUser() {
         if username.isEmpty || email.isEmpty || password.isEmpty {
             message = "Please fill all data"
             return
         }
-        service.createUser(username: username, password: password, email: email)
+        service.createUser(username: username, firstName: "", lastName: "", password: password, email: email)
     }
     
     public func onAuthUser() {
@@ -92,19 +365,137 @@ class AuthViewModel: ObservableObject {
         service.onAuthUser(email: email, password: password)
     }
     
-    public func onUpdateUser(user: User) {
-        service.updateUser(user: user, password: password)
+    public func onUpdateUser(user: User, password: String? = nil) {
+        service.updateUser(user: user, password: password ?? self.password)
     }
     
     public func checkUserUpdatedBillInfo() -> Bool {
-        if !user.billing.checkFilledData() {
-            message = "Please fill your billing info before start to create order, thank you."
-            return false
-        }
+//        if !user.billing.checkFilledData() {
+//            message = "Please fill your billing info before start to create order, thank you."
+//            return false
+//        }
         return true
     }
     
     public func onGetUser() {
-        service.fetchingUserInfo(id: user.id)
+        restorePersistedAuthSession()
+
+        // The signed-in account is identified by the JWT, so nothing needs to be passed.
+        guard AuthTokenStore.token != nil else { return }
+        service.fetchingUserInfo()
+    }
+    
+    public func onForgotPassword(email: String) {
+        service.onForgotPassword(email: email)
+    }
+
+    public func onUpdateAvatar(
+        image: UIImage,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        guard let imageData = image.jpegData(compressionQuality: 0.85) else {
+            let error = NSError(
+                domain: "AuthViewModel",
+                code: 422,
+                userInfo: [NSLocalizedDescriptionKey: "Không thể xử lý ảnh đã chọn."]
+            )
+            message = error.localizedDescription
+            completion(.failure(error))
+            return
+        }
+
+        service.updateAvatar(userId: user.id, imageData: imageData, mimeType: "image/jpeg") { [weak self] result in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let avatarURL):
+                    self.user.avatar_url = avatarURL
+                    self.localAvatarURL = avatarURL
+                    completion(.success(()))
+                case .failure(let error):
+                    self.message = error.localizedDescription
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    public func onRemoveAvatar(
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        service.removeAvatar(userId: user.id) { [weak self] result in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.user.avatar_url = nil
+                    self.localAvatarURL = ""
+                    completion(.success(()))
+                case .failure(let error):
+                    self.message = error.localizedDescription
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    /// Permanently delete the signed-in customer account, then clear the local session.
+    public func onDeleteAccount(completion: @escaping (Bool) -> Void) {
+        guard user.id > 0 else {
+            message = "Invalid user account"
+            completion(false)
+            return
+        }
+        showLoading = true
+        service.deleteAccount { [weak self] result in
+            guard let self = self else { return }
+            self.showLoading = false
+            switch result {
+            case .success:
+                self.logout()
+                completion(true)
+            case .failure:
+                completion(false)
+            }
+        }
+    }
+
+    public func logout() {
+        // First, while the JWT still exists: without this the server keeps pushing this
+        // account's order updates to the device after sign-out, and if another account signs
+        // in here both end up holding the same device token.
+        unregisterFCMToken(jwt: AuthTokenStore.token)
+
+        authUser = nil
+        user = .empty
+        isLogin = false
+        persistedJWTToken = ""
+        persistedAuthEmail = ""
+        persistedAuthUsername = ""
+        persistedAuthDisplayName = ""
+        tokenExpirationTimestamp = 0
+        password = ""
+        localAvatarURL = ""
+    }
+
+    private func restorePersistedAuthSession() {
+        guard authUser == nil else { return }
+        guard let token = persistedJWTToken.nonEmptyValue,
+              let email = persistedAuthEmail.nonEmptyValue else {
+            return
+        }
+
+        authUser = UserAuth(
+            token: token,
+            email: email,
+            username: persistedAuthUsername,
+            displayName: persistedAuthDisplayName
+        )
+    }
+}
+
+private extension String {
+    var nonEmptyValue: String? {
+        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : self
     }
 }

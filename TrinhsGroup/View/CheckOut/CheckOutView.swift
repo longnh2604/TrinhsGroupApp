@@ -6,201 +6,429 @@
 //
 
 import SwiftUI
-import Stripe
 
 struct CheckOutView: View {
-    
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mainViewModel: MainViewModel
-    let config = STPPaymentConfiguration.shared
-    @State private var paymentContext: STPPaymentContext!
     @StateObject var stripeManager = StripeManager()
+    @StateObject var pointsViewModel = PointsViewModel()
+    @State private var checkoutURL: URL?
+    @State private var showSafari: Bool = false
+    @State private var selectedPickupDateTime: Date?
+    @State private var currentStripeOrderId: Int? = nil
+    @State private var selectedVoucher: VoucherResponse? = nil
+    @State private var showVoucherPicker: Bool = false
+    @State private var orderError: String? = nil
+    /// The server's price for this basket. Nil until it answers, or when it could not be asked.
+    @State private var quote: OrderQuote? = nil
+
+    /// The basket as line items. One description of it, shared by the quote and both order
+    /// paths, so the figure quoted and the figure ordered cannot come from different baskets.
+    private var productOrders: [ProductOrder] {
+        mainViewModel.items.map { item in
+            ProductOrder(
+                id: 0,
+                product_id: item.id,
+                name: item.name,
+                quantity: item.quantity,
+                subtotal: "",
+                total: item.regular_price,
+                price: item.regular_price,
+                meta_data: item.meta_data,
+                addOnChoices: item.addOnChoices
+            )
+        }
+    }
+
+    /// Asks the server what this basket costs. Re-asked whenever the answer could change: the
+    /// add-ons are priced by YITH and the 5% cash-on-pickup discount is a gateway fee, so both
+    /// the basket and the chosen payment method are part of the question.
+    private func refreshQuote() {
+        guard !mainViewModel.items.isEmpty, mainViewModel.selectedPayment != nil else {
+            quote = nil
+            return
+        }
+
+        mainViewModel.onFetchOrderQuote(
+            productOrders: productOrders,
+            couponCode: selectedVoucher?.code
+        ) { result in
+            switch result {
+            case .success(let fresh):
+                quote = fresh
+            case .failure:
+                // Fall back to the local sum rather than blocking checkout. It can only be low
+                // by the discount, never high, and the order itself is still priced server-side.
+                quote = nil
+            }
+        }
+    }
+
+    // Computed property: enable only when payments fetched and a method selected, and pickup time chosen
+    private var isSubmitEnabled: Bool {
+        let availablePayments = mainViewModel.payments.filter { $0.enabled }
+        let hasFetchedPayments = !availablePayments.isEmpty
+        let hasSelectedPayment = mainViewModel.selectedPayment != nil
+        let hasPickupTime = selectedPickupDateTime != nil
+        return hasFetchedPayments && hasSelectedPayment && hasPickupTime
+    }
     
+    // Format pickup datetime for API
+    private func formatPickupDateTimeForAPI(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        formatter.timeZone = TimeZone(identifier: "Australia/Sydney")
+        return formatter.string(from: date)
+    }
+
     fileprivate func SubmitButton() -> some View {
         Button(action: {
-            if !authViewModel.checkUserUpdatedBillInfo() { return }
-            
-            if mainViewModel.selectedPayment.id == Payment.default.id {
-                mainViewModel.message = "Please select a payment method"
+            orderError = nil
+            mainViewModel.message = ""
+            if authViewModel.isTokenExpiredCheck() {
+                authViewModel.logout()
+                authViewModel.isTokenExpired = true
                 return
             }
-            
-            if mainViewModel.selectedPayment.id == "stripe" {
-                stripeManager.preparePaymentSheet()
+            guard authViewModel.checkUserUpdatedBillInfo() else { return }
+            guard let pickupDateTime = selectedPickupDateTime else { return }
+
+            if mainViewModel.selectedPayment?.id == "stripe" {
+                // Handle Stripe payment flow with Payment Sheet
+                // Create order first
+                mainViewModel.onCreateOrder(
+                    user: authViewModel.user,
+                    productOrders: productOrders,
+                    pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime),
+                    couponCode: selectedVoucher?.code
+                ) { orderId, paymentURLString in
+                    // Handle Stripe payment flow
+                    guard let orderId = orderId else {
+                        print("Failed to create Stripe order")
+                        stripeManager.lastError = "Failed to create order. Please try again."
+                        return
+                    }
+                    
+                    print("Stripe order created successfully with ID: \(orderId)")
+                    print("Payment URL: \(paymentURLString ?? "nil")")
+                    
+                    // Store order ID for later reference
+                    currentStripeOrderId = orderId
+                    
+                    // Prepare Stripe Payment Sheet from order
+                    stripeManager.preparePaymentSheetFromOrder(orderId: orderId) { success in
+                        if success {
+                            // Present payment sheet with completion handler
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                stripeManager.presentPaymentSheet { result in
+                                    // Handle Stripe payment result
+                                    switch result {
+                                    case .completed:
+                                        // Payment successful - navigate to order received
+                                        print("Payment completed successfully")
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            // Clear selected voucher (it's now used)
+                                            selectedVoucher = nil
+                                            
+                                            // Clear cache to force fresh data
+                                            APIClient.clearCache()
+                                            
+                                            // Refresh data to get updated vouchers and points
+                                            pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
+                                            pointsViewModel.fetchPoints(userId: authViewModel.user.id)
+                                            
+                                            mainViewModel.reset()
+                                            mainViewModel.presentedType = .orderReceived
+                                        }
+                                    case .canceled:
+                                        // User canceled - do nothing, just show message
+                                        print("Payment canceled by user")
+                                        stripeManager.lastError = "Payment was canceled."
+                                    case .failed(let error):
+                                        // Payment failed - show error, do NOT navigate
+                                        print("Payment failed: \(error.localizedDescription)")
+                                        stripeManager.lastError = "Payment failed: \(error.localizedDescription). Please try again."
+                                    }
+                                }
+                            }
+                        } else {
+                            // Fallback: if payment sheet preparation fails, use payment URL in Safari
+                            print("Payment sheet preparation failed, falling back to payment URL")
+                            if let paymentURLString = paymentURLString, let url = URL(string: paymentURLString) {
+                                print("Opening Safari with payment URL: \(paymentURLString)")
+                                checkoutURL = url
+                                // Use main thread to update UI
+                                DispatchQueue.main.async {
+                                    showSafari = true
+                                }
+                            } else {
+                                print("Failed to prepare Stripe payment sheet and no payment URL available")
+                                // Show error to user
+                                stripeManager.lastError = "Failed to initialize payment. Please try again or contact support."
+                            }
+                        }
+                    }
+                }
+
                 return
             }
-            
-            var productOrders = [ProductOrder]()
 
-            for order_item in mainViewModel.items {
-                productOrders.append(ProductOrder(id: 0, product_id: order_item.id, name: order_item.name, quantity: order_item.quantity, subtotal: "", total: order_item.regular_price, price: Double(order_item.regular_price) ?? 0, meta_data: order_item.meta_data))
+            mainViewModel.onCreateOrder(
+                user: authViewModel.user,
+                productOrders: productOrders,
+                pickupDateTime: formatPickupDateTimeForAPI(pickupDateTime),
+                couponCode: selectedVoucher?.code
+            ) { orderId, paymentURL in
+                // Handle successful order creation
+                if let orderId = orderId {
+                    print("Order created successfully with ID: \(orderId)")
+                    
+                    // Clear selected voucher (it's now used)
+                    selectedVoucher = nil
+                    
+                    // Clear cache to force fresh data
+                    APIClient.clearCache()
+                    
+                    // Refresh data to get updated vouchers and points
+                    pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
+                    pointsViewModel.fetchPoints(userId: authViewModel.user.id)
+                    
+                    mainViewModel.reset()
+                    mainViewModel.presentedType = .orderReceived
+                } else {
+                    orderError = "Failed to place order. Please try again."
+                }
             }
-
-//            var shippingOrders = [ShippingOrder]()
-//            shippingOrders.append(ShippingOrder(method_id: mainViewModel.selectedShip.method_id, total: mainViewModel.selectedShip.settings.cost.value))
-
-            mainViewModel.onCreateOrder(user: authViewModel.user,productOrders: productOrders)
         }) {
             Text("Submit Order")
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 50)
-                .frame(minWidth: 0, maxWidth: .infinity)
-                .background(Color("ColorPrimary"))
+                .frame(maxWidth: .infinity)
+                .background((stripeManager.isPreparing || !isSubmitEnabled) ? Color.gray : Color("ColorPrimary"))
                 .cornerRadius(25)
         }
-        .onAppear {
-            paymentContextConfiguration()
-        }
+        .disabled(stripeManager.isPreparing || !isSubmitEnabled)
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
     }
-    
-    fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Button(action: {
-                self.mainViewModel.presentedType = .cart
-            }) {
-                Image(systemName: "arrow.left")
-                    .foregroundColor(Constants.AppColor.secondaryBlack)
-            }
-            .padding(.leading, 10)
-            .frame(width: 40, height: 40)
-            Spacer()
-        }
-        .frame(width: UIScreen.main.bounds.width, height: 45)
-        .overlay(
-            Text("Checkout")
-                .font(.headline)
-                .padding(.horizontal, 10)
-                .background(Color.init(hex: "f9f9f9"))
-            , alignment: .center)
-    }
-    
+
     var body: some View {
         NavigationView {
             ZStack {
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
+                Color.init(hex: "f9f9f9").edgesIgnoringSafeArea(.all)
                 VStack {
-                    NavigationBarView()
+                    HStack {
+                        Button(action: {
+                            // Dismiss checkout and go back to previous screen
+                            mainViewModel.presentedType = .none
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "chevron.left")
+                                Text("Back")
+                            }
+                            .foregroundColor(Color("ColorPrimary"))
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 15)
+                    .padding(.top, 10)
+
                     ScrollView {
                         VStack(alignment: .leading) {
+                            Text("Select Payment").font(.headline)
+
+                            ForEach(mainViewModel.payments.filter { $0.enabled }) { item in
+                                PaymentItemView(item: item)
+                                    .environmentObject(mainViewModel)
+                            }
+                            
+                            // Pickup Date & Time Selection
+                            PickupDateTimeView(selectedDateTime: $selectedPickupDateTime)
+                                .padding(.top, 20)
+                            
+                            // Voucher Selection Section
+                            VoucherSelectionView(
+                                vouchers: pointsViewModel.availableVouchers,
+                                selectedVoucher: $selectedVoucher,
+                                isLoading: pointsViewModel.isLoadingVouchers
+                            )
+                            .padding(.top, 20)
+                            
+                            // Totals. The server's quote when it has answered — it is the only
+                            // thing that knows what YITH charges for the add-ons and what the
+                            // cash-on-pickup gateway fee takes off. The local sum is the
+                            // fallback, and can only be missing a discount, never adding a charge.
+                            let subtotal = quote?.subtotalValue ?? mainViewModel.total
+                            let voucherDiscount = quote?.discountValue ?? (selectedVoucher?.amount ?? 0)
+                            let finalTotal = quote?.totalValue
+                                ?? max(0, mainViewModel.total - (selectedVoucher?.amount ?? 0))
+
                             HStack {
-                                Text("Delivery Option")
-                                    .font(.headline)
-                                Spacer(minLength: 20)
-                            }
-                            .padding(.top, 5)
-                            
-                            ZStack(alignment: .top) {
-                                Rectangle()
-                                    .foregroundColor(.white)
-                                    .cornerRadius(5)
-                                    .shadow(color: Color.init(hex: "dddddd"), radius: 2, x: 0.8, y: 0.8)
-                                VStack(alignment: .leading, spacing: 10){
-                                    ForEach(mainViewModel.shipMethods) { item in
-                                        ShippingItemView(item: item).environmentObject(mainViewModel)
-                                    }
-                                }
-                                .padding(5)
-                            }
-                            
-                            HStack {
-                                Text("Select Payment")
-                                    .font(.headline)
-                                Spacer(minLength: 20)
-                            }
-                            .padding(.top, 10)
-                            
-                            ZStack(alignment: .top) {
-                                Rectangle()
-                                    .foregroundColor(.white)
-                                    .cornerRadius(5)
-                                    .shadow(color: Color.init(hex: "dddddd"), radius: 2, x: 0.8, y: 0.8)
-                                VStack(alignment: .leading, spacing: 10) {
-                                    ForEach(mainViewModel.payments.filter({ $0.enabled == true}), id: \.self) { item in
-                                        PaymentItemView(item: item)
-                                            .environmentObject(mainViewModel)
-                                    }
-                                    if mainViewModel.selectedPayment.description != "" {
-                                        Text(mainViewModel.selectedPayment.description)
-                                            .multilineTextAlignment(.leading)
-                                            .padding(.horizontal, 10).fixedSize(horizontal: false, vertical: true)
-                                    }
-                                }
-                                .padding(5)
-                            }
-                            
-                            HStack {
-                                Text("Order:")
-                                    .foregroundColor(.gray)
+                                Text("Subtotal").foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: String(mainViewModel.subtotal), currency: "$", currencyPosition: "right"))
-                                    .bold()
-                            }.padding(.top, 30)
-                            
+                                Text(getPriceAndCurrencySymbol(price: subtotal, currency: "$", currencyPosition: "left"))
+                            }
+                            .padding(.top, 15)
+
+                            if voucherDiscount > 0 {
+                                HStack {
+                                    Text(selectedVoucher.map { "Voucher (\($0.code))" } ?? "Voucher")
+                                        .foregroundColor(.green)
+                                    Spacer()
+                                    Text("-" + getPriceAndCurrencySymbol(price: voucherDiscount, currency: "$", currencyPosition: "left"))
+                                        .foregroundColor(.green)
+                                }
+                                .padding(.top, 6)
+                            }
+
+                            // Fee rows carry the server's own labels, so the 5% shows up as the
+                            // website named it and no rate is held in the app.
+                            ForEach(Array((quote?.fees ?? []).enumerated()), id: \.offset) { _, fee in
+                                HStack {
+                                    Text(fee.name).foregroundColor(fee.amount < 0 ? .green : .gray)
+                                    Spacer()
+                                    Text((fee.amount < 0 ? "-" : "")
+                                         + getPriceAndCurrencySymbol(price: abs(fee.amount), currency: "$", currencyPosition: "left"))
+                                        .foregroundColor(fee.amount < 0 ? .green : .gray)
+                                }
+                                .padding(.top, 6)
+                            }
+
                             HStack {
-                                Text("Total:")
-                                    .foregroundColor(.gray)
+                                Text("Total:").foregroundColor(.gray)
                                 Spacer()
-                                Text(getPriceAndCurrencySymbol(price: String(mainViewModel.total), currency: "$", currencyPosition: "right"))
+                                Text(getPriceAndCurrencySymbol(price: finalTotal, currency: "$", currencyPosition: "left"))
                                     .bold()
-                            }.padding(.top, 15)
-                            Spacer()
-                        }.padding(15)
+                            }
+                            if let msg = stripeManager.lastError {
+                                Text(msg).foregroundColor(.red).font(.footnote)
+                            }
+                            if let msg = orderError {
+                                Text(msg).foregroundColor(.red).font(.footnote)
+                            }
+                            if !mainViewModel.message.isEmpty {
+                                Text(mainViewModel.message).foregroundColor(.red).font(.footnote)
+                            }
+                        }
+                        .padding(15)
                     }
                     SubmitButton()
                 }
+                
                 if mainViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
                 }
-                if !authViewModel.message.isEmpty {
-                    CustomAlertView(message: authViewModel.message)
-                }
-                if !mainViewModel.message.isEmpty {
-                    CustomAlertView(message: mainViewModel.message)
+            }
+            .onAppear {
+                DispatchQueue.main.async {
+                    mainViewModel.onFetchPaymentMethods()
+                    // Fetch user's available vouchers
+                    pointsViewModel.fetchVouchers(userId: authViewModel.user.id)
+                    refreshQuote()
                 }
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
-            .navigationBarHidden(true)
-            .navigationBarBackButtonHidden(true)
-            .onAppear(){
-                mainViewModel.fetchPayments()
-                mainViewModel.fetchZones()
+            // The gateway decides the fee and the voucher decides the discount, so either one
+            // changing makes the displayed total stale.
+            .onChange(of: mainViewModel.selectedPayment?.id) { _ in
+                refreshQuote()
+            }
+            .onChange(of: selectedVoucher?.code) { _ in
+                refreshQuote()
+            }
+            // Present Safari for the checkout
+            .sheet(isPresented: $showSafari, onDismiss: {
+                // When Safari is dismissed, check if we need to verify order status
+                // Only check if we haven't received a deep link callback
+                if let orderId = currentStripeOrderId {
+                    print("Safari dismissed, order ID: \(orderId)")
+                    // Note: If payment was successful, deep link should have been called
+                    // If no deep link was received, payment might still be pending
+                    // We'll check order status via API if needed
+                }
+            }) {
+                if let url = checkoutURL {
+                    SafariSheet(
+                        url: url,
+                        isPresented: $showSafari,
+                        onDismiss: {
+                            print("Safari sheet dismissed")
+                            mainViewModel.reset()
+                            mainViewModel.presentedType = .orderReceived
+                        }
+                    )
+                }
+            }
+            .onOpenURL { url in
+                // Handle deep link at view level as well (backup)
+                guard url.scheme == "trinhsgroup",
+                      url.host == "checkout" else { return }
+
+                let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                let orderId = components?.queryItems?.first(where: {$0.name == "order_id"})?.value
+                let status = components?.queryItems?.first(where: {$0.name == "status"})?.value
+
+                print("Deep link received in CheckOutView - Order ID: \(orderId ?? "nil"), Status: \(status ?? "nil")")
+                
+                // Dismiss Safari
+                showSafari = false
+                
+                // Only navigate to OrderReceivedView if payment status is success/completed
+                if let status = status, (status.lowercased() == "completed" || status.lowercased() == "processing" || status.lowercased() == "success") {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        mainViewModel.reset()
+                        mainViewModel.presentedType = .orderReceived
+                    }
+                } else {
+                    // Payment failed or pending - show error
+                    stripeManager.lastError = "Payment was not completed. Please try again or contact support."
+                }
             }
         }
-    }
-    
-    // Configuration stripe payment
-    func paymentContextConfiguration() {
-        let customerContext = STPCustomerContext(keyProvider: MyAPIClient())
-        self.config.shippingType = .shipping
-        self.config.requiredBillingAddressFields = .full
-        
-        self.config.requiredShippingAddressFields = [.postalAddress, .emailAddress]
-        
-        self.config.companyName = "Testing"
-        
-        self.paymentContext = STPPaymentContext(customerContext: customerContext, configuration: self.config, theme: .defaultTheme)
-        
-//        self.paymentContext.delegate = self.paymentContextDelegate
-        
-        let keyWindow = UIApplication.shared.connectedScenes
-                        .filter({$0.activationState == .foregroundActive})
-                        .map({$0 as? UIWindowScene})
-                        .compactMap({$0})
-                        .first?.windows
-            .filter({$0.isKeyWindow}).first
-        
-        self.paymentContext.hostViewController = keyWindow?.rootViewController
-        self.paymentContext.paymentAmount = 20
-        
     }
 }
 
 struct CheckOutView_Previews: PreviewProvider {
     static var previews: some View {
         CheckOutView()
+    }
+}
+
+import SafariServices
+import SwiftUI
+
+struct SafariSheet: UIViewControllerRepresentable {
+    let url: URL
+    @Binding var isPresented: Bool
+    var onDismiss: (() -> Void)? = nil
+    
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let vc = SFSafariViewController(url: url)
+        vc.preferredBarTintColor = .systemBackground
+        vc.preferredControlTintColor = .label
+        vc.dismissButtonStyle = .close
+        vc.delegate = context.coordinator
+        return vc
+    }
+    
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, SFSafariViewControllerDelegate {
+        var parent: SafariSheet
+        
+        init(_ parent: SafariSheet) {
+            self.parent = parent
+        }
+        
+        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+            // Called when user dismisses Safari
+            print("SafariViewController dismissed")
+            parent.isPresented = false
+            parent.onDismiss?()
+        }
     }
 }

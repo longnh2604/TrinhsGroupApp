@@ -19,10 +19,13 @@ struct CategoryRowView: View {
                 .foregroundColor(Constants.AppColor.secondaryBlack)
                 .padding(.leading, 20)
             Spacer()
-            KFImage(URL(string:category.image!.src))
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: getRect().width / 2 - 15, height: getRect().width / 2 - 30)
+            OptimizedKFImage(
+                url: category.image.flatMap { image in URL(string: image.src) },
+                width: getRect().width / 2 - 15,
+                height: getRect().width / 2 - 30,
+                contentMode: .fill,
+                cornerRadius: 10
+            )
         }
         .background(Color.white)
         .cornerRadius(10)

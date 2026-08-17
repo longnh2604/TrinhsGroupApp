@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WooImage: Identifiable, Codable  {
+struct WooImage: Identifiable, Codable, Equatable {
     var id: Int
     var src: String
 }

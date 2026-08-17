@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ForgetPasswordView: View {
-    
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State var email : String = ""
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
@@ -26,14 +26,14 @@ struct ForgetPasswordView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: 45)
         .overlay(
-            Text("Forget Password")
+            Text(L10n.Auth.forgetPasswordTitle.localizedKey)
                 .font(.headline)
                 .padding(.horizontal, 10)
                 .background(Color.init(hex: "f9f9f9"))
             , alignment: .center)
     }
     
-    fileprivate func EmailTextFiels() -> some View {
+    fileprivate func EmailTextField() -> some View {
         return HStack {
             Image(systemName: "envelope.fill")
                 .resizable()
@@ -41,7 +41,7 @@ struct ForgetPasswordView: View {
                 .frame(width: 20, height: 20)
                 .padding(.leading, 20)
                 .foregroundColor(Color("ColorPrimary"))
-            TextField("Email", text: $email)
+            TextField(L10n.Auth.email.localizedKey, text: $email)
                 .padding(.leading, 12)
                 .font(.system(size: 20))
                 .frame(height: 55)
@@ -55,18 +55,31 @@ struct ForgetPasswordView: View {
     
     fileprivate func SendButton() -> some View {
         return Button(action: {
-            
+            authViewModel.onForgotPassword(email: email)
         }) {
-            Text("Send")
+            Text(L10n.Auth.send.localizedKey)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(LinearGradient(gradient: Gradient(colors: [Color.init(hex: "cb2d3e"), Color.init(hex: "ef473a")]), startPoint: .leading, endPoint: .trailing))
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: isEmailValid ? [Color(hex: "cb2d3e"), Color(hex: "ef473a")] : [Color.gray, Color.gray]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
+        .disabled(!isEmailValid) // 👈 disable when email is invalid
+    }
+    
+    var isEmailValid: Bool {
+        // simple regex, you can make it stricter if needed
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
     }
     
     var body: some View {
@@ -76,17 +89,30 @@ struct ForgetPasswordView: View {
                     .edgesIgnoringSafeArea(.all)
                 VStack {
                     NavigationBarView()
-                    Text("Please, enter your email address. You will receive a link to create a new password via email.")
+                    Text(L10n.Auth.enterEmailPrompt.localizedKey)
                         .foregroundColor(.gray)
                         .padding([.trailing, .leading], 20)
                         .padding(.top, 50)
                         .lineLimit(nil)
-                    EmailTextFiels()
+                    EmailTextField()
+                    
+                    if !isEmailValid && !email.isEmpty {
+                        Text(L10n.Auth.invalidEmail.localizedKey)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.leading, 30)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
                     SendButton()
                     Spacer()
                 }
+                
+                if authViewModel.showLoading {
+                    LoadingView().ignoresSafeArea()
+                }
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
+            .navigationBarTitle(Text(L10n.Common.emptyString.localizedKey), displayMode: .inline)
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
         }

@@ -30,6 +30,7 @@ class MainViewModel: ObservableObject {
     @Published var sliders = [Slider]()
     @Published var items = [Product]()
     @Published var products = [Product]()
+    @Published var selectedProduct: Product?
     @Published var showDiscount = false
     @Published var showCategoryProducts = true
     @Published var selectedSubCategory: Category = Category.default
@@ -42,13 +43,18 @@ class MainViewModel: ObservableObject {
     @Published var selectedShip = ShipMethod.default
     @Published var shipMethods = [ShipMethod]()
     @Published var coupon: Coupon = Coupon.default
-    @Published var selectedPayment : Payment = Payment.default
+    @Published var selectedPayment: Payment?
     @Published var showOrderReceived = false
     @Published var receivedOrder: Order = Order.default
     @Published var payments = [Payment]()
     @Published var zones = [Zone]()
     @Published var presentedType: PresentedType = .none
     @Published var message: String = ""
+    @Published var popularProducts = [Product]()
+    @Published var favoriteProductIDs: Set<Int> = []
+    @Published var favoriteProducts: [Product] = []
+    @Published var isCategoryProductsLoading: Bool = false
+    @Published var categoryToNavigate: Category? = nil // For navigation from HomeView to MenuView
     
     var numberOfItems: Int {
         if items.count > 0 {
@@ -60,7 +66,7 @@ class MainViewModel: ObservableObject {
     
     var discounts: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + ((Double($1.regular_price)! - (Double($1.price) ?? 0)) * Double($1.quantity)) }
+            return items.reduce(0) { $0 + ($1.regular_price - $1.price) * Double($1.quantity) }
         } else {
             return 0
         }
@@ -68,7 +74,7 @@ class MainViewModel: ObservableObject {
     
     var subtotal: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + (Double($1.price)! * Double($1.quantity)) }
+            return items.reduce(0) { $0 + $1.price * Double($1.quantity) }
         } else {
             return 0
         }
@@ -76,34 +82,37 @@ class MainViewModel: ObservableObject {
     
     var regularPriceTotal: Double {
         if items.count > 0 {
-            return items.reduce(0) { $0 + (Double($1.regular_price)! * Double($1.quantity)) }
+            return items.reduce(0) { $0 + $1.regular_price * Double($1.quantity) }
         } else {
             return 0
         }
     }
     
+    /// WooCommerce sends shipping cost as a string, and it is empty for free methods —
+    /// `Double("")` is nil, so force-unwrapping it crashed checkout.
+    private var shippingCost: Double {
+        Double(selectedShip.settings.cost.value) ?? 0
+    }
+
     var total: Double {
-        if items.count > 0 {
-            return subtotal + Double(selectedShip.settings.cost.value)!
-        } else {
-            return 0 + Double(selectedShip.settings.cost.value)!
-        }
+        // Both branches used to be identical: `subtotal` is already 0 for an empty cart.
+        subtotal + shippingCost
     }
-    
+
+    /// `Coupon.amount` is an optional string straight off the API, so neither the unwrap
+    /// nor the `Double(_:)` conversion is guaranteed.
+    private var couponAmount: Double? {
+        guard coupon.id != Coupon.default.id, let amount = coupon.amount else { return nil }
+        return Double(amount)
+    }
+
     var fixedDiscount: Double {
-        if coupon.id != Coupon.default.id {
-            return Double(coupon.amount!)!
-        } else {
-            return 0
-        }
+        couponAmount ?? 0
     }
-    
+
     var percentDiscount: Double {
-        if coupon.id != Coupon.default.id {
-            return (total * ( Double(coupon.amount!)! / 100))
-        } else {
-            return 0
-        }
+        guard let amount = couponAmount else { return 0 }
+        return total * (amount / 100)
     }
     
     func getNumberOfInCart(item: Product) -> Int {
@@ -115,58 +124,33 @@ class MainViewModel: ObservableObject {
     }
     
     func add(item: Product) {
-        var fl = false
-        for index in 0..<items.count {
-            if items[index].name == item.name && items[index].meta_data == item.meta_data {
-                items[index].quantity += 1
-                fl = true
-                break
-            }
+        if let index = items.firstIndex(where: { $0.cartIdentifier == item.cartIdentifier }) {
+            items[index].quantity += 1
+        } else {
+            var newItem = item
+            newItem.quantity = 1
+            items.append(newItem)
         }
-        
-        if !fl {
-            items.append(item)
-            for index in 0..<items.count {
-                if items[index].name == item.name && items[index].meta_data == item.meta_data {
-                    items[index].quantity += 1
-                    break
-                }
-            }
-        }
-        
     }
-    
+
     func remove(item: Product) {
-        var em = true
-        for index in 0..<items.count {
-            if items[index].name == item.name && items[index].meta_data == item.meta_data {
-                if items[index].quantity == 1 {
-                    items.remove(at: index)
-                    em = false
-                    break
-                } else {
-                    if items[index].quantity == 0 {
-                        items.remove(at: index)
-                        em = false
-                        break
-                    } else {
-                        items[index].quantity -= 1
-                        em = false
-                        break
-                    }
-                    
-                }
+        if let index = items.firstIndex(where: { $0.cartIdentifier == item.cartIdentifier }) {
+            if items[index].quantity > 1 {
+                items[index].quantity -= 1
+            } else {
+                items.remove(at: index)
             }
-        }
-        
-        if em {
+        } else {
             print("empty")
         }
     }
     
     func removeAll(item: Product) {
-        let index = items.firstIndex{$0.id == item.id}
-        items.remove(at: index!)
+        if let index = items.firstIndex(where: { $0.cartIdentifier == item.cartIdentifier }) {
+            items.remove(at: index)
+        } else {
+            print("empty")
+        }
     }
     
     func reset() {
@@ -182,13 +166,17 @@ class MainViewModel: ObservableObject {
     init(service: MainServices = MainServices()) {
         self.service = service
         self.bindingData()
+        self.loadFavoritesFromStorage()
     }
     
     func bindingData() {
         service.loadingPublisher
-            .dropFirst()
             .receive(on: RunLoop.main)
-            .assign(to: &$showLoading)
+            .sink { [weak self] isLoading in
+                print("isLoading = \(isLoading)")
+                self?.showLoading = isLoading
+            }
+            .store(in: &cancellableSet)
         
         service.errorPublisher
             .receive(on: RunLoop.main)
@@ -199,35 +187,59 @@ class MainViewModel: ObservableObject {
         
         service.categoryPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$categories)
+            .sink { [weak self] categories in
+                self?.categories = categories
+            }
+            .store(in: &cancellableSet)
         
         service.selectedCategoryProductPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$categoryProducts)
+            .sink { [weak self] products in
+                self?.categoryProducts = products
+            }
+            .store(in: &cancellableSet)
         
-        service.orderReceivedPublisher
+        service.categoryProductsLoadingPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] isLoading in
+                self?.isCategoryProductsLoading = isLoading
+            }
+            .store(in: &cancellableSet)
+        
+        service.orderPublisher
             .receive(on: RunLoop.main)
             .sink { order in
                 if order.id != Order.default.id {
                     self.receivedOrder = order
-                    self.presentedType = .orderReceived
-                    self.reset()
+//                    self.reset()
                 }
             }
             .store(in: &cancellableSet)
         
-        $presentedType
-            .dropFirst()
+        service.popularProductsPublisher
             .receive(on: RunLoop.main)
-            .sink { value in
-                self.presentedType = value
+            .sink { [weak self] products in
+                self?.popularProducts = products
             }
             .store(in: &cancellableSet)
+        
+        service.paymentMethodPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] payments in
+                self?.payments = payments
+            }
+            .store(in: &cancellableSet)
+        
     }
     
     func onOpenURL() {
-        if let url = URL(string: "fb-messenger://user-thread/108416778461623") {
-            UIApplication.shared.open(url)
+        let messengerURL = URL(string: "fb-messenger://user-thread/108416778461623")!
+        let webURL = URL(string: "https://www.facebook.com/trinhskitchenmelton")!
+
+        if UIApplication.shared.canOpenURL(messengerURL) {
+            UIApplication.shared.open(messengerURL)
+        } else {
+            UIApplication.shared.open(webURL)
         }
     }
     
@@ -235,112 +247,74 @@ class MainViewModel: ObservableObject {
         service.onFetchCategories()
     }
     
+    func onFetchPopularProducts() {
+        service.onFetchPopularProducts()
+    }
+    
     func onFetchSelectedCategoryProducts(id: Int) {
         service.fetchSelectedCategoryProducts(id: id)
     }
-    
-    func onCreateOrder(user: User, productOrders: [ProductOrder]) {
-        service.onCreateOrder(user: user, paymentMethod: selectedPayment.id, paymentMethodTitle: selectedPayment.title, customerNote: "", status: "on-hold", productOrders: productOrders)
+
+    func onFetchAddOnGroups(productId: Int, completion: @escaping (Result<[AddOnGroup], Error>) -> Void) {
+        service.fetchAddOnGroups(productId: productId, completion: completion)
+    }
+
+    /// Prices the current basket server-side. Nothing is created; the payment method is part of
+    /// the question because the 5% cash-on-pickup discount is a gateway fee.
+    func onFetchOrderQuote(
+        productOrders: [ProductOrder],
+        couponCode: String? = nil,
+        completion: @escaping (Result<OrderQuote, Error>) -> Void
+    ) {
+        service.fetchOrderQuote(
+            paymentMethod: selectedPayment?.id ?? "",
+            productOrders: productOrders,
+            couponCode: couponCode,
+            completion: completion
+        )
     }
     
-    func fetchProducts() {
-        self.products.removeAll()
-        
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/products?page=1&per_page=100&consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
+    func onCreateOrder(
+        user: User,
+        productOrders: [ProductOrder],
+        pickupDateTime: String,
+        couponCode: String? = nil,
+        completion: @escaping (_ orderId: Int?, _ paymentURL: String?) -> Void
+    ) {
+        guard let id = selectedPayment?.id,
+              let title = selectedPayment?.title
+        else {
+            completion(nil, nil)
             return
         }
-        let request = URLRequest(url: url)
-        
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-                
-                if let decodedResponse = try? JSONDecoder().decode([Product].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.products.append(contentsOf: decodedResponse)
-                    }
-                    return
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+
+        // Set order status based on payment method
+        // Stripe payment (credit card) -> pending (awaiting payment)
+        // Other payment methods (cash on pickup, etc.) -> on-hold
+        let desiredStatus: String
+        if id.lowercased() == "stripe" {
+            desiredStatus = "pending"
+        } else {
+            desiredStatus = "on-hold"
+        }
+
+        // The 5% app discount is computed server-side from catalog prices, so it can't be
+        // inflated by a tampered request.
+        service.onCreateOrder(
+            user: user,
+            paymentMethod: id,
+            paymentMethodTitle: title,
+            customerNote: "",
+            status: desiredStatus,
+            productOrders: productOrders,
+            pickupDateTime: pickupDateTime,
+            couponCode: couponCode,
+            completion: completion
+        )
     }
-    
-    func fetchPayments() {
-        self.payments.removeAll()
-        
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/payment_gateways?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-        
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-                
-                if let decodedResponse = try? JSONDecoder().decode([Payment].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.payments.append(contentsOf: decodedResponse)
-                    }
-                    return
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
-    }
-    
-    func fetchZones() {
-        self.zones.removeAll()
 
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/shipping/zones?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-
-                if let decodedResponse = try? JSONDecoder().decode([Zone].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.zones.append(contentsOf: decodedResponse)
-                        self.fetchShipMethods(id: self.zones[0].id)
-                    }
-                    return
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-
-        }.resume()
-    }
-    
-    func fetchShipMethods(id: Int) {
-        self.shipMethods.removeAll()
-        
-        guard let url = URL(string: "\(WOOCOMMERCE_URL)/wp-json/wc/v3/shipping/zones/1/methods?consumer_key=\(CONSUMER_KEY)&consumer_secret=\(CONSUMER_SECRET_KEY)") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-        
-        URLSession.shared.dataTask(with: request) {data, response, error in
-            if let data = data {
-                
-                if let decodedResponse = try? JSONDecoder().decode([ShipMethod].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.shipMethods.append(contentsOf: decodedResponse)
-                    }
-                    return
-                } else {
-                    self.shipMethods.append(ShipMethod.default)
-                    return
-                }
-            }
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+    func onFetchPaymentMethods() {
+        service.onFetchPaymentMethods()
     }
     
     func checkCouponCode(code: String) {
@@ -350,7 +324,6 @@ class MainViewModel: ObservableObject {
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue(SECURITY_CODE, forHTTPHeaderField:"Security")
         
         URLSession.shared.dataTask(with: request) {data, response, error in
          
@@ -360,11 +333,15 @@ class MainViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         print(decodedResponse)
                         
-                        if decodedResponse.code! != "not_found" {
-                            let minimumAmount = Double(String(describing:decodedResponse.minimum_amount!))!
-                            let maximumAmount = Double(String(describing:decodedResponse.maximum_amount!))!
+                        if (decodedResponse.code ?? "") != "not_found" {
+                            // All three fields are optional strings on Coupon, and the API
+                            // sends "" for unset amounts — every one of these unwraps could
+                            // crash. An absent maximum means "no upper limit"; the
+                            // eligibility gate below is otherwise unchanged.
+                            let minimumAmount = Double(decodedResponse.minimum_amount ?? "") ?? 0
+                            let maximumAmount = Double(decodedResponse.maximum_amount ?? "") ?? .greatestFiniteMagnitude
                             print(minimumAmount)
-                            
+
                             if self.total < minimumAmount {
 //                                self.dialogMessage = "Not meet min amount : \(decodedResponse.minimum_amount!)"
 //                                self.showDialog.toggle()
@@ -397,5 +374,31 @@ class MainViewModel: ObservableObject {
             print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             
         }.resume()
+    }
+}
+
+extension MainViewModel {
+    func loadFavoritesFromStorage() {
+        let stored = UserDefaultsManager.loadFavorites()
+        favoriteProducts = stored
+        favoriteProductIDs = Set(stored.map { $0.id })
+    }
+    
+    func isFavorite(productId: Int) -> Bool {
+        favoriteProductIDs.contains(productId)
+    }
+    
+    func toggleFavorite(product: Product) {
+        if favoriteProductIDs.contains(product.id) {
+            // remove
+            favoriteProductIDs.remove(product.id)
+            favoriteProducts.removeAll { $0.id == product.id }
+            UserDefaultsManager.removeFavorite(product)
+        } else {
+            // add
+            favoriteProductIDs.insert(product.id)
+            favoriteProducts.append(product)
+            UserDefaultsManager.saveFavorite(product)
+        }
     }
 }

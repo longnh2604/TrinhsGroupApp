@@ -1,0 +1,72 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# A newer push to the same ref makes the in-flight run pointless.
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Deliberately NOT pinning an Xcode path. This step used to run
+      #   sudo xcode-select -s /Applications/Xcode_15.0.app
+      # which fails outright on current runner images, because that Xcode is gone. If a
+      # specific version ever becomes necessary, add maxim-lobanov/setup-xcode rather than
+      # hardcoding a path — and pin a version the image actually ships.
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          echo "developer dir: $(xcode-select -p)"
+          swift --version
+
+      # Pods/ is gitignored, so a fresh checkout has no dependencies. Podfile.lock is
+      # committed, which makes both the cache key and the install reproducible.
+      - name: Cache Pods
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('Podfile.lock') }}
+          restore-keys: ${{ runner.os }}-pods-
+
+      - name: Install Pods
+        run: |
+          command -v pod >/dev/null || sudo gem install cocoapods
+          pod install
+
+      # TrinhsGroup/Secrets.plist holds the read-only WooCommerce catalog key and is
+      # gitignored, so it is absent on CI — and the build fails without it, since it is a
+      # bundled resource. The template's placeholder values are fine here: CI compiles and
+      # runs pure-logic checks, it never calls the store API.
+      - name: Provide Secrets.plist
+        run: cp TrinhsGroup/Secrets.example.plist TrinhsGroup/Secrets.plist
+
+      # 'generic/platform=iOS Simulator' avoids naming a device or OS. The old workflow
+      # pinned 'iPhone 15,OS=17.0', which disappears from runner images over time and takes
+      # CI down with it.
+      - name: Build
+        run: |
+          xcodebuild clean build \
+            -workspace TrinhsGroup.xcworkspace \
+            -scheme TrinhsGroup \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      # This replaces a `xcodebuild test` step that could never pass: the project has a
+      # single app target and no test bundle, so xcodebuild exited non-zero every run.
+      # These checks compile the real source files and assert on the logic that has
+      # actually regressed before. See scripts/run-logic-checks.sh.
+      - name: Logic checks
+        run: ./scripts/run-logic-checks.sh

@@ -17,26 +17,79 @@ struct Product: Identifiable, Codable {
     var name: String
     var short_description: String
     var description: String
-    var price: String
-    var regular_price: String
-    var sale_price: String
+    var price: Double
+    var regular_price: Double
+    var sale_price: Double
     var images = [WooImage]()
     var quantity: Int = 0
     var attributes = [Attribute]()
     var categories = [Category]()
     var meta_data = [ProductMetaData]()
-    
+
     var color: String = ""
     var size: String = ""
-    
-    var totalPrice: Double { return Double(price)! * Double(quantity) }
-    
-    static var `default` : Product {
-        Product(id: 0, name: "Test", short_description: "Test Short Description", description: "Test Description", price: "10",regular_price:"10", sale_price: "10", images: [WooImage(id: 0, src: "https://asilarslan.com/grocery/wp-content/uploads/2021/04/cocacola_PNG10-500x500-1.png")])
+
+    /// YITH add-on options the customer picked. Not part of the catalog payload — set when the
+    /// line goes into the cart, and sent as `yith_wapo` so the server prices it.
+    var addOnChoices = [AddOnChoice]()
+
+    /// What the chosen add-ons add to one unit. Display only: `price` stays the catalog price,
+    /// because the server is what prices an order and overwriting it here only ever made the
+    /// app disagree with the receipt.
+    var addOnUnitPrice: Double { addOnChoices.displayTotal }
+
+    var unitPrice: Double { price + addOnUnitPrice }
+
+    var totalPrice: Double { return unitPrice * Double(quantity) }
+
+    var cartIdentifier: String {
+        // Always sort to make the identifier order-independent!
+        let metaString = meta_data
+            .sorted { $0.key < $1.key }
+            .map { "\($0.key)=\($0.value.stringValue)" }
+            .joined(separator: "&")
+        // Two Family Trios with different pho are different lines, so the choices have to be
+        // part of the identity — otherwise the second one just increments the first's quantity.
+        let addOnString = addOnChoices
+            .map { "\($0.submitKey)=\($0.submitValue)" }
+            .sorted()
+            .joined(separator: "&")
+        return name + "|" + metaString + "|" + addOnString
     }
     
     func getProductAddonOnly() -> [ProductMetaData] {
         return meta_data.filter({ !$0.key.contains("_") || !$0.key.contains("epafw") })
+    }
+    
+    // Custom Decoder to handle nil `sale_price`
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(Int.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        short_description = try container.decode(String.self, forKey: .short_description)
+        description = try container.decode(String.self, forKey: .description)
+        images = try container.decodeIfPresent([WooImage].self, forKey: .images) ?? []
+        attributes = try container.decodeIfPresent([Attribute].self, forKey: .attributes) ?? []
+        categories = try container.decodeIfPresent([Category].self, forKey: .categories) ?? []
+        meta_data = try container.decodeIfPresent([ProductMetaData].self, forKey: .meta_data) ?? []
+        
+        // price can arrive as a number (10, 10.5) or a string ("10")
+        if let p = try? container.decode(Double.self, forKey: .price) {
+            price = p
+        } else {
+            price = Double(try container.decode(String.self, forKey: .price)) ?? 0
+        }
+        if let rp = try? container.decode(Double.self, forKey: .regular_price) {
+            regular_price = rp
+        } else {
+            regular_price = Double(try container.decode(String.self, forKey: .regular_price)) ?? 0
+        }
+        if let sp = try? container.decode(Double.self, forKey: .sale_price) {
+            sale_price = sp
+        } else {
+            sale_price = Double(try container.decodeIfPresent(String.self, forKey: .sale_price) ?? "") ?? 0
+        }
     }
 }
 
@@ -60,8 +113,8 @@ struct ProductMetaData: Identifiable, Codable, Equatable {
     static func == (lhs: ProductMetaData, rhs: ProductMetaData) -> Bool {
         return lhs.value == rhs.value && lhs.key == rhs.key
     }
-    
-    var id: Int
+
+    var id: Int?
     var key: String
     var value: AnyCodableValue
 }

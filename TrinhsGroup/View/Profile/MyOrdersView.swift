@@ -8,79 +8,158 @@
 import SwiftUI
 
 struct MyOrdersView: View {
+    enum OrdersFilter {
+        case todayOnly
+        case pastOnly
+    }
     
+    var filter: OrdersFilter = .todayOnly
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var historyViewModel: HistoryViewModel
-    @State var selectedOrder: Order = Order.default
     
-    fileprivate func NavigationBarView() -> some View {
-        return HStack {
-            Button(action: {
-                withAnimation(.spring()){
-                    mainViewModel.presentedType = .none
-                }
-            }) {
-                Image(systemName: "arrow.left")
-                    .foregroundColor(Constants.AppColor.secondaryBlack)
-            }
-            .padding(.leading, 10)
-            .frame(width: 40, height: 40)
-            Spacer()
+    // Show back button when navigated from Profile (pastOnly filter)
+    private var showBackButton: Bool {
+        filter == .pastOnly
+    }
+    
+    private var filteredOrders: [Order] {
+        let tz = TimeZone(identifier: "Australia/Sydney") ?? .current
+        var calendar = Calendar.current
+        calendar.timeZone = tz
+        guard let todayStart = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: Date()) else {
+            return historyViewModel.orders
         }
-        .frame(width: UIScreen.main.bounds.width, height: 35)
-        .overlay(
-            Text("My Orders")
-                .font(.custom(Constants.AppFont.semiBoldFont, size: 15))
-                .foregroundColor(Constants.AppColor.primaryBlack)
-                .padding(.horizontal, 10)
-                .background(Color.clear)
-            , alignment: .center)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        formatter.timeZone = tz
+        
+        func isSameAustralianDay(_ dateString: String) -> Bool {
+            guard let date = formatter.date(from: dateString) else { return false }
+            return calendar.isDate(date, inSameDayAs: todayStart)
+        }
+        
+        switch filter {
+        case .todayOnly:
+            return historyViewModel.orders.filter { isSameAustralianDay($0.dateCreated) }
+        case .pastOnly:
+            return historyViewModel.orders.filter { !isSameAustralianDay($0.dateCreated) }
+        }
     }
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.init(hex: "f9f9f9")
-                    .edgesIgnoringSafeArea(.all)
-                
-                VStack {
-                    NavigationBarView()
-                    
-                    List {
-                        ForEach(historyViewModel.orders) { order in
-                            OrderHistoryItemView(order: order)
-                                .padding(.horizontal)
-                                .padding(.bottom)
-                                .environmentObject(mainViewModel)
-                                .onTapGesture {
-                                    withAnimation(.easeOut){
-                                        selectedOrder = order
-                                        historyViewModel.showHistoryOrderDetail.toggle()
-                                    }
-                                }
+        ZStack {
+            Color.init(hex: "f9f9f9")
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                // Custom Navigation Bar with back button for Profile navigation
+                if showBackButton {
+                    HStack {
+                        Button(action: { dismiss() }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("Back")
+                                    .font(.body)
+                            }
+                            .foregroundColor(.accentColor)
                         }
-                        .listRowInsets(EdgeInsets())
+                        
+                        Spacer()
+                        
+                        Text("My Orders")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        // Placeholder for symmetry
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .opacity(0)
                     }
-                    .refreshable {
-                        historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(Color(hex: "f9f9f9"))
+                } else {
+                    HomeNavigationBarView(title: "Menu", showNotificationIcon: false)
+                        .environmentObject(mainViewModel)
+                }
+                    
+                    if filteredOrders.isEmpty && filter == .todayOnly {
+                        // Empty state for today's orders
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                Spacer()
+                                    .frame(height: 100)
+                                
+                                Image(systemName: "cart.badge.plus")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.gray.opacity(0.5))
+                                
+                                VStack(spacing: 12) {
+                                    Text("You don't have any orders today")
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("If you'd like to order, don't hesitate to add items to your cart. We're happy and eager to serve you with the best care possible.")
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 40)
+                                }
+                                
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                        .refreshable {
+                            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+                        }
+                    } else {
+                        List {
+                            ForEach(filteredOrders) { order in
+                                OrderHistoryItemView(order: order)
+                                    .padding(.horizontal)
+                                    .padding(.bottom)
+                                    .environmentObject(mainViewModel)
+                                    .onTapGesture {
+                                        withAnimation(.easeOut) {
+                                            historyViewModel.selectedOrder = order
+                                            historyViewModel.showHistoryOrderDetail = true
+                                        }
+                                    }
+                            }
+                            .listRowInsets(EdgeInsets())
+                        }
+                        .refreshable {
+                            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+                        }
+                        .padding(.top)
                     }
-                    .padding(.top)
                 }
                 
                 if historyViewModel.showLoading {
                     LoadingView().ignoresSafeArea()
                 }
                 
-                if historyViewModel.showHistoryOrderDetail {
-                    HistoryOrderDetailView(order: selectedOrder)
-                        .environmentObject(historyViewModel)
-                }
+            if historyViewModel.showHistoryOrderDetail {
+                HistoryOrderDetailView(order: historyViewModel.selectedOrder)
+                    .environmentObject(historyViewModel)
             }
-            .navigationBarTitle(Text(""), displayMode: .inline)
-            .navigationBarHidden(true)
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            // Fetch orders when entering via bottom tab so the list is populated
+            historyViewModel.fetchOrders(customerId: authViewModel.user.id)
+            // Always start from list view (not detail overlay)
+            historyViewModel.showHistoryOrderDetail = false
+        }
     }
 }
 

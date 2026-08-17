@@ -13,10 +13,8 @@ struct ShippingItemView: View {
     
     var body: some View {
         HStack {
-            ZStack{
-                
-                if mainViewModel.selectedShip.id == item.id{
-                    
+            ZStack {
+                if mainViewModel.selectedShip.id == item.id {
                     Color("ColorPrimary")
                         .clipShape(Circle())
                         .frame(width: 35, height: 35)
@@ -54,7 +52,7 @@ struct ShippingItemView: View {
                 .foregroundColor(Constants.AppColor.primaryBlack)
             Spacer()
             
-//            Text(getPriceAndCurrencySymbol(price: item.settings.cost.value, currency: "$", currencyPosition: "right"))
+//            Text(getPriceAndCurrencySymbol(price: item.settings.cost.value, currency: "$", currencyPosition: "left"))
 //                .font(.custom(Constants.AppFont.semiBoldFont, size: 16))
 //                .foregroundColor(Constants.AppColor.primaryBlack)
 //                .padding(.trailing, 5)
