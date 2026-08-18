@@ -12,7 +12,7 @@ struct HomeView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
     @EnvironmentObject var firestoreManager: FirestoreManager
     @State var showNotifications = false
-    @State private var selectedEvent: EventBanner?
+    @State private var selectedEvent: AppEvent?
 
     var body: some View {
         NavigationView {
@@ -26,24 +26,32 @@ struct HomeView: View {
                     ScrollView {
                         VStack {
                             // Events
-                            VStack(alignment: .leading) {
-                                Text("Events")
-                                    .font(.custom(Constants.AppFont.boldFont, size: 17))
-                                    .foregroundColor(Constants.AppColor.primaryBlack)
-                                    .padding(.horizontal)
+                            if !firestoreManager.events.isEmpty {
+                                VStack(alignment: .leading) {
+                                    Text("Events")
+                                        .font(.custom(Constants.AppFont.boldFont, size: 17))
+                                        .foregroundColor(Constants.AppColor.primaryBlack)
+                                        .padding(.horizontal)
 
-                                TabView {
-                                    ForEach(EventBanner.all) { event in
-                                        EventBannerCard(event: event)
-                                            .padding(.horizontal)
-                                            .padding(.bottom, 24)
-                                            .onTapGesture {
-                                                selectedEvent = event
-                                            }
+                                    TabView {
+                                        ForEach(firestoreManager.events) { event in
+                                            EventBannerCard(event: event)
+                                                .padding(.horizontal)
+                                                .padding(.bottom, 24)
+                                                .onTapGesture {
+                                                    // Nothing to open until a poster is uploaded.
+                                                    if !event.posterURL.isEmpty {
+                                                        selectedEvent = event
+                                                    }
+                                                }
+                                        }
                                     }
+                                    .frame(height: 220)
+                                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+                                    // Plain dots disappear against pale artwork, and nothing
+                                    // else tells you there are three of these.
+                                    .indexViewStyle(.page(backgroundDisplayMode: .always))
                                 }
-                                .frame(height: 220)
-                                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
                             }
                             
                             // Categories
@@ -124,42 +132,8 @@ struct HomeView: View {
 
 // MARK: - Event Banner
 
-struct EventBanner: Identifiable {
-    let id: String
-    let eyebrow: String
-    let title: String
-    let subtitle: String
-    let detail: String
-    let imageAsset: String
-    let posterAsset: String
-
-    static let all: [EventBanner] = [
-        EventBanner(id: "family_combo",
-                    eyebrow: "FAMILY SHARING",
-                    title: "Family Combo",
-                    subtitle: "Trio $49.90 · Share Box $69.90",
-                    detail: "Free kids colouring activity",
-                    imageAsset: "event_family_combo",
-                    posterAsset: "poster_family_combo"),
-        EventBanner(id: "kids_menu",
-                    eyebrow: "FOR KIDS UNDER 12",
-                    title: "Kids Menu",
-                    subtitle: "8 kids meals from $5.00",
-                    detail: "Free colouring with every meal",
-                    imageAsset: "event_kids_menu",
-                    posterAsset: "poster_kids_menu"),
-        EventBanner(id: "lunch_special",
-                    eyebrow: "11AM – 3:30PM · TAKEAWAY",
-                    title: "Lunch Special",
-                    subtitle: "Bánh mì + prawn dumplings $15",
-                    detail: "Soft drink $2 · Viet coffee $4.50",
-                    imageAsset: "event_lunch_special",
-                    posterAsset: "poster_lunch_special")
-    ]
-}
-
 struct EventBannerCard: View {
-    let event: EventBanner
+    let event: AppEvent
 
     private let posterRed = Color.init(hex: "B3231B")
     private let posterCream = Color.init(hex: "F8EFE1")
@@ -168,10 +142,14 @@ struct EventBannerCard: View {
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(event.eyebrow)
-                    .font(.custom(Constants.AppFont.boldFont, size: 9))
-                    .kerning(1.1)
-                    .foregroundColor(posterRed)
+                // Each line is skipped when its field is blank, so a half-filled document
+                // reads as a smaller card rather than one with holes in it.
+                if !event.eyebrow.isEmpty {
+                    Text(event.eyebrow)
+                        .font(.custom(Constants.AppFont.boldFont, size: 9))
+                        .kerning(1.1)
+                        .foregroundColor(posterRed)
+                }
 
                 Text(event.title)
                     .font(.custom(Constants.AppFont.extraBoldFont, size: 21))
@@ -179,39 +157,47 @@ struct EventBannerCard: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
 
-                Text(event.subtitle)
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
-                    .foregroundColor(posterInk)
-                    .lineLimit(2)
+                if !event.subtitle.isEmpty {
+                    Text(event.subtitle)
+                        .font(.custom(Constants.AppFont.semiBoldFont, size: 13))
+                        .foregroundColor(posterInk)
+                        .lineLimit(2)
+                }
 
-                Text(event.detail)
-                    .font(.custom(Constants.AppFont.semiBoldFont, size: 10))
-                    .foregroundColor(posterInk)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.init(hex: "F5C95C").opacity(0.45))
-                    .cornerRadius(6)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                if !event.detail.isEmpty {
+                    Text(event.detail)
+                        .font(.custom(Constants.AppFont.semiBoldFont, size: 10))
+                        .foregroundColor(posterInk)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.init(hex: "F5C95C").opacity(0.45))
+                        .cornerRadius(6)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
 
                 Spacer(minLength: 0)
 
-                HStack(spacing: 3) {
-                    Text("View poster")
-                        .font(.custom(Constants.AppFont.semiBoldFont, size: 11))
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9, weight: .semibold))
+                // Only promise a poster when one has been uploaded.
+                if !event.posterURL.isEmpty {
+                    HStack(spacing: 3) {
+                        Text("View poster")
+                            .font(.custom(Constants.AppFont.semiBoldFont, size: 11))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .semibold))
+                    }
+                    .foregroundColor(posterRed)
                 }
-                .foregroundColor(posterRed)
             }
             .padding(.init(top: 14, leading: 16, bottom: 14, trailing: 10))
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Image(event.imageAsset)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 140)
-                .clipped()
+            OptimizedKFImage(
+                url: URL(string: event.imgURL),
+                width: 140,
+                height: 196,
+                contentMode: .fill
+            )
         }
         .frame(height: 196)
         .background(posterCream)
@@ -225,7 +211,7 @@ struct EventBannerCard: View {
 }
 
 struct EventPosterView: View {
-    let event: EventBanner
+    let event: AppEvent
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
@@ -234,7 +220,7 @@ struct EventPosterView: View {
                 .ignoresSafeArea()
 
             ScrollView(.vertical, showsIndicators: false) {
-                Image(event.posterAsset)
+                KFImage(URL(string: event.posterURL))
                     .resizable()
                     .scaledToFit()
                     .cornerRadius(12)

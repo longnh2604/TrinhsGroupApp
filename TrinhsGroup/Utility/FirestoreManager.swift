@@ -17,20 +17,21 @@ class FirestoreManager: ObservableObject {
         fetchEvents()
     }
     
+    /// Live, not a one-shot read: editing a banner in the Firestore console is meant to be
+    /// the whole job, and `getDocuments` would have held the old copy until the next launch.
     func fetchEvents() {
-        let db = Firestore.firestore()
-
-        let docRef = db.collection("events")
-        docRef.getDocuments { querySnapshot, error in
-            if let error = error {
-                print("Error getting documents: \(error)")
-            } else {
-                self.events.removeAll()
-                for document in querySnapshot!.documents {
-                    self.events.append(AppEvent.init(document.data()))
+        Firestore.firestore().collection("events")
+            .addSnapshotListener { querySnapshot, error in
+                if let error = error {
+                    print("Error getting documents: \(error)")
+                    return
                 }
+                let documents = querySnapshot?.documents ?? []
+                self.events = documents
+                    .map { AppEvent($0.data()) }
+                    .filter { $0.active }
+                    .sorted { $0.id < $1.id }
             }
-        }
     }
     
     func fetchProductAddOns(categoryId: Int) {
