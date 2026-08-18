@@ -1,7 +1,6 @@
 package com.trinhskitchen.app.di
 
 import android.content.Context
-import com.trinhskitchen.app.firebase.FirestoreClient
 import com.trinhskitchen.app.payments.StripePresenter
 import com.trinhskitchen.app.BuildConfig
 import com.trinhsgroup.shared.auth.AuthTokenStore
@@ -48,10 +47,9 @@ val appModule = module {
     single { HistoryService(get()) }
     single { PointsService(get()) }
     
-    // Payment & Firebase (Android-specific)
+    // Payment (Android-specific)
     single { StripeRepository(get()) }
     single { StripePresenter() }
-    single { FirestoreClient() }
     
     // ViewModels (shared KMP ViewModels)
     factory { AuthViewModel(get(), get(), get()) }

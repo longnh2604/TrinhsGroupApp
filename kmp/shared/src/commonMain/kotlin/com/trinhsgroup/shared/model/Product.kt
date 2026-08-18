@@ -40,8 +40,24 @@ data class Product(
     val categories: List<Category> = emptyList(),
     @SerialName("meta_data") val metaData: List<ProductMetaData> = emptyList(),
     val color: String = "",
-    val size: String = ""
+    val size: String = "",
+    /**
+     * YITH add-on options the customer picked. Not part of the catalog payload — set when the
+     * line goes into the cart, and sent as `yith_wapo` so the server prices it.
+     */
+    val addOnChoices: List<AddOnChoice> = emptyList()
 ) {
+    /**
+     * What the chosen add-ons add to one unit. Display only: [price] stays the catalog price,
+     * because the server is what prices an order, and overwriting it here only ever made the
+     * app disagree with the receipt.
+     */
+    val addOnUnitPrice: Double
+        get() = addOnChoices.displayTotal
+
+    val unitPrice: Double
+        get() = price + addOnUnitPrice
+
     /**
      * Calculates the total price based on price and quantity.
      * Mirrors Swift's totalPrice computed property.
@@ -62,7 +78,13 @@ data class Product(
             val metaString = metaData
                 .sortedBy { it.key }
                 .joinToString("&") { "${it.key}=${it.value.stringValue}" }
-            return "$name|$metaString"
+            // Two Family Trios with different pho are different lines, so the choices have to
+            // be part of the identity — otherwise the second just increments the first.
+            val addOnString = addOnChoices
+                .map { "${it.submitKey}=${it.submitValue}" }
+                .sorted()
+                .joinToString("&")
+            return "$name|$metaString|$addOnString"
         }
 
     /**

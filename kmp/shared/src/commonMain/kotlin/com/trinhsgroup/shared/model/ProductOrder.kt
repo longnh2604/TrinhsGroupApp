@@ -16,7 +16,9 @@ data class ProductOrder(
     val subtotal: String,
     val total: Double,
     val price: Double,
-    @SerialName("meta_data") val metaData: List<ProductMetaData> = emptyList()
+    @SerialName("meta_data") val metaData: List<ProductMetaData> = emptyList(),
+    /** Picked YITH options, submitted as `yith_wapo` so the server prices the line. */
+    val addOnChoices: List<AddOnChoice> = emptyList()
 ) {
     companion object {
         val Default = ProductOrder(

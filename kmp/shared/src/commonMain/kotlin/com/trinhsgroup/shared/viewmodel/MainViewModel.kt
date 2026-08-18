@@ -1,5 +1,6 @@
 package com.trinhsgroup.shared.viewmodel
 
+import com.trinhsgroup.shared.model.AddOnGroup
 import com.trinhsgroup.shared.model.AppSetting
 import com.trinhsgroup.shared.model.Category
 import com.trinhsgroup.shared.model.Coupon
@@ -385,6 +386,16 @@ class MainViewModel(
     fun onFetchPaymentMethods() {
         scope.launch {
             service.onFetchPaymentMethods()
+        }
+    }
+
+    /**
+     * Add-on groups for one product. Handed to the caller so each product screen owns its own
+     * set of ticks. Mirrors Swift's onFetchAddOnGroups().
+     */
+    fun onFetchAddOnGroups(productId: Int, completion: (List<AddOnGroup>) -> Unit) {
+        scope.launch {
+            completion(service.fetchAddOnGroups(productId))
         }
     }
 

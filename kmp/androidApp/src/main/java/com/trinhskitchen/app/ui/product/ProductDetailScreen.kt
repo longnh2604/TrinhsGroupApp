@@ -30,6 +30,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,11 +57,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.trinhskitchen.app.firebase.FirestoreClient
 import com.trinhskitchen.app.ui.theme.AppColors
+import com.trinhsgroup.shared.model.AddOnGroup
+import com.trinhsgroup.shared.model.AddOnSelection
+import com.trinhsgroup.shared.model.displayTotal
+import kotlin.math.abs
 import com.trinhsgroup.shared.model.AnyCodableValue
 import com.trinhsgroup.shared.model.Product
-import com.trinhsgroup.shared.model.ProductAddOns
 import com.trinhsgroup.shared.model.ProductMetaData
 import com.trinhsgroup.shared.util.HtmlDecoder
 import com.trinhsgroup.shared.util.PriceFormatting
@@ -76,10 +80,8 @@ import kotlinx.coroutines.launch
 fun ProductDetailScreen(
     productId: Int,
     viewModel: MainViewModel,
-    firestoreClient: FirestoreClient,
     onNavigateBack: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     
     // Select the product when the screen loads
     LaunchedEffect(productId) {
@@ -88,42 +90,33 @@ fun ProductDetailScreen(
     
     val selectedProduct by viewModel.selectedProduct.collectAsState()
     val favoriteIds by viewModel.favoriteProductIDs.collectAsState()
-    val productAddOns by firestoreClient.productAddOns.collectAsState()
-    
+
     // Add to cart animation state
     var isAdded by remember { mutableStateOf(false) }
-    
-    // Track selected add-ons - using map with addon content as key
-    val selectedAddOns = remember { mutableStateMapOf<String, Boolean>() }
-    
+
+    // The add-on groups YITH offers for this product, and what the customer picked. Held per
+    // screen: the Firestore add-ons this replaces lived on a client keyed by category, so a
+    // second product in the same category inherited the first one's ticks.
+    var addOnGroups by remember { mutableStateOf<List<AddOnGroup>>(emptyList()) }
+    var selection by remember { mutableStateOf(AddOnSelection()) }
+    var addOnError by remember { mutableStateOf<String?>(null) }
+
     val product = selectedProduct
-    
-    // Load add-ons when product is available
-    LaunchedEffect(product) {
-        product?.categories?.firstOrNull()?.id?.let { categoryId ->
-            scope.launch {
-                firestoreClient.fetchProductAddOns(categoryId)
-            }
-        }
+
+    LaunchedEffect(product?.id) {
+        val id = product?.id ?: return@LaunchedEffect
+        addOnGroups = emptyList()
+        selection = AddOnSelection()
+        viewModel.onFetchAddOnGroups(id) { addOnGroups = it }
     }
-    
-    // Reset selected add-ons when add-ons list changes
-    LaunchedEffect(productAddOns) {
-        selectedAddOns.clear()
-        productAddOns.forEach { addon ->
-            selectedAddOns[addon.content] = false
-        }
-    }
-    
-    // Calculate total price including selected add-ons
+
     val basePrice = product?.let {
         if (it.salePrice > 0) it.salePrice else it.regularPrice
     } ?: 0.0
-    
-    val addOnsTotal = productAddOns
-        .filter { selectedAddOns[it.content] == true }
-        .sumOf { it.value.toDouble() }
-    
+
+    val chosen = selection.choices(addOnGroups)
+    // Indicative only. The server prices the order, and checkout shows its figure.
+    val addOnsTotal = chosen.displayTotal
     val totalPrice = basePrice + addOnsTotal
     
     if (product == null) {
@@ -338,16 +331,15 @@ fun ProductDetailScreen(
                     }
                 }
                 
-                // Product Add-ons Section (mirrors iOS productAddOns section)
-                if (productAddOns.isNotEmpty()) {
-                    // Divider
+                // Add-on groups from YITH (mirrors iOS AddOnGroupsView)
+                if (addOnGroups.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)
                             .background(AppColors.Background)
                     )
-                    
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -355,51 +347,100 @@ fun ProductDetailScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "Add-ons",
+                            text = "Make it yours",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = AppColors.TextPrimary
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        productAddOns.forEach { addon ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        selectedAddOns[addon.content] = !(selectedAddOns[addon.content] ?: false)
-                                    }
-                                    .padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = selectedAddOns[addon.content] ?: false,
-                                    onCheckedChange = { checked ->
-                                        selectedAddOns[addon.content] = checked
-                                    },
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = AppColors.Primary,
-                                        uncheckedColor = Color.Gray
-                                    )
-                                )
+
+                        addOnGroups.forEach { group ->
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = addon.content,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = AppColors.TextPrimary,
-                                    modifier = Modifier.weight(1f)
+                                    text = group.title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = AppColors.TextPrimary
                                 )
-                                if (addon.value > 0) {
+                                if (group.required && !group.conditional) {
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "(+${PriceFormatting.getPriceAndCurrencySymbol(addon.value.toDouble())})",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = AppColors.TextSecondary
+                                        text = "Required",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = AppColors.Primary
                                     )
                                 }
                             }
+
+                            group.limitHint()?.let { hint ->
+                                Text(
+                                    text = hint,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = AppColors.TextSecondary
+                                )
+                            }
+
+                            group.options.forEach { option ->
+                                val isChosen = selection.isChosen(group, option)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            selection = selection.toggle(group, option)
+                                            addOnError = null
+                                        }
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // A group that takes one answer reads as a radio, even though
+                                    // tapping the chosen option clears it.
+                                    if (group.allowsMultiple) {
+                                        Checkbox(
+                                            checked = isChosen,
+                                            onCheckedChange = {
+                                                selection = selection.toggle(group, option)
+                                                addOnError = null
+                                            },
+                                            colors = CheckboxDefaults.colors(
+                                                checkedColor = AppColors.Primary,
+                                                uncheckedColor = Color.Gray
+                                            )
+                                        )
+                                    } else {
+                                        RadioButton(
+                                            selected = isChosen,
+                                            onClick = {
+                                                selection = selection.toggle(group, option)
+                                                addOnError = null
+                                            },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = AppColors.Primary,
+                                                unselectedColor = Color.Gray
+                                            )
+                                        )
+                                    }
+
+                                    Text(
+                                        text = option.label,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = AppColors.TextPrimary,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    option.displayPrice?.let { price ->
+                                        Text(
+                                            text = (if (price < 0) "(-" else "(+") +
+                                                PriceFormatting.getPriceAndCurrencySymbol(abs(price)) + ")",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = AppColors.TextSecondary
+                                        )
+                                    }
+                                }
+                            }
                         }
-                        
-                        // Show total with add-ons if any selected
-                        if (addOnsTotal > 0) {
+
+                        if (addOnsTotal != 0.0) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -419,9 +460,18 @@ fun ProductDetailScreen(
                                 )
                             }
                         }
+
+                        addOnError?.let { message ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = AppColors.Primary
+                            )
+                        }
                     }
                 }
-                
+
                 // Bottom spacing for the Add to Cart button
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -429,38 +479,32 @@ fun ProductDetailScreen(
             // Add to Cart button (fixed at bottom)
             Button(
                 onClick = {
-                    // Build new product with selected add-ons (mirrors iOS AddToCartButton logic)
-                    var newPrice = basePrice
-                    val newMetaData = mutableListOf<ProductMetaData>()
-                    
-                    // Add selected add-ons to meta_data and update price
-                    productAddOns.forEach { addon ->
-                        if (selectedAddOns[addon.content] == true) {
-                            newMetaData.add(
-                                ProductMetaData(
-                                    id = addon.id,
-                                    key = addon.content,
-                                    value = AnyCodableValue.StringValue(addon.value.toString())
-                                )
-                            )
-                            newPrice += addon.value
-                        }
+                    // The server will not price a basket that breaks the group rules, so catch
+                    // it here rather than at checkout.
+                    selection.missingRequired(addOnGroups)?.let { group ->
+                        addOnError = "Please choose ${group.title}"
+                        return@Button
                     }
-                    
-                    // Filter out internal meta_data keys from original (same as iOS)
-                    val filteredOriginalMetaData = product.metaData.filter { 
-                        !it.key.contains("_") || it.key == "_note" 
+                    selection.outOfRange(addOnGroups)?.let { group ->
+                        addOnError = group.limitHint() ?: "Check your ${group.title} choices"
+                        return@Button
                     }
-                    
-                    // Create product with updated price and add-ons
+
+                    // price stays the catalog price: the server prices the order, and
+                    // overwriting it here only ever made the app disagree with the receipt.
+                    val filteredOriginalMetaData = product.metaData.filter {
+                        !it.key.contains("_") || it.key == "_note"
+                    }
+
                     val cartProduct = product.copy(
-                        price = newPrice,
-                        regularPrice = newPrice,
-                        metaData = filteredOriginalMetaData + newMetaData
+                        metaData = filteredOriginalMetaData,
+                        addOnChoices = chosen
                     )
-                    
+
                     viewModel.add(cartProduct)
-                    
+                    selection = AddOnSelection()
+                    addOnError = null
+
                     // Show added animation
                     isAdded = true
                 },

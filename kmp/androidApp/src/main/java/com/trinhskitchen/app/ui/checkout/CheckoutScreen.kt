@@ -55,7 +55,16 @@ import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Payment
 import com.trinhsgroup.shared.model.Product
 import com.trinhsgroup.shared.model.ProductOrder
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import com.trinhskitchen.app.payments.PaymentResult
+import com.trinhskitchen.app.payments.StripePresenter
 import com.trinhsgroup.shared.model.FeeLine
+import com.trinhsgroup.shared.payments.StripeRepository
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import com.trinhsgroup.shared.model.OrderQuote
 import com.trinhsgroup.shared.model.VoucherResponse
 import com.trinhsgroup.shared.util.PriceFormatting
@@ -104,6 +113,53 @@ fun CheckoutScreen(
 
     // The server's price for this basket. Null until it answers, or if it could not be asked.
     var quote by remember { mutableStateOf<OrderQuote?>(null) }
+
+    val context = LocalContext.current
+    val stripePresenter: StripePresenter = koinInject()
+    val stripeRepository: StripeRepository = koinInject()
+    val scope = rememberCoroutineScope()
+    val paymentResult by stripePresenter.paymentResult.collectAsState()
+    val stripeError by stripePresenter.lastError.collectAsState()
+    var isPaying by remember { mutableStateOf(false) }
+
+    // The order the sheet is collecting payment for. Kept so the result handler knows which
+    // order to finish, and so a cancelled payment leaves it alone rather than losing it.
+    var pendingStripeOrderId by remember { mutableStateOf<Int?>(null) }
+
+    /**
+     * Finishes a card order once Stripe reports the payment complete. The cart is cleared here
+     * rather than at order creation: an abandoned payment must leave the basket intact.
+     */
+    fun finishOrder(orderId: Int) {
+        selectedVoucher = null
+        pointsViewModel.fetchVouchers()
+        pointsViewModel.fetchPoints()
+        mainViewModel.reset()
+        onOrderSuccess(orderId)
+    }
+
+    LaunchedEffect(paymentResult) {
+        val result = paymentResult ?: return@LaunchedEffect
+        val orderId = pendingStripeOrderId
+        isPaying = false
+
+        when (result) {
+            is PaymentResult.Completed -> {
+                pendingStripeOrderId = null
+                stripePresenter.clearResult()
+                if (orderId != null) finishOrder(orderId)
+            }
+            is PaymentResult.Canceled -> {
+                // The order stays pending, so the customer can try again without re-ordering.
+                errorMessage = "Payment was cancelled. Your order is saved — try paying again."
+                stripePresenter.clearResult()
+            }
+            is PaymentResult.Failed -> {
+                errorMessage = "${result.message}. Your order is saved — try paying again."
+                stripePresenter.clearResult()
+            }
+        }
+    }
     
     // Debug log when checkout screen loads
     LaunchedEffect(Unit) {
@@ -263,6 +319,13 @@ fun CheckoutScreen(
                         errorMessage = "Please select a pickup time"
                         return@Button
                     }
+
+                    // An order the kitchen cannot ring back is worse than one not placed, and
+                    // the server rejects it anyway.
+                    if (!currentUser.billing.checkFilledData()) {
+                        errorMessage = "Please complete your billing details before ordering"
+                        return@Button
+                    }
                     
                     val productOrders = cartItems.toProductOrders()
                     
@@ -282,19 +345,43 @@ fun CheckoutScreen(
                         productOrders = productOrders,
                         pickupDateTime = pickupDateTime,
                         couponCode = selectedVoucher?.code
-                    ) { orderId, _ ->
+                    ) { orderId, paymentUrl ->
                         if (orderId != null) {
                             println("✅ CheckoutScreen: Order created with ID = $orderId")
-                            // Clear selected voucher
-                            selectedVoucher = null
-                            
-                            // Refresh vouchers and points
-                            pointsViewModel.fetchVouchers()
-                            pointsViewModel.fetchPoints()
-                            
-                            // Reset cart and navigate
-                            mainViewModel.reset()
-                            onOrderSuccess(orderId)
+
+                            if (selectedPayment?.id?.lowercase() == "stripe") {
+                                // The order exists but is unpaid: ask the server for its payment
+                                // intent and hand that to the sheet. The cart survives until the
+                                // payment actually completes.
+                                pendingStripeOrderId = orderId
+                                isPaying = true
+                                scope.launch {
+                                    val intent = stripeRepository.getPaymentIntent(orderId)
+                                    val secret = intent?.paymentIntent
+                                    val key = intent?.publishableKey
+
+                                    if (intent != null && secret != null && key != null) {
+                                        stripePresenter.presentPaymentSheet(
+                                            paymentIntentClientSecret = secret,
+                                            publishableKey = key,
+                                            customerId = intent.customer,
+                                            ephemeralKeySecret = intent.ephemeralKey
+                                        )
+                                    } else if (!paymentUrl.isNullOrEmpty()) {
+                                        // Same fallback as iOS: pay on the web, and the
+                                        // trinhsgroup://checkout deep link brings us back.
+                                        isPaying = false
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse(paymentUrl))
+                                        )
+                                    } else {
+                                        isPaying = false
+                                        errorMessage = "Couldn't start the payment. Your order is saved — please contact us."
+                                    }
+                                }
+                            } else {
+                                finishOrder(orderId)
+                            }
                         } else {
                             println("❌ CheckoutScreen: Order creation failed, apiMessage=$apiMessage")
                             // Show API error if available, otherwise generic message
@@ -310,7 +397,7 @@ fun CheckoutScreen(
                     .fillMaxWidth()
                     .padding(16.dp)
                     .height(50.dp),
-                enabled = isSubmitEnabled && !showLoading,
+                enabled = isSubmitEnabled && !showLoading && !isPaying,
                 shape = RoundedCornerShape(25.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isSubmitEnabled) AppColors.Primary else Color.Gray,

@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.RestaurantMenu
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Badge
@@ -37,6 +39,8 @@ import com.trinhskitchen.app.nav.Screen
 import com.trinhskitchen.app.ui.cart.CartScreen
 import com.trinhskitchen.app.ui.home.HomeScreen
 import com.trinhskitchen.app.ui.menu.MenuScreen
+import com.trinhskitchen.app.ui.orders.MyOrdersScreen
+import com.trinhskitchen.app.ui.orders.OrdersFilter
 import com.trinhskitchen.app.ui.profile.ProfileScreen
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
@@ -105,6 +109,12 @@ fun MainScreen(
             unselectedIcon = Icons.Outlined.ShoppingCart,
             hasBadge = cartCount > 0,
             badgeCount = cartCount
+        ),
+        BottomNavItem(
+            title = "Orders",
+            route = Screen.MyOrders.route,
+            selectedIcon = Icons.Filled.ReceiptLong,
+            unselectedIcon = Icons.Outlined.ReceiptLong
         ),
         BottomNavItem(
             title = "Profile",
@@ -198,6 +208,17 @@ fun MainScreen(
                     )
                 }
                 
+                composable(Screen.MyOrders.route) {
+                    MyOrdersScreen(
+                        historyViewModel = historyViewModel,
+                        filter = OrdersFilter.TODAY_ONLY,
+                        onOpenOrder = { order ->
+                            historyViewModel.openOrder(order)
+                            onNavigateToOrderDetail(order.id)
+                        }
+                    )
+                }
+
                 composable(Screen.Profile.route) {
                     ProfileScreen(
                         authViewModel = authViewModel,

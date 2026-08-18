@@ -1,6 +1,7 @@
 package com.trinhsgroup.shared.viewmodel
 
 import com.trinhsgroup.shared.model.Order
+import com.trinhsgroup.shared.model.OrderTimelineEvent
 import com.trinhsgroup.shared.service.HistoryService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,23 @@ class HistoryViewModel(
     private val _message = MutableStateFlow("")
     val message: StateFlow<String> = _message.asStateFlow()
 
+    /** The order whose detail is open. */
+    private val _selectedOrder = MutableStateFlow(Order.Default)
+    val selectedOrder: StateFlow<Order> = _selectedOrder.asStateFlow()
+
+    private val _isCancelling = MutableStateFlow(false)
+    val isCancelling: StateFlow<Boolean> = _isCancelling.asStateFlow()
+
+    /**
+     * Timeline for the order on screen. Empty until the fetch lands, and stays empty if the
+     * server has no history to give — the rail then falls back to the order's own dates.
+     */
+    private val _statusHistory = MutableStateFlow<List<OrderTimelineEvent>>(emptyList())
+    val statusHistory: StateFlow<List<OrderTimelineEvent>> = _statusHistory.asStateFlow()
+
+    /** Which order [statusHistory] belongs to, so a late response can be discarded. */
+    private var statusHistoryOrderId: Int? = null
+
     init {
         bindingData()
     }
@@ -52,7 +70,21 @@ class HistoryViewModel(
             _message.value = error
         }.launchIn(scope)
 
+        service.isCancelling.onEach { _isCancelling.value = it }.launchIn(scope)
+
+        service.statusHistory.onEach { result ->
+            val (orderId, events) = result ?: return@onEach
+            if (orderId != statusHistoryOrderId) return@onEach
+            _statusHistory.value = events
+        }.launchIn(scope)
+
         service.orders.onEach { orders ->
+            // Keep the open detail in step so an already-visible screen re-renders the new
+            // status rather than showing a stale one.
+            val open = _selectedOrder.value
+            if (open.id > 0) {
+                orders.firstOrNull { it.id == open.id }?.let { _selectedOrder.value = it }
+            }
             _orders.value = orders
         }.launchIn(scope)
     }
@@ -64,6 +96,43 @@ class HistoryViewModel(
     fun fetchOrders() {
         scope.launch {
             service.onFetchHistoryOrders()
+        }
+    }
+
+    /** Opens one order's detail and asks for its timeline. */
+    fun openOrder(order: Order) {
+        _selectedOrder.value = order
+        _showHistoryOrderDetail.value = true
+        loadStatusHistory(order.id)
+    }
+
+    /**
+     * Loads the timeline for one order.
+     *
+     * Clears the previous one first: showing the last order's stamps against this order's
+     * stages would be worse than showing none.
+     */
+    fun loadStatusHistory(orderId: Int) {
+        if (orderId <= 0) return
+        statusHistoryOrderId = orderId
+        _statusHistory.value = emptyList()
+        scope.launch {
+            service.onFetchOrderStatusHistory(orderId)
+        }
+    }
+
+    /** Cancels the order on screen, if the server still allows it. */
+    fun cancelOrder(orderId: Int, completion: (Boolean) -> Unit = {}) {
+        if (orderId <= 0) return
+        _message.value = ""
+        scope.launch {
+            val updated = service.onCancelOrder(orderId)
+            if (updated != null) {
+                _selectedOrder.value = updated
+                _message.value = "Order #${updated.number} has been cancelled."
+                loadStatusHistory(updated.id)
+            }
+            completion(updated != null)
         }
     }
 

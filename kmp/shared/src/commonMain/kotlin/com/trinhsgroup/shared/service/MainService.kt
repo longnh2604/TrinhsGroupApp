@@ -1,6 +1,9 @@
 package com.trinhsgroup.shared.service
 
+import com.trinhsgroup.shared.model.AddOnGroup
+import com.trinhsgroup.shared.model.AddOnGroupsResponse
 import com.trinhsgroup.shared.model.AnyCodableValue
+import com.trinhsgroup.shared.model.submitPairs
 import com.trinhsgroup.shared.model.Category
 import com.trinhsgroup.shared.model.Order
 import com.trinhsgroup.shared.model.OrderQuote
@@ -154,6 +157,27 @@ class MainService(
             _payments.value = emptyList()
         } finally {
             _isLoading.value = false
+        }
+    }
+
+    /**
+     * Add-on groups for one product, from YITH by way of trinh-app-api.
+     * Mirrors Swift's fetchAddOnGroups().
+     *
+     * Returned to the caller rather than published on this service, on purpose: the Firestore
+     * add-ons it replaces lived on a shared client keyed by category, so opening a second
+     * product in the same category inherited the first one's ticks. These belong to the screen
+     * that asked for them.
+     */
+    suspend fun fetchAddOnGroups(productId: Int): List<AddOnGroup> {
+        return try {
+            api.request<AddOnGroupsResponse>(
+                endpoint = WooCommerceEndpoint.ProductAddOns(productId),
+                method = HttpMethod.GET
+            ).addons
+        } catch (e: Exception) {
+            println("❌ MainService.fetchAddOnGroups($productId): ${e::class.simpleName}: ${e.message}")
+            emptyList()
         }
     }
 
@@ -368,6 +392,17 @@ class MainService(
                             })
                         }
                     })
+
+                    // yith_wapo is what actually buys the add-ons: the server hands it to YITH,
+                    // which prices the line and writes the choice the kitchen reads. Without it
+                    // the customer picks "Add Meat" and is never charged for it. meta_data still
+                    // carries the note.
+                    val pairs = p.addOnChoices.submitPairs
+                    if (pairs.isNotEmpty()) {
+                        put("yith_wapo", buildJsonObject {
+                            pairs.forEach { (key, value) -> put(key, value) }
+                        })
+                    }
                 })
             }
         }

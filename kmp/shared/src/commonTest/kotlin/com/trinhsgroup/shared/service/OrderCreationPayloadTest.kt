@@ -1,5 +1,6 @@
 package com.trinhsgroup.shared.service
 
+import com.trinhsgroup.shared.model.AddOnChoice
 import com.trinhsgroup.shared.model.AnyCodableValue
 import com.trinhsgroup.shared.model.Billing
 import com.trinhsgroup.shared.model.ProductMetaData
@@ -105,6 +106,49 @@ class OrderCreationPayloadTest {
         val meta = lineItem["meta_data"]!!.jsonArray.first().jsonObject
         assertEquals("_note", meta["key"]?.jsonPrimitive?.content)
         assertEquals("No chilli", meta["value"]?.jsonPrimitive?.content)
+    }
+
+    /**
+     * yith_wapo is what actually buys the add-ons. Sending the choice as meta_data alone leaves
+     * the customer picking "Add Meat +$3.00" and being charged for the bare product — the live
+     * quote endpoint answers $11.50 without this key and $14.50 with it.
+     */
+    @Test
+    fun `line items submit chosen add-ons as yith_wapo`() {
+        val withAddOns = productOrders.map {
+            it.copy(
+                addOnChoices = listOf(
+                    AddOnChoice(submitKey = "2-0", submitValue = "1", label = "Add Meat", price = 3.0),
+                    AddOnChoice(submitKey = "2-1", submitValue = "1", label = "Add Tofu", price = 2.0)
+                )
+            )
+        }
+
+        val lineItem = service.buildOrderJson(
+            user = user,
+            paymentMethod = "stripe",
+            paymentMethodTitle = "Credit Card",
+            customerNote = "",
+            status = "pending",
+            productOrders = withAddOns,
+            pickupDateTime = "2026-06-15 18:30:00",
+            couponCode = null
+        )["line_items"]!!.jsonArray.first().jsonObject
+
+        val wapo = lineItem["yith_wapo"]!!.jsonObject
+        assertEquals("1", wapo["2-0"]?.jsonPrimitive?.content)
+        assertEquals("1", wapo["2-1"]?.jsonPrimitive?.content)
+
+        // Still no prices: the server prices what yith_wapo describes.
+        assertNull(lineItem["price"])
+        assertNull(lineItem["total"])
+    }
+
+    /** A basket with no add-ons must not send an empty map — YITH treats that as a choice. */
+    @Test
+    fun `line items omit yith_wapo when nothing was chosen`() {
+        val lineItem = payload()["line_items"]!!.jsonArray.first().jsonObject
+        assertNull(lineItem["yith_wapo"])
     }
 
     @Test

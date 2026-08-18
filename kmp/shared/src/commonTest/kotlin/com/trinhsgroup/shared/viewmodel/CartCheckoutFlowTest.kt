@@ -44,7 +44,7 @@ class CartCheckoutFlowTest {
         
         // iOS: name + "|" + sortedMetaData (key=value joined by &)
         // When no meta, it's just "name|"
-        val expectedIdentifier = "Pad Thai|"
+        val expectedIdentifier = "Pad Thai||"
         
         assertEquals(expectedIdentifier, product.cartIdentifier)
     }
@@ -61,7 +61,7 @@ class CartCheckoutFlowTest {
         )
         
         // iOS format: "name|key=value"
-        val expectedIdentifier = "Pad Thai|Spice Level=Medium"
+        val expectedIdentifier = "Pad Thai|Spice Level=Medium|"
         
         assertEquals(expectedIdentifier, product.cartIdentifier)
     }
@@ -79,7 +79,7 @@ class CartCheckoutFlowTest {
         )
         
         // iOS sorts by key alphabetically: Extra, Spice Level
-        val expectedIdentifier = "Pad Thai|Extra=Tofu&Spice Level=Hot"
+        val expectedIdentifier = "Pad Thai|Extra=Tofu&Spice Level=Hot|"
         
         assertEquals(expectedIdentifier, product.cartIdentifier)
     }

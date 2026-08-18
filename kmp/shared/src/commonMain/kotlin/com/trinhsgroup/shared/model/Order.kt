@@ -22,6 +22,14 @@ data class Order(
     @SerialName("payment_method_title") val paymentMethodTitle: String,
     @SerialName("line_items") val lineItems: List<LineItem>,
     @SerialName("shipping_lines") val shippingLines: List<ShippingLine>,
+    /**
+     * Order-level fees, each rendered with the server's own label. `discount_total` is separate
+     * and carries voucher discounts only.
+     *
+     * Orders placed before the app's 5% discount was withdrawn still carry it here as a
+     * negative fee line, so this has to keep decoding.
+     */
+    @SerialName("fee_lines") val feeLines: List<FeeLine>? = null,
     @SerialName("payment_url") val paymentURL: String? = null,
     @SerialName("order_key") val orderKey: String? = null
 ) {
@@ -29,6 +37,10 @@ data class Order(
      * Convenience: numeric discount value.
      * Mirrors Swift's discount computed property.
      */
+    /** Fees, defaulting to none. Prefer this over [feeLines] at every call site. */
+    val fees: List<FeeLine>
+        get() = feeLines ?: emptyList()
+
     val discount: Double
         get() = discountTotal.toDoubleOrNull() ?: 0.0
 

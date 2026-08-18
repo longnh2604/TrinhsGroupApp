@@ -1,5 +1,6 @@
 package com.trinhsgroup.shared.util
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -40,6 +41,24 @@ object DateTimeUtils {
         } catch (e: Exception) {
             dateString
         }
+    }
+
+    /**
+     * Whether a WooCommerce timestamp falls on today's date in Australia/Sydney.
+     * Mirrors the isSameAustralianDay check in Swift's MyOrdersView.
+     *
+     * The shop's day is what divides "today's orders" from history, so the comparison is made
+     * in the shop's timezone rather than the device's — a customer travelling overseas should
+     * still see today's pickup under Orders.
+     *
+     * An unparseable date reads as not-today: better to file it under history than to show it
+     * as live.
+     */
+    fun isToday(dateString: String): Boolean {
+        val instant = parseIsoDateTime(dateString) ?: return false
+        val date = instant.toLocalDateTime(SYDNEY_TIMEZONE).date
+        val today = Clock.System.now().toLocalDateTime(SYDNEY_TIMEZONE).date
+        return date == today
     }
 
     /**

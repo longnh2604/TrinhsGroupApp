@@ -3,6 +3,7 @@ package com.trinhsgroup.shared.model
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -71,15 +72,33 @@ class ProductTest {
         
         val product = Product(id = 1, name = "Pizza", metaData = metaData, quantity = 1)
         
-        // Format: name|key1=value1&key2=value2 (sorted by key)
-        val expected = "Pizza|addon=extra cheese&size=large"
+        // Format: name|key1=value1&key2=value2|addOnKey=value (all sorted)
+        val expected = "Pizza|addon=extra cheese&size=large|"
         assertEquals(expected, product.cartIdentifier)
     }
 
     @Test
     fun testCartIdentifierEmptyMetadata() {
         val product = Product(id = 1, name = "Simple Product", metaData = emptyList(), quantity = 1)
-        assertEquals("Simple Product|", product.cartIdentifier)
+        assertEquals("Simple Product||", product.cartIdentifier)
+    }
+
+    /**
+     * Two Family Trios with different pho are different lines. Without the add-ons in the
+     * identity, adding the second just increments the first one's quantity.
+     */
+    @Test
+    fun testCartIdentifierSeparatesDifferentAddOnChoices() {
+        val base = Product(id = 1, name = "Family Trio", quantity = 1)
+        val withBeef = base.copy(
+            addOnChoices = listOf(AddOnChoice(submitKey = "5-0", submitValue = "1", label = "Beef"))
+        )
+        val withChicken = base.copy(
+            addOnChoices = listOf(AddOnChoice(submitKey = "5-1", submitValue = "1", label = "Chicken"))
+        )
+
+        assertNotEquals(withBeef.cartIdentifier, withChicken.cartIdentifier)
+        assertEquals(withBeef.cartIdentifier, withBeef.copy(quantity = 4).cartIdentifier)
     }
 
     @Test

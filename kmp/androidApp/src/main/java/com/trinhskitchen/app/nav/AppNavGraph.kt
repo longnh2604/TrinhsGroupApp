@@ -4,13 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.trinhskitchen.app.firebase.FirestoreClient
 import com.trinhskitchen.app.ui.auth.LoginScreen
 import com.trinhskitchen.app.ui.auth.SignupScreen
 import com.trinhskitchen.app.ui.auth.SplashScreen
 import com.trinhskitchen.app.ui.checkout.CheckoutScreen
 import com.trinhskitchen.app.ui.checkout.OrderReceivedScreen
 import com.trinhskitchen.app.ui.main.MainScreen
+import com.trinhskitchen.app.ui.orders.MyOrdersScreen
+import com.trinhskitchen.app.ui.orders.OrderDetailScreen
+import com.trinhskitchen.app.ui.orders.OrdersFilter
 import com.trinhskitchen.app.ui.product.ProductDetailScreen
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 import com.trinhsgroup.shared.viewmodel.HistoryViewModel
@@ -29,7 +31,6 @@ fun AppNavGraph(
     val mainViewModel: MainViewModel = koinInject()
     val historyViewModel: HistoryViewModel = koinInject()
     val pointsViewModel: PointsViewModel = koinInject()
-    val firestoreClient: FirestoreClient = koinInject()
     
     NavHost(
         navController = navController,
@@ -120,7 +121,6 @@ fun AppNavGraph(
             ProductDetailScreen(
                 productId = productId,
                 viewModel = mainViewModel,
-                firestoreClient = firestoreClient,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -140,10 +140,26 @@ fun AppNavGraph(
             )
         }
         
-        // Order detail (placeholder)
-        composable(Screen.OrderDetail.route) { backStackEntry ->
-            val orderId = backStackEntry.arguments?.getString("orderId")?.toIntOrNull()
-            // TODO: Implement OrderDetailScreen
+        // Order detail — the order to show is the one HistoryViewModel has open, so a push
+        // notification and a tap from the list land on the same screen.
+        composable(Screen.OrderDetail.route) {
+            OrderDetailScreen(
+                historyViewModel = historyViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Past orders, reached from the profile. Today's live in the Orders tab.
+        composable(Screen.MyOrders.route) {
+            MyOrdersScreen(
+                historyViewModel = historyViewModel,
+                filter = OrdersFilter.PAST_ONLY,
+                onNavigateBack = { navController.popBackStack() },
+                onOpenOrder = { order ->
+                    historyViewModel.openOrder(order)
+                    navController.navigate(Screen.OrderDetail.createRoute(order.id))
+                }
+            )
         }
         
         // Order received / success screen
