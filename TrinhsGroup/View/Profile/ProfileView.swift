@@ -299,6 +299,8 @@ struct ProfileView: View {
     @StateObject private var pointsViewModel = PointsViewModel()
     
     @State private var showLogoutAlert = false
+    @State private var showDeleteAccountAlert = false
+    @State private var showDeleteAccountError = false
     @State private var showAccountCenter = false
     @State private var showMyVouchers = false
     @State private var pushNotificationsEnabled = true
@@ -349,6 +351,9 @@ struct ProfileView: View {
                         
                         // Logout Button
                         logoutButton
+
+                        // Delete Account — App Store Guideline 5.1.1(v)
+                        deleteAccountButton
                         
                         // App Version Footer
                         appVersionFooter
@@ -372,6 +377,10 @@ struct ProfileView: View {
             .onAppear {
                 loadData()
             }
+            .onChange(of: authViewModel.user.id) { id in
+                // Signing in from the sheet can put this screen up before /me answers.
+                if id > 0 { loadData() }
+            }
             .alert("Logout", isPresented: $showLogoutAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Logout", role: .destructive) {
@@ -379,6 +388,25 @@ struct ProfileView: View {
                 }
             } message: {
                 Text("Are you sure you want to logout?")
+            }
+            .alert(L10n.Profile.deleteAccountConfirmTitle.localized, isPresented: $showDeleteAccountAlert) {
+                Button(L10n.Common.cancel.localized, role: .cancel) { }
+                Button(L10n.Profile.deleteAccountButton.localized, role: .destructive) {
+                    authViewModel.onDeleteAccount { success in
+                        if success {
+                            mainViewModel.showLoginPrompt = true
+                        } else {
+                            showDeleteAccountError = true
+                        }
+                    }
+                }
+            } message: {
+                Text(L10n.Profile.deleteAccountConfirmMessage.localized)
+            }
+            .alert(L10n.Common.error.localized, isPresented: $showDeleteAccountError) {
+                Button(L10n.Common.ok.localized, role: .cancel) { }
+            } message: {
+                Text(L10n.Profile.deleteAccountErrorMessage.localized)
             }
             // Redeem confirmation alert
             .alert("Redeem Points", isPresented: $showRedeemConfirmation) {
@@ -414,21 +442,21 @@ struct ProfileView: View {
             } message: {
                 Text(pointsViewModel.message)
             }
-            .confirmationDialog("Cập nhật ảnh đại diện", isPresented: $showAvatarActionSheet, titleVisibility: .visible) {
-                Button("Chọn từ thư viện") {
+            .confirmationDialog("Update profile photo", isPresented: $showAvatarActionSheet, titleVisibility: .visible) {
+                Button("Choose from Library") {
                     presentPhotoLibrary()
                 }
-                Button("Chụp ảnh mới") {
+                Button("Take Photo") {
                     presentCamera()
                 }
                 if localAvatarPreview != nil || !authViewModel.localAvatarURL.isEmpty || !(authViewModel.user.avatar_url ?? "").isEmpty {
-                    Button("Xóa ảnh đại diện", role: .destructive) {
+                    Button("Remove Photo", role: .destructive) {
                         showDeleteAvatarConfirmation = true
                     }
                 }
-                Button("Hủy", role: .cancel) { }
+                Button("Cancel", role: .cancel) { }
             } message: {
-                Text("Chọn cách cập nhật avatar của bạn")
+                Text("Choose how to update your profile photo")
             }
             .photosPicker(isPresented: $showPhotoPicker, selection: $photoPickerItem, matching: .images)
             .onChange(of: photoPickerItem) { item in
@@ -448,13 +476,13 @@ struct ProfileView: View {
                 }
                 .ignoresSafeArea()
             }
-            .alert("Xóa ảnh đại diện", isPresented: $showDeleteAvatarConfirmation) {
-                Button("Hủy", role: .cancel) { }
-                Button("Xóa", role: .destructive) {
+            .alert("Remove profile photo", isPresented: $showDeleteAvatarConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Remove", role: .destructive) {
                     deleteAvatar()
                 }
             } message: {
-                Text("Avatar sẽ được đưa về ảnh mặc định.")
+                Text("Your profile photo will be reset to the default.")
             }
             .alert("Avatar", isPresented: $showAvatarErrorAlert) {
                 Button("OK", role: .cancel) { }
@@ -801,6 +829,19 @@ struct ProfileView: View {
         .padding(.top, ProfileDesign.Spacing.sm)
     }
     
+    // MARK: - Delete Account Button
+    /// Deliberately plainer than Logout: it has to be findable without being the button a
+    /// customer hits by accident on the way to signing out.
+    private var deleteAccountButton: some View {
+        Button(action: { showDeleteAccountAlert = true }) {
+            Text(L10n.Profile.deleteAccount.localized)
+                .font(ProfileDesign.Typography.callout)
+                .foregroundColor(ProfileDesign.Colors.error)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+        }
+    }
+
     // MARK: - App Version Footer
     private var appVersionFooter: some View {
         VStack(spacing: 4) {
@@ -867,13 +908,13 @@ struct ProfileView: View {
     private func handlePickedPhoto(_ item: PhotosPickerItem) async {
         do {
             guard let data = try await item.loadTransferable(type: Data.self) else {
-                showAvatarError("Không thể đọc ảnh từ thư viện.")
+                showAvatarError("We couldn't read that photo from your library.")
                 photoPickerItem = nil
                 return
             }
 
             guard let image = UIImage(data: data) else {
-                showAvatarError("Ảnh không hợp lệ hoặc không được hỗ trợ.")
+                showAvatarError("That image is invalid or not supported.")
                 photoPickerItem = nil
                 return
             }
@@ -932,20 +973,20 @@ struct ProfileView: View {
                     if newStatus == .authorized || newStatus == .limited {
                         showPhotoPicker = true
                     } else {
-                        showAvatarError("Ứng dụng chưa được cấp quyền Thư viện ảnh. Vui lòng bật quyền trong Settings.")
+                        showAvatarError("Photo library access is turned off. Please allow it in Settings.")
                     }
                 }
             }
         case .denied, .restricted:
-            showAvatarError("Ứng dụng chưa được cấp quyền Thư viện ảnh. Vui lòng bật quyền trong Settings.")
+            showAvatarError("Photo library access is turned off. Please allow it in Settings.")
         @unknown default:
-            showAvatarError("Không thể truy cập Thư viện ảnh trên thiết bị này.")
+            showAvatarError("The photo library isn't available on this device.")
         }
     }
 
     private func presentCamera() {
         guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-            showAvatarError("Thiết bị này không hỗ trợ camera.")
+            showAvatarError("This device doesn't have a camera.")
             return
         }
 
@@ -959,14 +1000,14 @@ struct ProfileView: View {
                     if granted {
                         showCameraPicker = true
                     } else {
-                        showAvatarError("Ứng dụng chưa được cấp quyền Camera. Vui lòng bật quyền trong Settings.")
+                        showAvatarError("Camera access is turned off. Please allow it in Settings.")
                     }
                 }
             }
         case .denied, .restricted:
-            showAvatarError("Ứng dụng chưa được cấp quyền Camera. Vui lòng bật quyền trong Settings.")
+            showAvatarError("Camera access is turned off. Please allow it in Settings.")
         @unknown default:
-            showAvatarError("Không thể truy cập camera trên thiết bị này.")
+            showAvatarError("The camera isn't available on this device.")
         }
     }
 
@@ -1009,6 +1050,7 @@ struct ProfileView: View {
     
     private func handleLogout() {
         authViewModel.logout()
+        mainViewModel.showLoginPrompt = true
     }
     
     private func openContactSupport() {

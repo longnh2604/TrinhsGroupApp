@@ -12,7 +12,12 @@ import UIKit
 
 class AuthViewModel: ObservableObject {
     
-    @AppStorage("isLogin") var isLogin : Bool = false
+    /// Not `@AppStorage`: that wrapper publishes nothing from inside an ObservableObject,
+    /// so every `onChange(of: authViewModel.isLogin)` would only fire when some unrelated
+    /// @Published on this object happened to change in the same update.
+    @Published var isLogin: Bool = UserDefaults.standard.bool(forKey: "isLogin") {
+        didSet { UserDefaults.standard.set(isLogin, forKey: "isLogin") }
+    }
     /// Kept in the Keychain rather than `@AppStorage`: this token authorises every
     /// customer, order, voucher and points request, so it is a bearer credential — see
     /// `AuthTokenStore`. Computed so the existing call sites read and assign unchanged.
@@ -264,6 +269,7 @@ class AuthViewModel: ObservableObject {
                     self.persistedAuthDisplayName = authUser.displayName
                     // Save token expiration when login
                     self.saveTokenExpiration(token: authUser.token)
+                    self.service.fetchingUserInfo()
                 }
             }
             .store(in: &cancellableSet)
@@ -397,7 +403,7 @@ class AuthViewModel: ObservableObject {
             let error = NSError(
                 domain: "AuthViewModel",
                 code: 422,
-                userInfo: [NSLocalizedDescriptionKey: "Không thể xử lý ảnh đã chọn."]
+                userInfo: [NSLocalizedDescriptionKey: "We couldn't process the photo you picked."]
             )
             message = error.localizedDescription
             completion(.failure(error))

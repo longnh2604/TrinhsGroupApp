@@ -11,6 +11,7 @@ struct LogInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State var isShowSignUp : Bool = false
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @Environment(\.dismiss) private var dismiss
     
     fileprivate func AppIcon() -> some View {
         return HStack {
@@ -126,6 +127,20 @@ struct LogInView: View {
                 NavigationLink(destination: SignupView().environmentObject(authViewModel), isActive: $isShowSignUp) {
                     EmptyView()
                 }
+            }
+            .overlay(alignment: .topLeading) {
+                // Guests are shown this as a sheet over the menu, so there has to be a way back.
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.gray)
+                        .frame(width: 36, height: 36)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: 1)
+                }
+                .padding(.leading, 20)
+                .padding(.top, 12)
             }
             .navigationBarTitle(Text(L10n.Common.emptyString.localizedKey), displayMode: .inline)
             .navigationBarHidden(true)

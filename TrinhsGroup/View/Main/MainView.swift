@@ -14,6 +14,25 @@ struct MainView: View {
     @EnvironmentObject var firestoreManager: FirestoreManager
 
     @State private var selectedTab: Int = 0
+    /// Tab a guest asked for before signing in, so the tap isn't lost behind the sheet.
+    @State private var pendingTab: Int?
+
+    /// Orders and Profile are the only tabs that are about the customer rather than the menu.
+    private static let accountTabs: Set<Int> = [2, 4]
+
+    private var tabSelection: Binding<Int> {
+        Binding(
+            get: { selectedTab },
+            set: { requested in
+                if Self.accountTabs.contains(requested) && !authViewModel.isLogin {
+                    pendingTab = requested
+                    mainViewModel.showLoginPrompt = true
+                } else {
+                    selectedTab = requested
+                }
+            }
+        )
+    }
 
     var body: some View {
         ZStack {
@@ -27,13 +46,28 @@ struct MainView: View {
                 
                 Spacer()
 
-                CustomTabBar(selectedTab: $selectedTab)
+                CustomTabBar(selectedTab: tabSelection)
             }
 
             overlayPresentedView()
             loadingOverlay()
         }
         .navigationBarBackButtonHidden(true)
+        .fullScreenCover(isPresented: $mainViewModel.showLoginPrompt, onDismiss: { pendingTab = nil }) {
+            LogInView()
+                .environmentObject(authViewModel)
+                .preferredColorScheme(.light)
+        }
+        .onChange(of: authViewModel.isLogin) { loggedIn in
+            guard loggedIn else {
+                // Logged out, deleted, or the token expired while an account-only tab was up.
+                if Self.accountTabs.contains(selectedTab) { selectedTab = 0 }
+                return
+            }
+            mainViewModel.showLoginPrompt = false
+            if let tab = pendingTab { selectedTab = tab }
+            pendingTab = nil
+        }
         .task {
             // Initial bootstrapping - only run once
             authViewModel.onGetUser()

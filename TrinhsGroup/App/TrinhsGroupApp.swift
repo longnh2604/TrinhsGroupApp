@@ -21,17 +21,14 @@ struct TrinhsGroupApp: App {
         WindowGroup {
             ZStack {
                 if isActive {
-                    if !authViewModel.isLogin {
-                        LogInView()
-                            .environmentObject(authViewModel)
-                            .preferredColorScheme(.light)
-                    } else {
-                        MainView()
-                            .environmentObject(authViewModel)
-                            .environmentObject(mainViewModel)
-                            .environmentObject(historyViewModel)
-                            .environmentObject(firestoreManager)
-                    }
+                    // The catalog is public, so the app opens on it signed in or not
+                    // (App Store Guideline 5.1.1). MainView raises the sign-in sheet for
+                    // the account-only parts.
+                    MainView()
+                        .environmentObject(authViewModel)
+                        .environmentObject(mainViewModel)
+                        .environmentObject(historyViewModel)
+                        .environmentObject(firestoreManager)
                 } else {
                     SplashView()
                 }

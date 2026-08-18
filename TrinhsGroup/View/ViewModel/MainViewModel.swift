@@ -25,6 +25,8 @@ class MainViewModel: ObservableObject {
     
     @Published var appSetting: AppSetting?
     @Published var showLoading: Bool = false
+    /// Raised by whatever a guest just tried to do that needs an account.
+    @Published var showLoginPrompt = false
     @Published var showNewSeason = false
     @Published var showCart = false
     @Published var sliders = [Slider]()

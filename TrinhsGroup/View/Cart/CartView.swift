@@ -10,6 +10,7 @@ import Kingfisher
 
 struct CartView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
 
     init() {
         UITableView.appearance().separatorStyle = .none
@@ -34,8 +35,11 @@ struct CartView: View {
 
     fileprivate func CheckOutButton() -> some View {
         Button(action: {
-            // Check if today is Monday in Australia
-            if isMondayInAustralia() {
+            // Placing an order is the account-based part; browsing and filling the basket
+            // are not (App Store Guideline 5.1.1).
+            if !authViewModel.isLogin {
+                mainViewModel.showLoginPrompt = true
+            } else if isMondayInAustralia() {
                 showMondayAlert = true
             } else {
                 mainViewModel.presentedType = .checkOut
