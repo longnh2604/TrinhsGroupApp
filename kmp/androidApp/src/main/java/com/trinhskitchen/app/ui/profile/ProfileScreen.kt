@@ -26,7 +26,9 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,11 +37,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,8 +73,11 @@ fun ProfileScreen(
     pointsViewModel: PointsViewModel,
     mainViewModel: MainViewModel,
     onNavigateToOrderDetail: (Int) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onAccountDeleted: () -> Unit
 ) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showDeleteError by remember { mutableStateOf(false) }
     val user by authViewModel.user.collectAsState()
     val balance by pointsViewModel.balance.collectAsState()
     val orders by historyViewModel.orders.collectAsState()
@@ -297,8 +306,78 @@ fun ProfileScreen(
                 }
             }
             
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Delete account. Plainer than Logout on purpose: it has to be findable without
+            // being the row a customer hits on the way to signing out.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDeleteConfirm = true }
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DeleteForever,
+                    contentDescription = null,
+                    tint = AppColors.TextSecondary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Text(
+                    text = "Delete Account",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.TextSecondary
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete your account?") },
+            text = {
+                Text(
+                    "This permanently deletes your account. You will not be able to sign in " +
+                        "again and this cannot be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    authViewModel.onDeleteAccount { success ->
+                        if (success) onAccountDeleted() else showDeleteError = true
+                    }
+                }) {
+                    Text("Delete", color = AppColors.Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteError) {
+        AlertDialog(
+            onDismissRequest = { showDeleteError = false },
+            title = { Text("Error") },
+            text = {
+                Text(
+                    "We couldn't delete your account. Please try again or contact us at " +
+                        "info@trinhsgroup.com.au."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showDeleteError = false }) { Text("OK") }
+            }
+        )
     }
 }
 

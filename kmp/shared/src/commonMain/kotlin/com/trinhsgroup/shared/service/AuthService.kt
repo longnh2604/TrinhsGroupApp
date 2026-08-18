@@ -6,6 +6,7 @@ import com.trinhsgroup.shared.model.User
 import com.trinhsgroup.shared.model.UserAuth
 import com.trinhsgroup.shared.model.WooErrorResponse
 import com.trinhsgroup.shared.network.AppError
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import com.trinhsgroup.shared.network.HttpMethod
@@ -244,6 +245,40 @@ class AuthService(
             _user.value = user
         } catch (e: Exception) {
             _error.value = e.message ?: "Failed to fetch user info"
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Permanently deletes the signed-in customer's own account.
+     * Mirrors Swift's deleteAccount().
+     *
+     * The server resolves which account from the JWT and passes force=true to WooCommerce
+     * itself, so there is no id to get wrong here.
+     *
+     * The reply is read as raw JSON rather than as [User] on purpose: the only thing that
+     * decides success is the status code, and a body that does not match the model must not
+     * report failure for an account the server has already deleted.
+     *
+     * @return true when the account is gone
+     */
+    suspend fun deleteAccount(): Boolean {
+        _isLoading.value = true
+        _error.value = ""
+
+        return try {
+            api.request<JsonElement>(
+                endpoint = WooCommerceEndpoint.Me,
+                method = HttpMethod.DELETE
+            )
+            true
+        } catch (e: WooErrorResponse) {
+            _error.value = e.message
+            false
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Could not delete your account"
+            false
         } finally {
             _isLoading.value = false
         }

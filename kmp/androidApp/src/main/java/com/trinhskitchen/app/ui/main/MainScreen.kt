@@ -27,7 +27,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -73,13 +75,18 @@ fun MainScreen(
     onNavigateToProductDetail: (Int) -> Unit,
     onNavigateToCheckout: () -> Unit,
     onNavigateToOrderDetail: (Int) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onAccountDeleted: () -> Unit,
+    onRequireLogin: () -> Unit
 ) {
     val navController = rememberNavController()
     val numberOfItems by mainViewModel.items.collectAsState()
     val cartCount = numberOfItems.sumOf { it.quantity }
     
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    /** Tab a guest asked for before signing in, so the tap isn't lost behind the sign-in screen. */
+    var pendingTabIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    val isLogin by authViewModel.isLogin.collectAsState()
     
     // Initial bootstrapping - mirrors iOS MainView's .task block
     // Note: Session restoration (user data) happens in SplashScreen via restoreSession()
@@ -124,6 +131,27 @@ fun MainScreen(
         )
     )
     
+    fun selectTab(index: Int) {
+        selectedTabIndex = index
+        navController.navigate(navItems[index].route) {
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    LaunchedEffect(isLogin) {
+        if (isLogin) {
+            pendingTabIndex?.let { requested ->
+                selectTab(requested)
+                pendingTabIndex = null
+            }
+        } else if (selectedTabIndex in ACCOUNT_TABS) {
+            // Logged out, deleted, or the token expired while an account-only tab was up.
+            selectTab(0)
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar(
@@ -133,13 +161,11 @@ fun MainScreen(
                     NavigationBarItem(
                         selected = selectedTabIndex == index,
                         onClick = {
-                            selectedTabIndex = index
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                            if (index in ACCOUNT_TABS && !isLogin) {
+                                pendingTabIndex = index
+                                onRequireLogin()
+                            } else {
+                                selectTab(index)
                             }
                         },
                         icon = {
@@ -203,7 +229,11 @@ fun MainScreen(
                 composable(Screen.Cart.route) {
                     CartScreen(
                         viewModel = mainViewModel,
-                        onNavigateToCheckout = onNavigateToCheckout,
+                        onNavigateToCheckout = {
+                            // Placing an order is the account-based part; browsing and
+                            // filling the basket are not.
+                            if (isLogin) onNavigateToCheckout() else onRequireLogin()
+                        },
                         onNavigateToProductDetail = onNavigateToProductDetail
                     )
                 }
@@ -226,10 +256,14 @@ fun MainScreen(
                         pointsViewModel = pointsViewModel,
                         mainViewModel = mainViewModel,
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
-                        onLogout = onLogout
+                        onLogout = onLogout,
+                        onAccountDeleted = onAccountDeleted
                     )
                 }
             }
         }
     }
 }
+
+/** Orders and Profile are about the customer rather than the menu. */
+private val ACCOUNT_TABS = setOf(3, 4)

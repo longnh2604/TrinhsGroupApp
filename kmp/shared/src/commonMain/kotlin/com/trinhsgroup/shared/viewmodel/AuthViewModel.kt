@@ -307,6 +307,27 @@ class AuthViewModel(
     /**
      * Logs out the user.
      */
+    /**
+     * Permanently deletes the signed-in account, then clears the local session.
+     * Mirrors Swift's onDeleteAccount().
+     *
+     * @param onResult called with false when the server refused, so the caller can say so
+     *                 rather than navigating away from an account that still exists
+     */
+    fun onDeleteAccount(onResult: (Boolean) -> Unit) {
+        if (_user.value.id <= 0) {
+            _message.value = "Invalid user account"
+            onResult(false)
+            return
+        }
+
+        scope.launch {
+            val deleted = service.deleteAccount()
+            if (deleted) logout()
+            onResult(deleted)
+        }
+    }
+
     fun logout() {
         tokenStore.clear()
         _isLogin.value = false

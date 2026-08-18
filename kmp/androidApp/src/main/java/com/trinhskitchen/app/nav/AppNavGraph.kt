@@ -44,11 +44,6 @@ fun AppNavGraph(
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
-                },
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
                 }
             )
         }
@@ -57,17 +52,14 @@ fun AppNavGraph(
         composable(Screen.Login.route) {
             LoginScreen(
                 viewModel = authViewModel,
-                onLoginSuccess = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
+                onLoginSuccess = { navController.popBackStack() },
                 onNavigateToSignup = {
                     navController.navigate(Screen.Signup.route)
                 },
                 onNavigateToForgotPassword = {
                     navController.navigate(Screen.ForgotPassword.route)
-                }
+                },
+                onClose = { navController.popBackStack() }
             )
         }
         
@@ -108,9 +100,15 @@ fun AppNavGraph(
                 onLogout = {
                     authViewModel.logout()
                     mainViewModel.reset()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Login.route)
+                },
+                // onDeleteAccount has already cleared the session by the time this runs.
+                onAccountDeleted = {
+                    mainViewModel.reset()
+                    navController.navigate(Screen.Login.route)
+                },
+                onRequireLogin = {
+                    navController.navigate(Screen.Login.route)
                 }
             )
         }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
@@ -66,7 +67,8 @@ fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
     onNavigateToSignup: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit
+    onNavigateToForgotPassword: () -> Unit,
+    onClose: () -> Unit
 ) {
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -94,6 +96,14 @@ fun LoginScreen(
     }
     
     Scaffold(
+        topBar = {
+            // Guests reach this from the catalog, so there has to be a way back to it.
+            Box(modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = onClose) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                }
+            }
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(

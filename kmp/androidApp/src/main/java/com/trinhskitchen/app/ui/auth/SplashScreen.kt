@@ -35,13 +35,13 @@ import kotlinx.coroutines.delay
  * 1. Show splash animation
  * 2. Call restoreSession() to check stored auth state
  * 3. Wait for authState to resolve (not Loading)
- * 4. Navigate to Main (authenticated) or Login (unauthenticated)
+ * 4. Navigate to Main either way — the catalog is public, and Main asks for a sign-in
+ *    only when a guest reaches for something that needs an account.
  */
 @Composable
 fun SplashScreen(
     authViewModel: AuthViewModel,
-    onNavigateToMain: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToMain: () -> Unit
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     var animationComplete by remember { mutableStateOf(false) }
@@ -72,17 +72,10 @@ fun SplashScreen(
     // Navigate when animation is complete AND auth state is resolved
     LaunchedEffect(animationComplete, authState) {
         if (animationComplete && authState != AuthState.Loading) {
-            when (authState) {
-                AuthState.Authenticated -> {
-                    println("🔐 SplashScreen: Authenticated, navigating to Main")
-                    onNavigateToMain()
-                }
-                AuthState.Unauthenticated -> {
-                    println("🔐 SplashScreen: Unauthenticated, navigating to Login")
-                    onNavigateToLogin()
-                }
-                else -> { /* Still loading, wait */ }
-            }
+            // Still waited for the session to resolve first: a restored one means Main opens
+            // with the customer already loaded rather than filling in a moment later.
+            println("🔐 SplashScreen: authState=$authState, navigating to Main")
+            onNavigateToMain()
         }
     }
     
