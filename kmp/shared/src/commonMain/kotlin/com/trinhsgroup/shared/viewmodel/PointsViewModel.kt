@@ -46,6 +46,9 @@ class PointsViewModel(
     private val _availableVouchers = MutableStateFlow<List<VoucherResponse>>(emptyList())
     val availableVouchers: StateFlow<List<VoucherResponse>> = _availableVouchers.asStateFlow()
 
+    private val _allVouchers = MutableStateFlow<List<VoucherResponse>>(emptyList())
+    val allVouchers: StateFlow<List<VoucherResponse>> = _allVouchers.asStateFlow()
+
     private val _isLoadingVouchers = MutableStateFlow(false)
     val isLoadingVouchers: StateFlow<Boolean> = _isLoadingVouchers.asStateFlow()
 
@@ -78,10 +81,11 @@ class PointsViewModel(
         }.launchIn(scope)
 
         service.vouchers.onEach { vouchers ->
-            println("🎟️ PointsViewModel: service.vouchers emitted ${vouchers.size} vouchers")
             _availableVouchers.value = vouchers
-            _isLoadingVouchers.value = false
-            println("🎟️ PointsViewModel: Set isLoadingVouchers=false, availableVouchers=${vouchers.size}")
+        }.launchIn(scope)
+
+        service.allVouchers.onEach { vouchers ->
+            _allVouchers.value = vouchers
         }.launchIn(scope)
     }
 
@@ -155,7 +159,11 @@ class PointsViewModel(
     fun fetchVouchers() {
         _isLoadingVouchers.value = true
         scope.launch {
+            // Clearing the flag here rather than when the list arrives: an account with no
+            // usable vouchers re-emits the same empty list, which a StateFlow swallows, and
+            // the spinner then span forever.
             service.fetchVouchers()
+            _isLoadingVouchers.value = false
         }
     }
 }

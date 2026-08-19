@@ -21,9 +21,11 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.content.TextContent
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlin.io.encoding.Base64
@@ -144,10 +146,7 @@ class WooCommerceApi(
             params.forEach { (key, value) -> parameter(key, value) }
             header(HttpHeaders.CacheControl, "no-cache")
             header("Pragma", "no-cache")
-            body?.let {
-                contentType(ContentType.Application.Json)
-                setBody(it)
-            }
+            body?.let { setBody(jsonRequestBody(it)) }
         }
     }
 
@@ -160,10 +159,7 @@ class WooCommerceApi(
         params.forEach { (key, value) -> parameter(key, value) }
         header(HttpHeaders.CacheControl, "no-cache")
         header("Pragma", "no-cache")
-        body?.let {
-            contentType(ContentType.Application.Json)
-            setBody(it)
-        }
+        body?.let { setBody(jsonRequestBody(it)) }
     }
 
     suspend fun doDelete(
@@ -295,4 +291,17 @@ suspend inline fun <reified T> WooCommerceApi.handleResponse(response: HttpRespo
         println("❌ API: Error response (${response.status.value}), body = $bodyText")
         throwParsedError(bodyText, response.status.value)
     }
+}
+
+/**
+ * Turns a request body into something Ktor can put on the wire.
+ *
+ * Every service builds its payload with `buildJsonObject`, and those arrive here typed as
+ * `Any`, so content negotiation resolves a serializer from the runtime class and fails on
+ * kotlinx's internal `JsonLiteral`. A JSON tree already knows how to print itself, so it
+ * goes out as text and skips negotiation entirely; anything else is left alone.
+ */
+fun jsonRequestBody(body: Any): Any = when (body) {
+    is JsonElement -> TextContent(body.toString(), ContentType.Application.Json)
+    else -> body
 }

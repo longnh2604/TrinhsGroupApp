@@ -1,7 +1,6 @@
 package com.trinhskitchen.app.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,10 +48,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.trinhskitchen.app.R
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.trinhskitchen.app.firebase.EventsRepository
+import com.trinhskitchen.app.ui.components.CartAction
 import com.trinhskitchen.app.ui.components.HorizontalProductCard
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Category
+import com.trinhsgroup.shared.model.AppEvent
 import com.trinhsgroup.shared.viewmodel.MainViewModel
+import org.koin.compose.koinInject
 
 /**
  * Home screen.
@@ -63,16 +69,21 @@ import com.trinhsgroup.shared.viewmodel.MainViewModel
 fun HomeScreen(
     viewModel: MainViewModel,
     onNavigateToProductDetail: (Int) -> Unit,
+    onOpenCart: () -> Unit,
     onNavigateToCategory: (Int) -> Unit
 ) {
     val isLoading by viewModel.showLoading.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val popularProducts by viewModel.popularProducts.collectAsState()
+    val eventsRepository: EventsRepository = koinInject()
+    val events by eventsRepository.events.collectAsState()
+    var posterEvent by remember { mutableStateOf<AppEvent?>(null) }
     
     // Fetch data on first load
     LaunchedEffect(Unit) {
         viewModel.onFetchCategories()
         viewModel.onFetchPopularProducts()
+        eventsRepository.start()
     }
     
     Column(
@@ -95,6 +106,7 @@ fun HomeScreen(
                         contentDescription = "Notifications"
                     )
                 }
+                CartAction(viewModel = viewModel, onOpenCart = onOpenCart)
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = AppColors.Primary,
@@ -116,61 +128,51 @@ fun HomeScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Promotions carousel (matching iOS)
-                SectionHeader(
-                    title = "Promotions",
-                    onSeeAllClick = { }
-                )
-                
-                val promotionImages = listOf(R.drawable.ic_promotions_new, R.drawable.ic_promotions)
-                val pagerState = rememberPagerState(pageCount = { promotionImages.size })
-                
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .padding(horizontal = 16.dp)
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize()
-                    ) { page ->
-                        Image(
-                            painter = painterResource(id = promotionImages[page]),
-                            contentDescription = "Promotion",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(15.dp)),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                    
-                    // Page indicator
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 8.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        repeat(promotionImages.size) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .padding(horizontal = 4.dp)
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (pagerState.currentPage == index)
-                                            AppColors.Primary
-                                        else
-                                            Color.Gray.copy(alpha = 0.5f)
-                                    )
+                // Events carousel — artwork and wording both come from Firestore.
+                if (events.isNotEmpty()) {
+                    SectionHeader(title = "Events")
+
+                    val pagerState = rememberPagerState(pageCount = { events.size })
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        HorizontalPager(
+                            state = pagerState,
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            pageSpacing = 12.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { page ->
+                            EventBannerCard(
+                                event = events[page],
+                                onOpenPoster = { posterEvent = events[page] }
                             )
                         }
+
+                        if (events.size > 1) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                repeat(events.size) { index ->
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(horizontal = 4.dp)
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (pagerState.currentPage == index) AppColors.Primary
+                                                else Color.Gray.copy(alpha = 0.3f)
+                                            )
+                                    )
+                                }
+                            }
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Categories section
                 if (categories.isNotEmpty()) {
                     SectionHeader(
@@ -224,12 +226,16 @@ fun HomeScreen(
             }
         }
     }
+
+    posterEvent?.let { event ->
+        EventPosterDialog(event = event, onDismiss = { posterEvent = null })
+    }
 }
 
 @Composable
 private fun SectionHeader(
     title: String,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -244,7 +250,7 @@ private fun SectionHeader(
             fontWeight = FontWeight.Bold
         )
         
-        if (title != "Promotions") {
+        if (onSeeAllClick != null) {
             Text(
                 text = "See All",
                 style = MaterialTheme.typography.bodyMedium,

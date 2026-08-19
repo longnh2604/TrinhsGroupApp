@@ -25,8 +25,7 @@ sealed class Screen(val route: String) {
         fun createRoute(categoryId: Int) = "category/$categoryId"
     }
     
-    // Cart tab
-    data object Cart : Screen("cart")
+    // Cart is an overlay on the main shell, not a route; checkout is pushed from it.
     data object Checkout : Screen("checkout")
     data object OrderReceived : Screen("order_received/{orderId}") {
         fun createRoute(orderId: Int) = "order_received/$orderId"
@@ -40,7 +39,7 @@ sealed class Screen(val route: String) {
     data object OrderDetail : Screen("order_detail/{orderId}") {
         fun createRoute(orderId: Int) = "order_detail/$orderId"
     }
-    data object RewardsCenter : Screen("rewards_center")
+    data object MyVouchers : Screen("my_vouchers")
     data object Favorites : Screen("favorites")
     data object Settings : Screen("settings")
     

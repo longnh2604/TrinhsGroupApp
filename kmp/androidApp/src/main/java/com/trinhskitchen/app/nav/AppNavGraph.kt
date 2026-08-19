@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.trinhskitchen.app.ui.auth.ForgotPasswordScreen
 import com.trinhskitchen.app.ui.auth.LoginScreen
 import com.trinhskitchen.app.ui.auth.SignupScreen
 import com.trinhskitchen.app.ui.auth.SplashScreen
@@ -14,6 +15,9 @@ import com.trinhskitchen.app.ui.orders.MyOrdersScreen
 import com.trinhskitchen.app.ui.orders.OrderDetailScreen
 import com.trinhskitchen.app.ui.orders.OrdersFilter
 import com.trinhskitchen.app.ui.product.ProductDetailScreen
+import com.trinhskitchen.app.ui.profile.EditAddressScreen
+import com.trinhskitchen.app.ui.profile.EditProfileScreen
+import com.trinhskitchen.app.ui.profile.MyVouchersScreen
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 import com.trinhsgroup.shared.viewmodel.HistoryViewModel
 import com.trinhsgroup.shared.viewmodel.MainViewModel
@@ -76,9 +80,11 @@ fun AppNavGraph(
             )
         }
         
-        // Forgot password (placeholder)
         composable(Screen.ForgotPassword.route) {
-            // TODO: Implement ForgotPasswordScreen
+            ForgotPasswordScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         
         // Main app shell with bottom tabs
@@ -97,6 +103,10 @@ fun AppNavGraph(
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate(Screen.OrderDetail.createRoute(orderId))
                 },
+                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+                onNavigateToEditAddress = { navController.navigate(Screen.EditAddress.route) },
+                onNavigateToPastOrders = { navController.navigate(Screen.MyOrders.route) },
+                onNavigateToVouchers = { navController.navigate(Screen.MyVouchers.route) },
                 onLogout = {
                     authViewModel.logout()
                     mainViewModel.reset()
@@ -113,6 +123,27 @@ fun AppNavGraph(
             )
         }
         
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.EditAddress.route) {
+            EditAddressScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.MyVouchers.route) {
+            MyVouchersScreen(
+                pointsViewModel = pointsViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         // Product detail (placeholder)
         composable(Screen.ProductDetail.route) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0

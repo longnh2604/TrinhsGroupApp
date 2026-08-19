@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
@@ -60,6 +61,7 @@ import com.trinhsgroup.shared.viewmodel.MainViewModel
 @Composable
 fun CartScreen(
     viewModel: MainViewModel,
+    onClose: () -> Unit,
     onNavigateToCheckout: () -> Unit,
     onNavigateToProductDetail: (Int) -> Unit
 ) {
@@ -78,9 +80,18 @@ fun CartScreen(
                     fontWeight = FontWeight.Bold
                 )
             },
+            navigationIcon = {
+                IconButton(onClick = onClose) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close cart"
+                    )
+                }
+            },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = AppColors.Primary,
-                titleContentColor = Color.White
+                titleContentColor = Color.White,
+                navigationIconContentColor = Color.White
             )
         )
         

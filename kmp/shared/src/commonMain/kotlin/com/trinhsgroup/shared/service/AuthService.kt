@@ -292,6 +292,31 @@ class AuthService(
     }
 
     /**
+     * Clears the "profile saved" flag, so the next save is a fresh signal.
+     */
+    fun clearUpdated() {
+        _isUpdated.value = false
+    }
+
+    /**
+     * Clears the "reset email sent" flag, so the next request is a fresh signal.
+     */
+    fun clearReset() {
+        _isReset.value = false
+    }
+
+    /**
+     * Marks the session live when a stored token turned out to be good.
+     *
+     * Without this a cold start left `isLoggedIn` at its default `false`, which overwrote the
+     * persisted flag and asked a signed-in customer to sign in again on the Orders and
+     * Profile tabs.
+     */
+    fun markLoggedIn() {
+        _isLoggedIn.value = true
+    }
+
+    /**
      * Resets all state flags.
      */
     fun resetState() {

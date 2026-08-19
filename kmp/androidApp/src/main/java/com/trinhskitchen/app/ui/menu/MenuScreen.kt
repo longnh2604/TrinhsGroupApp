@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.trinhskitchen.app.ui.components.CartAction
 import com.trinhskitchen.app.ui.components.ProductCard
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Category
@@ -55,7 +56,8 @@ import com.trinhsgroup.shared.viewmodel.MainViewModel
 @Composable
 fun MenuScreen(
     viewModel: MainViewModel,
-    onNavigateToProductDetail: (Int) -> Unit
+    onNavigateToProductDetail: (Int) -> Unit,
+    onOpenCart: () -> Unit
 ) {
     val isLoading by viewModel.showLoading.collectAsState()
     val isCategoryProductsLoading by viewModel.isCategoryProductsLoading.collectAsState()
@@ -91,9 +93,11 @@ fun MenuScreen(
                     fontWeight = FontWeight.Bold
                 )
             },
+            actions = { CartAction(viewModel = viewModel, onOpenCart = onOpenCart) },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = AppColors.Primary,
-                titleContentColor = Color.White
+                titleContentColor = Color.White,
+                actionIconContentColor = Color.White
             )
         )
         

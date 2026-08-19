@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,6 +72,11 @@ fun ProfileScreen(
     pointsViewModel: PointsViewModel,
     mainViewModel: MainViewModel,
     onNavigateToOrderDetail: (Int) -> Unit,
+    onNavigateToEditProfile: () -> Unit,
+    onNavigateToEditAddress: () -> Unit,
+    onNavigateToPastOrders: () -> Unit,
+    onNavigateToVouchers: () -> Unit,
+    onNavigateToFavorites: () -> Unit,
     onLogout: () -> Unit,
     onAccountDeleted: () -> Unit
 ) {
@@ -225,7 +229,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Default.Person,
                         title = "Edit Profile",
-                        onClick = { /* Navigate to edit profile */ }
+                        onClick = onNavigateToEditProfile
                     )
                     
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -233,7 +237,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Default.LocationOn,
                         title = "Edit Address",
-                        onClick = { /* Navigate to edit address */ }
+                        onClick = onNavigateToEditAddress
                     )
                     
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -242,7 +246,7 @@ fun ProfileScreen(
                         icon = Icons.Default.History,
                         title = "My Orders",
                         subtitle = "${orders.size} orders",
-                        onClick = { /* Navigate to orders */ }
+                        onClick = onNavigateToPastOrders
                     )
                     
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -251,23 +255,16 @@ fun ProfileScreen(
                         icon = Icons.Default.Favorite,
                         title = "Favorites",
                         subtitle = "${favoriteProducts.size} items",
-                        onClick = { /* Navigate to favorites */ }
+                        onClick = onNavigateToFavorites
                     )
                     
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     
                     ProfileMenuItem(
                         icon = Icons.Default.CardGiftcard,
-                        title = "Rewards Center",
-                        onClick = { /* Navigate to rewards */ }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    
-                    ProfileMenuItem(
-                        icon = Icons.Default.Settings,
-                        title = "Settings",
-                        onClick = { /* Navigate to settings */ }
+                        title = "My Vouchers",
+                        subtitle = "Redeem points, see vouchers",
+                        onClick = onNavigateToVouchers
                     )
                 }
             }

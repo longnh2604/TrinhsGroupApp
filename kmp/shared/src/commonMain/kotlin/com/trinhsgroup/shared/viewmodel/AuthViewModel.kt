@@ -11,7 +11,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -88,6 +87,10 @@ class AuthViewModel(
     private val _isShowForgot = MutableStateFlow(false)
     val isShowForgot: StateFlow<Boolean> = _isShowForgot.asStateFlow()
 
+    /** True once a reset email has gone out for the address just entered. */
+    private val _isPasswordReset = MutableStateFlow(false)
+    val isPasswordReset: StateFlow<Boolean> = _isPasswordReset.asStateFlow()
+
     /** Set when a stored session turned out to be over, so the UI can say so once. */
     private val _isTokenExpired = MutableStateFlow(false)
     val isTokenExpired: StateFlow<Boolean> = _isTokenExpired.asStateFlow()
@@ -133,6 +136,7 @@ class AuthViewModel(
 
         service.isReset.onEach { isReset ->
             _isShowForgot.value = !isReset
+            _isPasswordReset.value = isReset
         }.launchIn(scope)
 
         service.authUser.onEach { authUser ->
@@ -228,6 +232,20 @@ class AuthViewModel(
     }
 
     /**
+     * Clears the "profile saved" flag before a screen starts watching for it.
+     */
+    fun clearUpdatedUser() {
+        service.clearUpdated()
+    }
+
+    /**
+     * Clears the "reset email sent" flag before a screen starts watching for it.
+     */
+    fun clearPasswordReset() {
+        service.clearReset()
+    }
+
+    /**
      * Checks if user has filled billing info.
      * Currently always returns true (commented out in iOS).
      */
@@ -273,13 +291,13 @@ class AuthViewModel(
         scope.launch {
             println("🔐 AuthViewModel.restoreSession: Token valid, loading customer...")
             service.fetchingUserInfo()
-            
-            // Wait for loading to complete by observing the isLoading flow
-            service.isLoading.first { !it }  // Wait until isLoading becomes false
-            
-            // Now check if user was loaded successfully
-            if (_user.value.id > 0) {
-                println("🔐 AuthViewModel.restoreSession: User restored, id=${_user.value.id}")
+
+            // Read the service's own value, not this class's mirror of it: the mirror is
+            // filled by a separate collector that has not necessarily run yet, and treating
+            // that gap as a failed fetch signed the customer out of a perfectly good session.
+            if (service.user.value.id > 0) {
+                println("🔐 AuthViewModel.restoreSession: User restored, id=${service.user.value.id}")
+                service.markLoggedIn()
                 _authState.value = AuthState.Authenticated
             } else {
                 println("🔐 AuthViewModel.restoreSession: User fetch failed, clearing session")

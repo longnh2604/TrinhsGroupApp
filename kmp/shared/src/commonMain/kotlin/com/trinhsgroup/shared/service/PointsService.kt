@@ -37,6 +37,10 @@ class PointsService(
     private val _vouchers = MutableStateFlow<List<VoucherResponse>>(emptyList())
     val vouchers: StateFlow<List<VoucherResponse>> = _vouchers.asStateFlow()
 
+    /** Every voucher this account has redeemed, used and expired ones included. */
+    private val _allVouchers = MutableStateFlow<List<VoucherResponse>>(emptyList())
+    val allVouchers: StateFlow<List<VoucherResponse>> = _allVouchers.asStateFlow()
+
     /**
      * Fetches the signed-in customer's points balance.
      * Mirrors Swift's fetchMyPoints().
@@ -128,12 +132,17 @@ class PointsService(
                 endpoint = WooCommerceEndpoint.MyVouchers,
                 method = HttpMethod.GET
             )
+            val all = coupons.map { it.toVoucherResponse() }
+            // iOS asks twice for the same list; once is enough — the wallet screen wants
+            // the history, checkout wants only what is still usable.
+            _allVouchers.value = all.sortedByDescending { it.expirationDate }
             _vouchers.value = coupons.filter { it.isValid }.map { it.toVoucherResponse() }
-            println("🎟️ PointsService.fetchVouchers: ${_vouchers.value.size} available")
+            println("🎟️ PointsService.fetchVouchers: ${_vouchers.value.size} available, ${all.size} total")
         } catch (e: Exception) {
             println("🎟️ PointsService.fetchVouchers: ERROR - ${e::class.simpleName}: ${e.message}")
             _error.value = e.message ?: "Failed to fetch vouchers"
             _vouchers.value = emptyList()
+            _allVouchers.value = emptyList()
         } finally {
             _isLoading.value = false
         }
