@@ -53,8 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Payment
-import com.trinhsgroup.shared.model.Product
-import com.trinhsgroup.shared.model.ProductOrder
+import com.trinhsgroup.shared.model.toProductOrders
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,7 +87,8 @@ fun CheckoutScreen(
     authViewModel: AuthViewModel,
     pointsViewModel: PointsViewModel,
     onNavigateBack: () -> Unit,
-    onOrderSuccess: (Int) -> Unit
+    onOrderSuccess: (Int) -> Unit,
+    onSessionExpired: () -> Unit
 ) {
     val payments by mainViewModel.payments.collectAsState()
     val selectedPayment by mainViewModel.selectedPayment.collectAsState()
@@ -305,6 +305,14 @@ fun CheckoutScreen(
                 onClick = {
                     errorMessage = null
                     
+                    // An expired token would have the server reject the order; end the session
+                    // here and send them to sign in, as iOS does at its submit button.
+                    if (authViewModel.endSessionIfTokenExpired()) {
+                        errorMessage = "Your session has expired. Please sign in again."
+                        onSessionExpired()
+                        return@Button
+                    }
+
                     val currentUser = user
                     println("🛒 CheckoutScreen: Submit clicked, user.id=${currentUser.id}, user.email=${currentUser.email}")
                     
@@ -444,25 +452,6 @@ fun CheckoutScreen(
             }
         }
     }
-}
-
-/**
- * The basket, as line items.
- *
- * One description of it, shared by the quote and the order, so the figure quoted and the
- * figure ordered cannot come from different baskets.
- */
-private fun List<Product>.toProductOrders(): List<ProductOrder> = map { item ->
-    ProductOrder(
-        id = 0,
-        productId = item.id,
-        name = item.name,
-        quantity = item.quantity,
-        subtotal = "",
-        total = item.regularPrice,
-        price = item.regularPrice,
-        metaData = item.metaData
-    )
 }
 
 @Composable

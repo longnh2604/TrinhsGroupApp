@@ -246,6 +246,23 @@ class AuthViewModel(
     }
 
     /**
+     * Ends the session when the stored token has already expired, so an order is not sent
+     * on a token the server will reject.
+     *
+     * Mirrors the isTokenExpiredCheck() guard on iOS's submit button.
+     *
+     * @return true when the session was ended and the caller should stop
+     */
+    fun endSessionIfTokenExpired(): Boolean {
+        if (tokenStore.token != null && !tokenStore.isExpired()) return false
+
+        println("🔐 AuthViewModel: Token expired at submit, ending session")
+        logout()
+        _isTokenExpired.value = true
+        return true
+    }
+
+    /**
      * Checks if user has filled billing info.
      * Currently always returns true (commented out in iOS).
      */

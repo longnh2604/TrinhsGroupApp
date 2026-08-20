@@ -36,6 +36,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,6 +101,7 @@ fun ProductDetailScreen(
     var addOnGroups by remember { mutableStateOf<List<AddOnGroup>>(emptyList()) }
     var selection by remember { mutableStateOf(AddOnSelection()) }
     var addOnError by remember { mutableStateOf<String?>(null) }
+    var note by remember { mutableStateOf("") }
 
     val product = selectedProduct
 
@@ -472,6 +474,19 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Special note for the kitchen, sent as `_note` line-item meta.
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text("Special note (optional)") },
+                    placeholder = { Text("No chilli, extra herbs…") },
+                    minLines = 2,
+                    maxLines = 4,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+
                 // Bottom spacing for the Add to Cart button
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -496,13 +511,23 @@ fun ProductDetailScreen(
                         !it.key.contains("_") || it.key == "_note"
                     }
 
+                    val trimmedNote = note.trim()
                     val cartProduct = product.copy(
-                        metaData = filteredOriginalMetaData,
+                        metaData = if (trimmedNote.isEmpty()) {
+                            filteredOriginalMetaData
+                        } else {
+                            filteredOriginalMetaData + ProductMetaData(
+                                id = 0,
+                                key = "_note",
+                                value = AnyCodableValue.StringValue(trimmedNote)
+                            )
+                        },
                         addOnChoices = chosen
                     )
 
                     viewModel.add(cartProduct)
                     selection = AddOnSelection()
+                    note = ""
                     addOnError = null
 
                     // Show added animation

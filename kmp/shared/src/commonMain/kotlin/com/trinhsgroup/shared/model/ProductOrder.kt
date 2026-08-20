@@ -33,3 +33,24 @@ data class ProductOrder(
         )
     }
 }
+
+/**
+ * The one description of a basket, shared by the quote and the order, so the figure quoted and
+ * the figure ordered cannot come from different baskets.
+ *
+ * The add-on choices have to travel with it: they are what `yith_wapo` is built from, and
+ * without them the server prices the line as if nothing had been picked.
+ */
+fun List<Product>.toProductOrders(): List<ProductOrder> = map { item ->
+    ProductOrder(
+        id = 0,
+        productId = item.id,
+        name = item.name,
+        quantity = item.quantity,
+        subtotal = "",
+        total = item.regularPrice,
+        price = item.regularPrice,
+        metaData = item.metaData,
+        addOnChoices = item.addOnChoices
+    )
+}

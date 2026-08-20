@@ -201,14 +201,29 @@ private fun CartItemCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 
-                // Show meta data (addons) if any
-                val addons = product.getProductAddonOnly()
-                if (addons.isNotEmpty()) {
+                // The chosen add-ons, read from the choices rather than from meta_data: each
+                // choice names its own group, so "1st Pho: Beef" reads the way the kitchen
+                // ticket does. Mirrors iOS CartView.
+                product.addOnChoices.forEach { choice ->
                     Text(
-                        text = addons.joinToString(", ") { "${it.key}: ${it.value.stringValue}" },
+                        text = if (choice.groupTitle.isEmpty()) {
+                            choice.label
+                        } else {
+                            "${choice.groupTitle}: ${choice.label}"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = AppColors.TextSecondary,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                product.metaData.firstOrNull { it.key == "_note" }?.let { noteMeta ->
+                    Text(
+                        text = "Note: ${noteMeta.value.stringValue}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.TextHint,
+                        maxLines = 3,
                         overflow = TextOverflow.Ellipsis
                     )
                 }

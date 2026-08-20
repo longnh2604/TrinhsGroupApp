@@ -175,31 +175,31 @@ Without it the catalog calls get no credentials and the store returns 401.
 
 | # | Task | Files |
 |---|---|---|
-| K-08 | Extend `Order`/`LineItem`: `fee_lines`, per-item add-ons, `_note` | `shared/.../model/`, `OrderTest`, `SnapshotParsingTest` |
-| K-09 | Port `OrderStatusPresentation` + `OrderStage` + `OrderProgressBuilder` (pure logic — test directly) | `shared/.../order/` (new), `commonTest` |
-| K-10 | `MyOrdersScreen` (today / past filters, pull-to-refresh) as a tab + from Profile | `ui/orders/`, `MainScreen.kt` |
-| K-11 | Order detail: progress rail from `/me/orders/{id}/history`, items card, payment summary, cancel order | `ui/orders/`, `HistoryService.kt` |
-| K-12 | Rework Order Received around the stage-aware hero + shared items card + fee lines | `ui/checkout/OrderReceivedScreen.kt` |
-| K-13 | Stripe: order → payment-intent → PaymentSheet → refresh → received; browser fallback + deep-link return | `ui/checkout/`, `StripePresenter.kt`, `StripeRepository.kt` |
+| ✅ K-08 | Extend `Order`/`LineItem`: `fee_lines`, per-item add-ons, `_note` | `shared/.../model/`, `OrderTest`, `SnapshotParsingTest` |
+| ✅ K-09 | Port `OrderStatusPresentation` + `OrderStage` + `OrderProgressBuilder` (pure logic — test directly) | `shared/.../order/` (new), `commonTest` |
+| ✅ K-10 | `MyOrdersScreen` (today / past filters, pull-to-refresh) as a tab + from Profile | `ui/orders/`, `MainScreen.kt` |
+| ✅ K-11 | Order detail: progress rail from `/me/orders/{id}/history`, items card, payment summary, cancel order | `ui/orders/`, `HistoryService.kt` |
+| ❌ K-12 | Rework Order Received around the stage-aware hero + shared items card + fee lines | `ui/checkout/OrderReceivedScreen.kt` |
+| ✅ K-13 | Stripe: order → payment-intent → PaymentSheet → refresh → received; browser fallback + deep-link return | `ui/checkout/`, `StripePresenter.kt`, `StripeRepository.kt` |
 
 ### P2 — add-ons, notifications, profile
 
 | # | Task | Files |
 |---|---|---|
-| K-14 | YITH add-on groups replacing Firestore add-ons: models, validation (required/min/max), `yith_wapo` submit pairs | `shared/.../model/AddOn*.kt`, `MainService.kt`, `ui/product/`, delete `FirestoreClient.productAddOns` |
-| K-15 | Special note per item (`_note`), rendered in cart and order screens | `ui/product/`, `ui/cart/`, `ui/orders/` |
-| K-16 | FCM: messaging service, register on login / unregister on logout, persisted `NotificationStore` equivalent, bell + unread badge, tap → order detail (incl. cold launch) | `androidApp/.../firebase/`, `NotificationsRepository.kt`, `AndroidManifest.xml` |
-| K-17 | Profile: avatar upload/remove, redeem chips, My Vouchers, Edit Profile, Edit Address, push toggle, legal, support, version, delete account | `ui/profile/` |
-| K-18 | Billing gate + token-expiry check before submit; Monday-closed gate in cart | `ui/checkout/`, `ui/cart/` |
+| ⚠️ K-14 | YITH add-on groups replacing Firestore add-ons: models, validation (required/min/max), `yith_wapo` submit pairs | UI + service done; **`toProductOrders()` in `CheckoutScreen.kt:464` drops `addOnChoices`, so no `yith_wapo` ever reaches the server** |
+| ⚠️ K-15 | Special note per item (`_note`), rendered in cart and order screens | done but uncommitted (`ui/product/`, `ui/cart/`; `ui/orders/` already rendered it) |
+| ❌ K-16 | FCM: messaging service, register on login / unregister on logout, persisted `NotificationStore` equivalent, bell + unread badge, tap → order detail (incl. cold launch) | nothing wired: no manifest service, `NotificationsRepository` unused, `HomeScreen` bell is a no-op, `Screen.Notifications` unrouted |
+| ⚠️ K-17 | Profile: avatar upload/remove, redeem chips, My Vouchers, Edit Profile, Edit Address, push toggle, legal, support, version, delete account | done except **avatar upload/remove, push toggle, legal/support/version rows** |
+| ⚠️ K-18 | Billing gate + token-expiry check before submit; Monday-closed gate in cart | token-expiry gate done but uncommitted; **Monday-closed gate missing** |
 
 ### P3 — shell and polish
 
 | # | Task | Files |
 |---|---|---|
-| K-19 | 5-tab shell with the raised centre Orders button; cart as overlay | `ui/main/MainScreen.kt`, `nav/` |
-| K-20 | Home event posters + full-screen poster viewer | `ui/home/` |
-| K-21 | `FavoritesScreen`; `ForgotPasswordScreen` | `ui/favorites/`, `ui/auth/` |
-| K-22 | Lottie order-status animations, app icon/logo, image cache config, localisation (the branch has Vietnamese strings in Profile) | `androidApp/src/main/res/`, `ui/` |
+| ⚠️ K-19 | 5-tab shell with the raised centre Orders button; cart as overlay | 5 tabs + cart overlay done; **centre Orders button is a plain tab, not raised** |
+| ✅ K-20 | Home event posters + full-screen poster viewer (Firestore-driven) | `ui/home/` |
+| ✅ K-21 | `FavoritesScreen`; `ForgotPasswordScreen` | `ui/favorites/`, `ui/auth/` |
+| ❌ K-22 | Lottie order-status animations, app icon/logo, image cache config, localisation (the branch has Vietnamese strings in Profile) | no Lottie dependency, no `res/raw`, launcher icon is still `@android:drawable/sym_def_app_icon`, no `values-vi` |
 
 ---
 

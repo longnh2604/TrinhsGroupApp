@@ -165,7 +165,8 @@ fun AppNavGraph(
                     navController.navigate(Screen.OrderReceived.createRoute(orderId)) {
                         popUpTo(Screen.Main.route) { inclusive = false }
                     }
-                }
+                },
+                onSessionExpired = { navController.navigate(Screen.Login.route) }
             )
         }
         
