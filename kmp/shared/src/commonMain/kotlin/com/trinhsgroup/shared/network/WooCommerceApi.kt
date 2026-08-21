@@ -9,7 +9,11 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -20,6 +24,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
 import io.ktor.http.contentType
@@ -61,6 +66,9 @@ class WooCommerceApi(
             install(Logging) {
                 level = LogLevel.INFO
             }
+            // No global timeouts — only the avatar upload asks for one, and the engine's own
+            // defaults are what every other call has always run with.
+            install(HttpTimeout)
             defaultRequest {
                 header(HttpHeaders.UserAgent, "TrinhsGroup/1.0 (Android)")
             }
@@ -173,6 +181,43 @@ class WooCommerceApi(
     }
 
     /**
+     * Uploads one file as multipart form data. Mirrors Swift's uploadCustomerAvatar().
+     *
+     * A longer timeout than the JSON calls get: a photo off a phone camera is measured in
+     * megabytes, and the default read timeout cuts an upload that was going to succeed.
+     */
+    suspend fun doMultipartUpload(
+        endpoint: WooCommerceEndpoint,
+        fieldName: String,
+        fileName: String,
+        mimeType: String,
+        bytes: ByteArray
+    ): HttpResponse {
+        println("🌐 API: POST ${buildUrl(endpoint)} (multipart, ${bytes.size} bytes)")
+        return client.post(buildUrl(endpoint)) {
+            applyAuthorization(endpoint)
+            timeout { requestTimeoutMillis = UPLOAD_TIMEOUT_MS }
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        append(
+                            key = fieldName,
+                            value = bytes,
+                            headers = Headers.build {
+                                append(HttpHeaders.ContentType, mimeType)
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    "filename=\"$fileName\""
+                                )
+                            }
+                        )
+                    }
+                )
+            )
+        }
+    }
+
+    /**
      * Submits form data without authentication.
      * Used by login and password reset, which are how a session starts.
      */
@@ -233,6 +278,7 @@ class WooCommerceApi(
     companion object {
         const val DEFAULT_STORE_URL = "https://trinhsgroup.com.au"
         const val SESSION_EXPIRED_MESSAGE = "Your session has expired. Please log in again."
+        const val UPLOAD_TIMEOUT_MS = 120_000L
     }
 }
 
@@ -256,6 +302,21 @@ suspend inline fun <reified T> WooCommerceApi.request(
         HttpMethod.PUT -> doPut(endpoint, params, body)
         HttpMethod.DELETE -> doDelete(endpoint, params)
     }
+    checkAuthFailure(endpoint, response.status.value)
+    return handleResponse(response)
+}
+
+/**
+ * Uploads one file and returns the typed response.
+ */
+suspend inline fun <reified T> WooCommerceApi.upload(
+    endpoint: WooCommerceEndpoint,
+    fieldName: String,
+    fileName: String,
+    mimeType: String,
+    bytes: ByteArray
+): T {
+    val response = doMultipartUpload(endpoint, fieldName, fileName, mimeType, bytes)
     checkAuthFailure(endpoint, response.status.value)
     return handleResponse(response)
 }

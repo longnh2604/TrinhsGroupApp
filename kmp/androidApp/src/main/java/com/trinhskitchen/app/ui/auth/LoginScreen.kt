@@ -1,5 +1,6 @@
 package com.trinhskitchen.app.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +56,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
+import com.trinhskitchen.app.R
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 
@@ -115,20 +118,11 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo placeholder
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .background(AppColors.Primary, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "T",
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
+            Image(
+                painter = painterResource(id = R.drawable.ic_logo),
+                contentDescription = "Trinh's 8890",
+                modifier = Modifier.size(120.dp)
+            )
             
             Spacer(modifier = Modifier.height(32.dp))
             

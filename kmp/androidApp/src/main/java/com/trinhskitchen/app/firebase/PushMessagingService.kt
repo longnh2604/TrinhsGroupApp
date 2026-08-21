@@ -52,8 +52,7 @@ class PushMessagingService : FirebaseMessagingService() {
             id,
             0,
             NotificationCompat.Builder(this, CHANNEL_ID)
-                // ponytail: the logo is not a monochrome notification icon — K-22 owns the icon set.
-                .setSmallIcon(R.drawable.ic_logo)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))

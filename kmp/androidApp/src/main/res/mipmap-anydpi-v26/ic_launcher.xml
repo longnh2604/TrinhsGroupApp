@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The same mark as the iOS icon: black bowl, red chopsticks, on white.
+
+  The art is centred at 50dp inside the 108dp adaptive canvas rather than filling it. A round
+  launcher mask leaves a 72dp circle, and a square only fits inside that at 72/sqrt(2) — any
+  larger and the mask cuts the chopstick tips and "8890".
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

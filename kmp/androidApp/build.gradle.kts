@@ -85,6 +85,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
     
+    implementation(libs.lottie.compose)
+
     // Stripe
     implementation(libs.stripe.android)
     

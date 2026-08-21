@@ -179,27 +179,27 @@ Without it the catalog calls get no credentials and the store returns 401.
 | ✅ K-09 | Port `OrderStatusPresentation` + `OrderStage` + `OrderProgressBuilder` (pure logic — test directly) | `shared/.../order/` (new), `commonTest` |
 | ✅ K-10 | `MyOrdersScreen` (today / past filters, pull-to-refresh) as a tab + from Profile | `ui/orders/`, `MainScreen.kt` |
 | ✅ K-11 | Order detail: progress rail from `/me/orders/{id}/history`, items card, payment summary, cancel order | `ui/orders/`, `HistoryService.kt` |
-| ❌ K-12 | Rework Order Received around the stage-aware hero + shared items card + fee lines | `ui/checkout/OrderReceivedScreen.kt` |
+| ✅ K-12 | Rework Order Received around the stage-aware hero + shared items card + fee lines | done 2026-08-21. `ui/orders/OrderCards.kt` holds the hero, items and payment cards; both Order Received and the history detail draw from it, so the two can no longer disagree about the money. The old screen computed its own subtotal from line items and ignored `fees` |
 | ✅ K-13 | Stripe: order → payment-intent → PaymentSheet → refresh → received; browser fallback + deep-link return | `ui/checkout/`, `StripePresenter.kt`, `StripeRepository.kt` |
 
 ### P2 — add-ons, notifications, profile
 
 | # | Task | Files |
 |---|---|---|
-| ⚠️ K-14 | YITH add-on groups replacing Firestore add-ons: models, validation (required/min/max), `yith_wapo` submit pairs | UI + service done; **`toProductOrders()` in `CheckoutScreen.kt:464` drops `addOnChoices`, so no `yith_wapo` ever reaches the server** |
-| ⚠️ K-15 | Special note per item (`_note`), rendered in cart and order screens | done but uncommitted (`ui/product/`, `ui/cart/`; `ui/orders/` already rendered it) |
+| ✅ K-14 | YITH add-on groups replacing Firestore add-ons: models, validation (required/min/max), `yith_wapo` submit pairs | fixed in `42a3e3f`: the mapping moved to `ProductOrder.from(item)` in shared, pinned by `ProductOrderMappingTest`, and `MainService` submits `yith_wapo` |
+| ✅ K-15 | Special note per item (`_note`), rendered in cart and order screens | shipped in `42a3e3f` |
 | ✅ K-16 | FCM: messaging service, register on login / unregister on logout, persisted `NotificationStore` equivalent, bell + unread badge, tap → order detail (incl. cold launch) | done 2026-08-21. `PushMessagingService` + `PushTokens` (androidApp/firebase), shared `NotificationStore` replaces `NotificationsRepository`, `NotificationsScreen`, `HistoryViewModel.openOrder(orderId)`. Gap: a push the system shows while the app is backgrounded reaches the history through `syncTrayNotifications()` without an order id, so it is not tappable — send `title`/`body` in the push's `data` block to close that |
-| ⚠️ K-17 | Profile: avatar upload/remove, redeem chips, My Vouchers, Edit Profile, Edit Address, push toggle, legal, support, version, delete account | done except **avatar upload/remove, legal/support/version rows**; the push toggle is not being ported (decorative on iOS) |
-| ⚠️ K-18 | Billing gate + token-expiry check before submit; Monday-closed gate in cart | token-expiry gate done but uncommitted; **Monday-closed gate missing** |
+| ✅ K-17 | Profile: avatar upload/remove, redeem chips, My Vouchers, Edit Profile, Edit Address, push toggle, legal, support, version, delete account | done 2026-08-21. Avatar: `WooCommerceApi.doMultipartUpload` + `AuthService.uploadAvatar`/`removeAvatar`, photo picker and camera in `ui/profile/AvatarPicker.kt` (EXIF-corrected, sampled down, JPEG 85 as iOS). Support/legal/version rows in `ui/profile/LegalDocuments.kt`, same wording as iOS. The push toggle is **not** ported: iOS's is `@State` wired to nothing |
+| ✅ K-18 | Billing gate + token-expiry check before submit; Monday-closed gate in cart | token-expiry gate shipped in `42a3e3f`. The Monday gate is **not** ported: `CartView.isMondayInAustralia()` returns `false` before it reaches the weekday check, so iOS never blocks a Monday. Porting it would make Android stricter than the app it mirrors |
 
 ### P3 — shell and polish
 
 | # | Task | Files |
 |---|---|---|
-| ⚠️ K-19 | 5-tab shell with the raised centre Orders button; cart as overlay | 5 tabs + cart overlay done; **centre Orders button is a plain tab, not raised** |
+| ✅ K-19 | 5-tab shell with the raised centre Orders button; cart as overlay | done 2026-08-21. The circle is drawn outside the Scaffold's `bottomBar` because a `NavigationBar` is a Surface and clips anything lifted above it; the centre slot keeps its place in the bar but draws neither icon nor label |
 | ✅ K-20 | Home event posters + full-screen poster viewer (Firestore-driven) | `ui/home/` |
 | ✅ K-21 | `FavoritesScreen`; `ForgotPasswordScreen` | `ui/favorites/`, `ui/auth/` |
-| ❌ K-22 | Lottie order-status animations, app icon/logo, image cache config, localisation (the branch has Vietnamese strings in Profile) | no Lottie dependency, no `res/raw`, launcher icon is still `@android:drawable/sym_def_app_icon`, no `values-vi` |
+| ✅ K-22 | Lottie order-status animations, app icon/logo, image cache config, localisation | done 2026-08-21. `lottie-compose` + the five `Order_*.json` scenes in `assets/`, driven by the `lottieName` the shared `OrderStatusPresentation` already carried; reduce-motion holds the first frame. Launcher icon is the iOS `AppIcon` art, adaptive at 50dp inside the 108dp canvas so a round mask does not cut "8890", plus a monochrome `ic_notification`. Splash and login now draw `ic_logo` instead of their placeholders. Coil cache was already configured in `TrinhsApp`. **Localisation has nothing to port**: iOS ships `en.lproj` only and has no Vietnamese anywhere — the note in this row was wrong |
 
 ---
 

@@ -85,7 +85,6 @@ fun SplashScreen(
             .background(AppColors.Primary),
         contentAlignment = Alignment.Center
     ) {
-        // Logo placeholder - replace with actual app logo
         Box(
             modifier = Modifier
                 .size(150.dp)
@@ -97,12 +96,11 @@ fun SplashScreen(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            // TODO: Replace with actual logo image
-            // Image(
-            //     painter = painterResource(id = R.drawable.logo),
-            //     contentDescription = "TrinhsGroup Logo",
-            //     modifier = Modifier.size(100.dp)
-            // )
+            Image(
+                painter = painterResource(id = R.drawable.ic_logo),
+                contentDescription = "Trinh's 8890",
+                modifier = Modifier.size(110.dp)
+            )
         }
     }
 }

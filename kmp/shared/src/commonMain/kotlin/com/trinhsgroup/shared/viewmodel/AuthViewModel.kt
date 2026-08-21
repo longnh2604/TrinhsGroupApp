@@ -278,6 +278,44 @@ class AuthViewModel(
     /**
      * Fetches user info based on authenticated user's email.
      */
+    /**
+     * Uploads a profile photo, then re-reads `/me`.
+     * Mirrors Swift's onUpdateAvatar().
+     *
+     * The re-read is the point: WordPress decides the final URL, and the screen has to show
+     * what the server kept rather than what the app sent.
+     */
+    fun onUpdateAvatar(jpeg: ByteArray, onResult: (Boolean) -> Unit) {
+        val userId = _user.value.id
+        if (userId <= 0) {
+            _message.value = "Invalid user account"
+            onResult(false)
+            return
+        }
+
+        scope.launch {
+            val url = service.uploadAvatar(userId, jpeg)
+            if (url != null) service.fetchingUserInfo()
+            onResult(url != null)
+        }
+    }
+
+    /** Removes the profile photo, then re-reads `/me`. Mirrors Swift's onRemoveAvatar(). */
+    fun onRemoveAvatar(onResult: (Boolean) -> Unit) {
+        val userId = _user.value.id
+        if (userId <= 0) {
+            _message.value = "Invalid user account"
+            onResult(false)
+            return
+        }
+
+        scope.launch {
+            val removed = service.removeAvatar(userId)
+            if (removed) service.fetchingUserInfo()
+            onResult(removed)
+        }
+    }
+
     fun onGetUser() {
         scope.launch {
             service.fetchingUserInfo()

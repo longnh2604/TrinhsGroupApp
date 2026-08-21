@@ -14,16 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,24 +32,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.trinhskitchen.app.ui.theme.AppColors
-import com.trinhsgroup.shared.model.LineItem
 import com.trinhsgroup.shared.model.Order
 import com.trinhsgroup.shared.order.OrderProgressBuilder
 import com.trinhsgroup.shared.order.OrderStatusPresentation
 import com.trinhsgroup.shared.order.OrderStep
 import com.trinhsgroup.shared.order.OrderStepState
-import com.trinhsgroup.shared.util.DateTimeUtils
-import com.trinhsgroup.shared.util.PriceFormatting
 import com.trinhsgroup.shared.viewmodel.HistoryViewModel
 
 /**
@@ -107,61 +100,20 @@ fun OrderDetailScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatusHero(presentation = presentation, placedAt = order.dateCreated)
+            OrderStatusHero(presentation = presentation, placedAt = order.dateCreated)
 
-            DetailCard(title = "Progress") {
+            OrderDetailCard(title = "Progress") {
                 steps.forEachIndexed { index, step ->
                     ProgressRow(step = step, isLast = index == steps.lastIndex)
                 }
             }
 
-            DetailCard(title = "Items") {
-                order.lineItems.forEach { item -> ItemRow(item) }
-            }
+            OrderItemsCard(order)
 
-            DetailCard(title = "Payment") {
-                SummaryRow("Subtotal", PriceFormatting.getPriceAndCurrencySymbol(order.subtotal))
-
-                if (order.discount > 0) {
-                    SummaryRow(
-                        label = "Discount",
-                        value = "-" + PriceFormatting.getPriceAndCurrencySymbol(order.discount),
-                        valueColor = AppColors.Success
-                    )
-                }
-
-                // Fee lines carry the server's own label — the cash-on-pickup discount arrives
-                // here as a negative fee, and older orders still carry the withdrawn app 5%.
-                order.fees.forEach { fee ->
-                    val isDiscount = fee.amount < 0
-                    SummaryRow(
-                        label = fee.name.ifEmpty { "Fee" },
-                        value = (if (isDiscount) "-" else "") +
-                            PriceFormatting.getPriceAndCurrencySymbol(kotlin.math.abs(fee.amount)),
-                        valueColor = if (isDiscount) AppColors.Success else AppColors.TextPrimary
-                    )
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                SummaryRow(
-                    label = "Total",
-                    value = PriceFormatting.getPriceAndCurrencySymbol(order.total.toDoubleOrNull() ?: 0.0),
-                    bold = true
-                )
-
-                if (order.paymentMethodTitle.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Paid by ${order.paymentMethodTitle}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.TextSecondary
-                    )
-                }
-            }
+            OrderPaymentSummaryCard(order)
 
             if (order.customerNote.isNotBlank()) {
-                DetailCard(title = "Note") {
+                OrderDetailCard(title = "Note") {
                     Text(
                         text = order.customerNote,
                         style = MaterialTheme.typography.bodyMedium,
@@ -219,52 +171,6 @@ fun OrderDetailScreen(
     }
 }
 
-@Composable
-private fun StatusHero(presentation: OrderStatusPresentation, placedAt: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = presentation.tint.color.copy(alpha = 0.12f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = presentation.icon.vector,
-                contentDescription = null,
-                tint = presentation.tint.color,
-                modifier = Modifier.size(34.dp)
-            )
-            Spacer(modifier = Modifier.width(14.dp))
-            Column {
-                Text(
-                    text = presentation.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextPrimary
-                )
-                if (presentation.subtitle.isNotEmpty()) {
-                    Text(
-                        text = presentation.subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.TextSecondary
-                    )
-                }
-                if (placedAt.isNotEmpty()) {
-                    Text(
-                        text = "Placed ${DateTimeUtils.toDisplayDate(placedAt)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.TextSecondary
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun ProgressRow(step: OrderStep, isLast: Boolean) {
@@ -319,87 +225,5 @@ private fun ProgressRow(step: OrderStep, isLast: Boolean) {
     }
 }
 
-@Composable
-private fun ItemRow(item: LineItem) {
-    Column(modifier = Modifier.padding(vertical = 6.dp)) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "${item.quantity} × ${item.name}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.TextPrimary,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = PriceFormatting.getPriceAndCurrencySymbol(item.total.toDoubleOrNull() ?: 0.0),
-                style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.TextPrimary
-            )
-        }
 
-        // What the customer chose, grouped the way the server listed it.
-        item.addOnLabels.forEach { label ->
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = AppColors.TextSecondary
-            )
-        }
 
-        item.note?.let { note ->
-            Text(
-                text = "\"$note\"",
-                style = MaterialTheme.typography.bodySmall,
-                color = AppColors.TextSecondary
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetailCard(title: String, content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.TextPrimary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-private fun SummaryRow(
-    label: String,
-    value: String,
-    bold: Boolean = false,
-    valueColor: Color = AppColors.TextPrimary
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-            color = if (bold) AppColors.TextPrimary else AppColors.TextSecondary
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-            color = valueColor
-        )
-    }
-}

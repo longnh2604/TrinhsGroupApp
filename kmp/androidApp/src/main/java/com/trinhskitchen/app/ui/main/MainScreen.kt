@@ -1,8 +1,10 @@
 package com.trinhskitchen.app.ui.main
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -31,7 +33,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -172,12 +177,16 @@ fun MainScreen(
                                 }
                             },
                             icon = {
-                                Icon(
-                                    imageVector = if (selectedTabIndex == index) item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = item.title
-                                )
+                                if (index != RAISED_TAB) {
+                                    Icon(
+                                        imageVector = if (selectedTabIndex == index) item.selectedIcon else item.unselectedIcon,
+                                        contentDescription = item.title
+                                    )
+                                }
                             },
-                            label = { Text(item.title) },
+                            // The raised circle stands over this slot; a label under it would
+                            // only show as a clipped word.
+                            label = { if (index != RAISED_TAB) Text(item.title) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = AppColors.TabSelected,
                                 selectedTextColor = AppColors.TabSelected,
@@ -256,6 +265,33 @@ fun MainScreen(
             }
         }
 
+        // Orders sits in a raised circle over the bar, as iOS draws it. Outside the Scaffold's
+        // bottomBar because a NavigationBar is a Surface and clips anything lifted above it.
+        Surface(
+            onClick = {
+                if (RAISED_TAB in ACCOUNT_TABS && !isLogin) {
+                    pendingTabIndex = RAISED_TAB
+                    onRequireLogin()
+                } else {
+                    selectTab(RAISED_TAB)
+                }
+            },
+            shape = CircleShape,
+            color = AppColors.Primary,
+            shadowElevation = 6.dp,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 52.dp)
+                .size(56.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ReceiptLong,
+                contentDescription = navItems[RAISED_TAB].title,
+                tint = Color.White,
+                modifier = Modifier.padding(15.dp)
+            )
+        }
+
         // Cart overlays the whole shell, tab bar included — iOS presents it the same way.
         if (showCart) {
             BackHandler { showCart = false }
@@ -281,3 +317,6 @@ fun MainScreen(
 
 /** Orders and Profile are about the customer rather than the menu. */
 private val ACCOUNT_TABS = setOf(2, 4)
+
+/** Orders, the middle tab, which iOS draws as a raised circle rather than a flat icon. */
+private const val RAISED_TAB = 2

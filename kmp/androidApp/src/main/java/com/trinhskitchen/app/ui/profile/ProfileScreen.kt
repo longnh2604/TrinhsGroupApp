@@ -35,6 +35,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,17 +43,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.trinhskitchen.app.BuildConfig
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.util.PriceFormatting
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
@@ -82,11 +90,30 @@ fun ProfileScreen(
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showDeleteError by remember { mutableStateOf(false) }
+    var showAvatarOptions by remember { mutableStateOf(false) }
+    var avatarBusy by remember { mutableStateOf(false) }
+    var avatarError by remember { mutableStateOf("") }
+    /** Bumped after every change so Coil re-fetches a URL WordPress reuses. As on iOS. */
+    var avatarRefresh by remember { mutableIntStateOf(0) }
+    var legalDocument by remember { mutableStateOf<LegalDocument?>(null) }
+    val context = LocalContext.current
     val user by authViewModel.user.collectAsState()
     val balance by pointsViewModel.balance.collectAsState()
     val orders by historyViewModel.orders.collectAsState()
     val favoriteProducts by mainViewModel.favoriteProducts.collectAsState()
     
+    val avatarPicker = rememberAvatarPicker(
+        onPicked = { jpeg ->
+            avatarBusy = true
+            authViewModel.onUpdateAvatar(jpeg) { ok ->
+                avatarBusy = false
+                avatarRefresh++
+                if (!ok) avatarError = "That photo couldn't be saved. Please try again."
+            }
+        },
+        onError = { avatarError = it }
+    )
+
     // Fetch user data
     LaunchedEffect(Unit) {
         authViewModel.onGetUser()
@@ -138,12 +165,18 @@ fun ProfileScreen(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape)
-                            .background(AppColors.Primary),
+                            .background(AppColors.Primary)
+                            .clickable(enabled = !avatarBusy) { showAvatarOptions = true },
                         contentAlignment = Alignment.Center
                     ) {
-                        if (user.avatarUrl != null) {
+                        if (avatarBusy) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else if (user.avatarUrl != null) {
                             AsyncImage(
-                                model = user.avatarUrl,
+                                model = "${user.avatarUrl}${if (user.avatarUrl!!.contains("?")) "&" else "?"}app_avatar_refresh=$avatarRefresh",
                                 contentDescription = "Profile picture",
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -268,6 +301,43 @@ fun ProfileScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Help, support and the legal documents, as on iOS. Support is the shop's own
+            // Facebook page — the channel the kitchen actually watches.
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column {
+                    ProfileMenuItem(
+                        icon = Icons.AutoMirrored.Filled.HelpOutline,
+                        title = "Contact Support",
+                        onClick = { context.openUrl(SUPPORT_URL) }
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                    ProfileMenuItem(
+                        icon = Icons.Default.Description,
+                        title = "Terms of Service",
+                        onClick = { legalDocument = LegalDocument.TERMS }
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                    ProfileMenuItem(
+                        icon = Icons.Default.PrivacyTip,
+                        title = "Privacy Policy",
+                        onClick = { legalDocument = LegalDocument.PRIVACY }
+                    )
+                }
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -329,6 +399,23 @@ fun ProfileScreen(
                 )
             }
 
+            Text(
+                text = "App Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                style = MaterialTheme.typography.bodySmall,
+                color = AppColors.TextHint,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            )
+            Text(
+                text = "Made with love by TrinhsGroup",
+                style = MaterialTheme.typography.bodySmall,
+                color = AppColors.TextHint,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -359,6 +446,53 @@ fun ProfileScreen(
                 }
             }
         )
+    }
+
+    if (showAvatarOptions) {
+        AlertDialog(
+            onDismissRequest = { showAvatarOptions = false },
+            title = { Text("Profile photo") },
+            text = { Text("Choose where the photo comes from.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAvatarOptions = false
+                    avatarPicker.pickFromLibrary()
+                }) { Text("Choose photo") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        showAvatarOptions = false
+                        avatarPicker.takePhoto()
+                    }) { Text("Take photo") }
+
+                    if (user.avatarUrl != null) {
+                        TextButton(onClick = {
+                            showAvatarOptions = false
+                            avatarBusy = true
+                            authViewModel.onRemoveAvatar { ok ->
+                                avatarBusy = false
+                                avatarRefresh++
+                                if (!ok) avatarError = "That photo couldn't be removed."
+                            }
+                        }) { Text("Remove", color = AppColors.Error) }
+                    }
+                }
+            }
+        )
+    }
+
+    if (avatarError.isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = { avatarError = "" },
+            title = { Text("Profile photo") },
+            text = { Text(avatarError) },
+            confirmButton = { TextButton(onClick = { avatarError = "" }) { Text("OK") } }
+        )
+    }
+
+    legalDocument?.let { document ->
+        LegalDocumentDialog(document = document, onDismiss = { legalDocument = null })
     }
 
     if (showDeleteError) {

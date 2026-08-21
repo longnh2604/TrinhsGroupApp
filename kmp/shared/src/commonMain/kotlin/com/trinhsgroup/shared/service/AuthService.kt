@@ -14,9 +14,12 @@ import com.trinhsgroup.shared.network.WooCommerceApi
 import com.trinhsgroup.shared.network.WooCommerceEndpoint
 import com.trinhsgroup.shared.network.request
 import com.trinhsgroup.shared.network.requestBasicAuth
+import com.trinhsgroup.shared.network.upload
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Authentication service for user login, registration, and password reset.
@@ -251,6 +254,66 @@ class AuthService(
     }
 
     /**
+     * Uploads a profile photo and returns the URL the server stored it under.
+     * Mirrors Swift's updateAvatar().
+     *
+     * The URL is returned rather than written into [user] because the caller has to re-read
+     * `/me` anyway — WordPress rewrites the URL, and the app must show what the server kept,
+     * not what it sent.
+     *
+     * @return the new avatar URL, or null when the upload was refused
+     */
+    suspend fun uploadAvatar(userId: Int, jpeg: ByteArray): String? {
+        _isLoading.value = true
+        _error.value = ""
+
+        return try {
+            val response: AvatarResponse = api.upload(
+                endpoint = WooCommerceEndpoint.CustomerAvatar(userId),
+                fieldName = "avatar",
+                fileName = "avatar.jpg",
+                mimeType = "image/jpeg",
+                bytes = jpeg
+            )
+            response.avatarUrl
+        } catch (e: WooErrorResponse) {
+            _error.value = e.message
+            null
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Could not upload that photo"
+            null
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Removes the profile photo. Mirrors Swift's removeAvatar().
+     *
+     * @return true when the photo is gone
+     */
+    suspend fun removeAvatar(userId: Int): Boolean {
+        _isLoading.value = true
+        _error.value = ""
+
+        return try {
+            api.request<JsonElement>(
+                endpoint = WooCommerceEndpoint.CustomerAvatar(userId),
+                method = HttpMethod.DELETE
+            )
+            true
+        } catch (e: WooErrorResponse) {
+            _error.value = e.message
+            false
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Could not remove your photo"
+            false
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    /**
      * Permanently deletes the signed-in customer's own account.
      * Mirrors Swift's deleteAccount().
      *
@@ -367,3 +430,7 @@ class AuthService(
         _error.value = ""
     }
 }
+
+/** What `POST /customers/{id}/avatar` answers with. */
+@Serializable
+private data class AvatarResponse(@SerialName("avatar_url") val avatarUrl: String = "")
