@@ -15,6 +15,10 @@ import com.trinhsgroup.shared.network.HttpMethod
 import com.trinhsgroup.shared.network.WooCommerceApi
 import com.trinhsgroup.shared.network.WooCommerceEndpoint
 import com.trinhsgroup.shared.network.request
+import com.trinhsgroup.shared.util.DateTimeUtils
+import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -303,12 +307,65 @@ class MainService(
         } catch (e: Exception) {
             println("❌ MainService.onCreateOrder: Error - ${e::class.simpleName}: ${e.message}")
             e.printStackTrace()
+
+            // A timeout is not a refusal. The store may have created the order and simply
+            // been too slow to answer, so "please try again" would put a second order in the
+            // kitchen. Look for the one that may already exist before reporting failure.
+            if (e.isRequestTimeout()) {
+                val existing = findOrderFromTimedOutSubmission(productOrders.size)
+                if (existing != null) {
+                    println("✅ MainService.onCreateOrder: timed out, but order ${existing.id} is already in — using it")
+                    _order.value = existing
+                    return Pair(existing.id, existing.paymentURL)
+                }
+                _error.value = TIMEOUT_MESSAGE
+                return Pair(null, null)
+            }
+
             _error.value = e.message ?: "Failed to create order"
             return Pair(null, null)
         } finally {
             _isLoading.value = false
         }
     }
+
+    /** Read timeouts only: a connect timeout never reached the store, so nothing was created. */
+    private fun Exception.isRequestTimeout(): Boolean =
+        this is HttpRequestTimeoutException || this is SocketTimeoutException
+
+    /** Re-reads the customer's orders to see whether the submission landed after all. */
+    private suspend fun findOrderFromTimedOutSubmission(itemCount: Int): Order? = try {
+        val orders: List<Order> = api.request(
+            endpoint = WooCommerceEndpoint.MyOrders,
+            method = HttpMethod.GET
+        )
+        matchTimedOutOrder(orders, itemCount, Clock.System.now().epochSeconds)
+    } catch (e: Exception) {
+        println("❌ MainService: couldn't check for the order after the timeout - ${e.message}")
+        null
+    }
+
+    /**
+     * The order a timed-out submission most likely created: newest first, placed within the
+     * last few minutes, still awaiting the kitchen, and holding as many lines as were sent.
+     *
+     * Internal so the matching can be asserted directly — claiming the wrong order here would
+     * show a customer someone else's basket, and claiming none puts a duplicate in the kitchen.
+     */
+    internal fun matchTimedOutOrder(
+        orders: List<Order>,
+        itemCount: Int,
+        nowEpochSeconds: Long
+    ): Order? = orders
+        .filter { order ->
+            order.status in RECOVERABLE_STATUSES &&
+                order.lineItems.size == itemCount &&
+                order.id > 0 &&
+                (DateTimeUtils.storeTimestampEpochSeconds(order.dateCreated)?.let { created ->
+                    nowEpochSeconds - created in -CLOCK_SLACK_SECONDS..RECOVERY_WINDOW_SECONDS
+                } ?: false)
+        }
+        .maxByOrNull { DateTimeUtils.storeTimestampEpochSeconds(it.dateCreated) ?: 0L }
 
     /**
      * Builds the order JSON object matching iOS structure exactly.
@@ -434,5 +491,20 @@ class MainService(
      */
     fun clearSelectedCategoryProducts() {
         _selectedCategoryProducts.value = emptyList()
+    }
+
+    private companion object {
+        /** What the server allowlists on create, so a recovered order can only be one of these. */
+        val RECOVERABLE_STATUSES = setOf("pending", "on-hold")
+
+        /** How far back a timed-out submission is worth looking. */
+        const val RECOVERY_WINDOW_SECONDS = 180L
+
+        /** The store's clock may run a little ahead of the phone's. */
+        const val CLOCK_SLACK_SECONDS = 60L
+
+        const val TIMEOUT_MESSAGE =
+            "The store didn't answer in time. Check My Orders before ordering again — " +
+                "your order may already be in."
     }
 }

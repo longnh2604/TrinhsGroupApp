@@ -10,7 +10,6 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.timeout
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
@@ -66,9 +65,14 @@ class WooCommerceApi(
             install(Logging) {
                 level = LogLevel.INFO
             }
-            // No global timeouts — only the avatar upload asks for one, and the engine's own
-            // defaults are what every other call has always run with.
-            install(HttpTimeout)
+            // The same 120s iOS puts on every request (WooCommerceOAuth.swift:216). Without
+            // this the OkHttp engine's 10s read timeout applies, which is shorter than
+            // WooCommerce takes to build an order: the store creates it, the app gives up
+            // waiting, and the customer is told to try again.
+            install(HttpTimeout) {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MS
+                socketTimeoutMillis = REQUEST_TIMEOUT_MS
+            }
             defaultRequest {
                 header(HttpHeaders.UserAgent, "TrinhsGroup/1.0 (Android)")
             }
@@ -182,9 +186,6 @@ class WooCommerceApi(
 
     /**
      * Uploads one file as multipart form data. Mirrors Swift's uploadCustomerAvatar().
-     *
-     * A longer timeout than the JSON calls get: a photo off a phone camera is measured in
-     * megabytes, and the default read timeout cuts an upload that was going to succeed.
      */
     suspend fun doMultipartUpload(
         endpoint: WooCommerceEndpoint,
@@ -196,7 +197,6 @@ class WooCommerceApi(
         println("🌐 API: POST ${buildUrl(endpoint)} (multipart, ${bytes.size} bytes)")
         return client.post(buildUrl(endpoint)) {
             applyAuthorization(endpoint)
-            timeout { requestTimeoutMillis = UPLOAD_TIMEOUT_MS }
             setBody(
                 MultiPartFormDataContent(
                     formData {
@@ -278,7 +278,7 @@ class WooCommerceApi(
     companion object {
         const val DEFAULT_STORE_URL = "https://trinhsgroup.com.au"
         const val SESSION_EXPIRED_MESSAGE = "Your session has expired. Please log in again."
-        const val UPLOAD_TIMEOUT_MS = 120_000L
+        const val REQUEST_TIMEOUT_MS = 120_000L
     }
 }
 

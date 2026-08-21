@@ -133,6 +133,21 @@ object DateTimeUtils {
     }
 
     /**
+     * A WooCommerce timestamp as epoch seconds.
+     *
+     * `date_created` carries no offset and is in the store's own timezone, so it is read as
+     * Sydney time — reading it as UTC would put every order ten hours in the past.
+     */
+    fun storeTimestampEpochSeconds(dateString: String): Long? {
+        if (dateString.isEmpty()) return null
+        return try {
+            LocalDateTime.parse(dateString.replace(" ", "T")).toInstant(SYDNEY_TIMEZONE).epochSeconds
+        } catch (e: Exception) {
+            parseIsoDateTime(dateString)?.epochSeconds
+        }
+    }
+
+    /**
      * Formats a LocalDateTime according to a format pattern.
      * Supports common patterns used in the app.
      */
