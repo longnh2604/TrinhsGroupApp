@@ -19,6 +19,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -154,47 +158,42 @@ class MainViewModel(
 
     // ============ Computed Properties (Cart Math) ============
 
+    // Flows, not getters: a getter over _items is invisible to whatever is displaying it, so
+    // a cart summary reading one keeps the figures from the moment it was first drawn while
+    // the quantities change under it.
+
     /**
      * Total number of items in cart.
      * Mirrors Swift's numberOfItems computed property.
      */
-    val numberOfItems: Int
-        get() {
-            val cartItems = _items.value
-            return if (cartItems.isNotEmpty()) {
-                cartItems.sumOf { it.quantity }
-            } else {
-                0
-            }
-        }
+    val numberOfItems: StateFlow<Int> = _items
+        .map { items -> items.sumOf { it.quantity } }
+        .stateIn(scope, SharingStarted.Eagerly, 0)
 
     /**
      * Total discounts (difference between regular price and sale price).
      * Mirrors Swift's discounts computed property.
      */
-    val discounts: Double
-        get() {
-            val cartItems = _items.value
-            return if (cartItems.isNotEmpty()) {
-                cartItems.sumOf { (it.regularPrice - it.price) * it.quantity.toDouble() }
-            } else {
-                0.0
-            }
-        }
+    val discounts: StateFlow<Double> = _items
+        .map { items -> items.sumOf { (it.regularPrice - it.price) * it.quantity.toDouble() } }
+        .stateIn(scope, SharingStarted.Eagerly, 0.0)
 
     /**
      * Subtotal (sum of price * quantity for all items).
      * Mirrors Swift's subtotal computed property.
      */
-    val subtotal: Double
-        get() {
-            val cartItems = _items.value
-            return if (cartItems.isNotEmpty()) {
-                cartItems.sumOf { it.price * it.quantity.toDouble() }
-            } else {
-                0.0
-            }
-        }
+    val subtotal: StateFlow<Double> = _items
+        .map { items -> items.sumOf { it.price * it.quantity.toDouble() } }
+        .stateIn(scope, SharingStarted.Eagerly, 0.0)
+
+    /**
+     * Total amount (subtotal + shipping cost).
+     * Mirrors Swift's total computed property.
+     */
+    val total: StateFlow<Double> = combine(_items, _selectedShip) { items, ship ->
+        val shippingCost = ship.settings.cost.value.toDoubleOrNull() ?: 0.0
+        items.sumOf { it.price * it.quantity.toDouble() } + shippingCost
+    }.stateIn(scope, SharingStarted.Eagerly, 0.0)
 
     /**
      * Total of regular prices (before any discounts).
@@ -207,20 +206,6 @@ class MainViewModel(
                 cartItems.sumOf { it.regularPrice * it.quantity.toDouble() }
             } else {
                 0.0
-            }
-        }
-
-    /**
-     * Total amount (subtotal + shipping cost).
-     * Mirrors Swift's total computed property.
-     */
-    val total: Double
-        get() {
-            val shippingCost = _selectedShip.value.settings.cost.value.toDoubleOrNull() ?: 0.0
-            return if (_items.value.isNotEmpty()) {
-                subtotal + shippingCost
-            } else {
-                shippingCost
             }
         }
 
@@ -247,7 +232,7 @@ class MainViewModel(
             val currentCoupon = _coupon.value
             return if (currentCoupon.id != Coupon.Default.id) {
                 val percentage = currentCoupon.amount?.toDoubleOrNull() ?: 0.0
-                total * (percentage / 100.0)
+                total.value * (percentage / 100.0)
             } else {
                 0.0
             }

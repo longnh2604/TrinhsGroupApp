@@ -284,9 +284,9 @@ private fun CartSummary(
     viewModel: MainViewModel,
     onCheckout: () -> Unit
 ) {
-    val subtotal = viewModel.subtotal
-    val discounts = viewModel.discounts
-    val total = viewModel.total
+    val subtotal by viewModel.subtotal.collectAsState()
+    val discounts by viewModel.discounts.collectAsState()
+    val total by viewModel.total.collectAsState()
     
     Card(
         modifier = Modifier.fillMaxWidth(),

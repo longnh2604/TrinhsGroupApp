@@ -94,7 +94,7 @@ fun CheckoutScreen(
     val selectedPayment by mainViewModel.selectedPayment.collectAsState()
     val showLoading by mainViewModel.showLoading.collectAsState()
     val apiMessage by mainViewModel.message.collectAsState()
-    val total = mainViewModel.total
+    val total by mainViewModel.total.collectAsState()
     val user by authViewModel.user.collectAsState()
     val cartItems by mainViewModel.items.collectAsState()
     
