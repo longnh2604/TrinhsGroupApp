@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.trinhskitchen.app.ui.components.AppTopBar
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Order
 import com.trinhsgroup.shared.order.OrderStatusPresentation
@@ -78,25 +79,15 @@ fun MyOrdersScreen(
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = if (filter == OrdersFilter.TODAY_ONLY) "My Orders" else "Past Orders",
-                    fontWeight = FontWeight.Bold
-                )
-            },
+        AppTopBar(
+            title = if (filter == OrdersFilter.TODAY_ONLY) "My Orders" else "Past Orders",
             navigationIcon = {
                 onNavigateBack?.let {
                     IconButton(onClick = it) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White
-            )
+            }
         )
 
         PullToRefreshBox(

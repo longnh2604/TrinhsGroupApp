@@ -58,8 +58,10 @@ fun TrinhsGroupTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            // The bars the app draws are near-white now, so the clock and battery have to be
+            // dark to be read at all.
+            window.statusBarColor = AppColors.Background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }
 

@@ -61,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.trinhskitchen.app.BuildConfig
+import com.trinhskitchen.app.ui.components.AppTopBar
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.util.PriceFormatting
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
@@ -126,19 +127,7 @@ fun ProfileScreen(
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        // Top app bar
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Profile",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White
-            )
-        )
+        AppTopBar(title = "Profile")
         
         Column(
             modifier = Modifier

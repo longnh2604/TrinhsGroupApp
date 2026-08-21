@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.trinhskitchen.app.ui.components.AppTopBar
 import com.trinhskitchen.app.ui.components.CartAction
 import com.trinhskitchen.app.ui.components.ProductCard
 import com.trinhskitchen.app.ui.theme.AppColors
@@ -86,19 +87,9 @@ fun MenuScreen(
             .background(AppColors.Background)
     ) {
         // Top app bar
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Menu",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            actions = { CartAction(viewModel = viewModel, onOpenCart = onOpenCart) },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White,
-                actionIconContentColor = Color.White
-            )
+        AppTopBar(
+            title = "Menu",
+            actions = { CartAction(viewModel = viewModel, onOpenCart = onOpenCart) }
         )
         
         if (isLoading && categories.isEmpty()) {

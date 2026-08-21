@@ -89,9 +89,10 @@ fun CartScreen(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White
+                containerColor = AppColors.Background,
+                titleContentColor = AppColors.TextPrimary,
+                navigationIconContentColor = AppColors.BarIcon,
+                actionIconContentColor = AppColors.BarIcon
             )
         )
         

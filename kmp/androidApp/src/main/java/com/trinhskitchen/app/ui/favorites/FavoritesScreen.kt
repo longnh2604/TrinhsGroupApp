@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.trinhskitchen.app.ui.components.AppTopBar
 import com.trinhskitchen.app.ui.components.CartAction
 import com.trinhskitchen.app.ui.components.ProductCard
 import com.trinhskitchen.app.ui.theme.AppColors
@@ -53,19 +54,9 @@ fun FavoritesScreen(
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Favorite",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            actions = { CartAction(viewModel = viewModel, onOpenCart = onOpenCart) },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White,
-                actionIconContentColor = Color.White
-            )
+        AppTopBar(
+            title = "Favorite",
+            actions = { CartAction(viewModel = viewModel, onOpenCart = onOpenCart) }
         )
 
         if (favorites.isEmpty()) {

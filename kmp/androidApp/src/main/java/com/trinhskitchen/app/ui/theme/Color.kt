@@ -28,6 +28,9 @@ object AppColors {
     val Error = Color(0xFFF44336)
     val Info = Color(0xFF2196F3)
     
+    // Top bar icons — iOS secondaryBlack
+    val BarIcon = Color(0xFF464B5F)
+
     // Tab bar
     val TabSelected = Primary
     val TabUnselected = Color(0xFF9E9E9E)

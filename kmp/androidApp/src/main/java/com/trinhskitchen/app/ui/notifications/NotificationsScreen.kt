@@ -73,14 +73,15 @@ fun NotificationsScreen(
             actions = {
                 if (notifications.any { !it.isRead }) {
                     TextButton(onClick = { store.markAllRead() }) {
-                        Text(text = "Mark all read", color = Color.White)
+                        Text(text = "Mark all read", color = AppColors.Primary)
                     }
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White
+                containerColor = AppColors.Background,
+                titleContentColor = AppColors.TextPrimary,
+                navigationIconContentColor = AppColors.BarIcon,
+                actionIconContentColor = AppColors.BarIcon
             )
         )
 

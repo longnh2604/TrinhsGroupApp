@@ -25,17 +25,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,12 +49,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.trinhskitchen.app.firebase.EventsRepository
+import com.trinhskitchen.app.ui.components.AppTopBar
 import com.trinhskitchen.app.ui.components.CartAction
+import com.trinhskitchen.app.ui.components.NotificationBell
 import com.trinhskitchen.app.ui.components.HorizontalProductCard
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Category
 import com.trinhsgroup.shared.model.AppEvent
-import com.trinhsgroup.shared.storage.NotificationStore
 import com.trinhsgroup.shared.viewmodel.MainViewModel
 import org.koin.compose.koinInject
 
@@ -80,8 +76,6 @@ fun HomeScreen(
     val categories by viewModel.categories.collectAsState()
     val popularProducts by viewModel.popularProducts.collectAsState()
     val eventsRepository: EventsRepository = koinInject()
-    val notificationStore: NotificationStore = koinInject()
-    val notifications by notificationStore.notifications.collectAsState()
     val events by eventsRepository.events.collectAsState()
     var posterEvent by remember { mutableStateOf<AppEvent?>(null) }
     
@@ -97,35 +91,10 @@ fun HomeScreen(
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        // Top app bar
-        TopAppBar(
-            title = {
-                Text(
-                    text = "TrinhsGroup",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            actions = {
-                IconButton(onClick = onNavigateToNotifications) {
-                    BadgedBox(
-                        badge = {
-                            val unread = notifications.count { !it.isRead }
-                            if (unread > 0) Badge { Text(text = unread.toString()) }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifications"
-                        )
-                    }
-                }
-                CartAction(viewModel = viewModel, onOpenCart = onOpenCart)
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Primary,
-                titleContentColor = Color.White,
-                actionIconContentColor = Color.White
-            )
+        AppTopBar(
+            title = "Home",
+            navigationIcon = { NotificationBell(onClick = onNavigateToNotifications) },
+            actions = { CartAction(viewModel = viewModel, onOpenCart = onOpenCart) }
         )
         
         if (isLoading && categories.isEmpty()) {
