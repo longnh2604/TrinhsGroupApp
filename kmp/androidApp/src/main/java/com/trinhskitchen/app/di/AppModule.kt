@@ -2,6 +2,7 @@ package com.trinhskitchen.app.di
 
 import android.content.Context
 import com.trinhskitchen.app.firebase.EventsRepository
+import com.trinhskitchen.app.firebase.PushTokens
 import com.trinhskitchen.app.payments.StripePresenter
 import com.trinhskitchen.app.BuildConfig
 import com.trinhsgroup.shared.auth.AuthTokenStore
@@ -13,6 +14,7 @@ import com.trinhsgroup.shared.service.MainService
 import com.trinhsgroup.shared.service.PointsService
 import com.trinhsgroup.shared.storage.FavoritesRepository
 import com.trinhsgroup.shared.storage.KeyValueStore
+import com.trinhsgroup.shared.storage.NotificationStore
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 import com.trinhsgroup.shared.viewmodel.HistoryViewModel
 import com.trinhsgroup.shared.viewmodel.MainViewModel
@@ -30,6 +32,7 @@ val appModule = module {
     single { KeyValueStore(androidContext()) }
     single { FavoritesRepository(get()) }
     single { AuthTokenStore(get()) }
+    single { NotificationStore(get()) }
     
     // Network
     // The consumer key is read-only and only ever reaches the public catalog; everything
@@ -52,6 +55,7 @@ val appModule = module {
     single { StripeRepository(get()) }
     single { StripePresenter() }
     single { EventsRepository() }
+    single { PushTokens(get(), get()) }
     
     // ViewModels (shared KMP ViewModels)
     factory { AuthViewModel(get(), get(), get()) }

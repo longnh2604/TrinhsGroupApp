@@ -57,6 +57,9 @@ class HistoryViewModel(
     /** Which order [statusHistory] belongs to, so a late response can be discarded. */
     private var statusHistoryOrderId: Int? = null
 
+    /** Order asked for by id before it was in [orders] — resolved when the fetch lands. */
+    private var pendingOrderId: Int? = null
+
     init {
         bindingData()
     }
@@ -86,6 +89,13 @@ class HistoryViewModel(
                 orders.firstOrNull { it.id == open.id }?.let { _selectedOrder.value = it }
             }
             _orders.value = orders
+
+            pendingOrderId?.let { wanted ->
+                orders.firstOrNull { it.id == wanted }?.let {
+                    pendingOrderId = null
+                    openOrder(it)
+                }
+            }
         }.launchIn(scope)
     }
 
@@ -97,6 +107,19 @@ class HistoryViewModel(
         scope.launch {
             service.onFetchHistoryOrders()
         }
+    }
+
+    /**
+     * Opens an order known only by id — a tapped push notification.
+     *
+     * Shows the cached order first when there is one, and re-fetches either way: a push means
+     * the status changed on the server, so the cache could contradict the message just tapped.
+     */
+    fun openOrder(orderId: Int) {
+        if (orderId <= 0) return
+        val cached = _orders.value.firstOrNull { it.id == orderId }
+        if (cached != null) openOrder(cached) else pendingOrderId = orderId
+        fetchOrders()
     }
 
     /** Opens one order's detail and asks for its timeline. */

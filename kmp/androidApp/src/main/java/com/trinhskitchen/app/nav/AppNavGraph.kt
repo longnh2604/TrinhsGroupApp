@@ -1,16 +1,23 @@
 package com.trinhskitchen.app.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.trinhskitchen.app.ui.auth.ForgotPasswordScreen
 import com.trinhskitchen.app.ui.auth.LoginScreen
 import com.trinhskitchen.app.ui.auth.SignupScreen
 import com.trinhskitchen.app.ui.auth.SplashScreen
 import com.trinhskitchen.app.ui.checkout.CheckoutScreen
 import com.trinhskitchen.app.ui.checkout.OrderReceivedScreen
+import com.trinhskitchen.app.firebase.PushTokens
 import com.trinhskitchen.app.ui.main.MainScreen
+import com.trinhskitchen.app.ui.notifications.NotificationsScreen
 import com.trinhskitchen.app.ui.orders.MyOrdersScreen
 import com.trinhskitchen.app.ui.orders.OrderDetailScreen
 import com.trinhskitchen.app.ui.orders.OrdersFilter
@@ -18,10 +25,12 @@ import com.trinhskitchen.app.ui.product.ProductDetailScreen
 import com.trinhskitchen.app.ui.profile.EditAddressScreen
 import com.trinhskitchen.app.ui.profile.EditProfileScreen
 import com.trinhskitchen.app.ui.profile.MyVouchersScreen
+import com.trinhsgroup.shared.storage.NotificationStore
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 import com.trinhsgroup.shared.viewmodel.HistoryViewModel
 import com.trinhsgroup.shared.viewmodel.MainViewModel
 import com.trinhsgroup.shared.viewmodel.PointsViewModel
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 /**
@@ -29,12 +38,32 @@ import org.koin.compose.koinInject
  */
 @Composable
 fun AppNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    pushOrderId: Int? = null,
+    onPushOrderConsumed: () -> Unit = {}
 ) {
     val authViewModel: AuthViewModel = koinInject()
     val mainViewModel: MainViewModel = koinInject()
     val historyViewModel: HistoryViewModel = koinInject()
     val pointsViewModel: PointsViewModel = koinInject()
+    val notificationStore: NotificationStore = koinInject()
+    val pushTokens: PushTokens = koinInject()
+    val scope = rememberCoroutineScope()
+
+    // Tell the server where to send this account's order updates.
+    val isLogin by authViewModel.isLogin.collectAsState()
+    LaunchedEffect(isLogin) { if (isLogin) pushTokens.register() }
+
+    // A push tapped in the tray. Held until the shell is up: on a cold launch the splash is
+    // still on screen and would navigate over the order detail as soon as the session restores.
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    LaunchedEffect(pushOrderId, currentRoute) {
+        val orderId = pushOrderId ?: return@LaunchedEffect
+        if (currentRoute != Screen.Main.route) return@LaunchedEffect
+        historyViewModel.openOrder(orderId)
+        navController.navigate(Screen.OrderDetail.createRoute(orderId))
+        onPushOrderConsumed()
+    }
     
     NavHost(
         navController = navController,
@@ -103,14 +132,22 @@ fun AppNavGraph(
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate(Screen.OrderDetail.createRoute(orderId))
                 },
+                onNavigateToNotifications = {
+                    navController.navigate(Screen.Notifications.route)
+                },
                 onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
                 onNavigateToEditAddress = { navController.navigate(Screen.EditAddress.route) },
                 onNavigateToPastOrders = { navController.navigate(Screen.MyOrders.route) },
                 onNavigateToVouchers = { navController.navigate(Screen.MyVouchers.route) },
                 onLogout = {
-                    authViewModel.logout()
-                    mainViewModel.reset()
-                    navController.navigate(Screen.Login.route)
+                    scope.launch {
+                        // Unbind this device before the JWT goes: afterwards the server has no
+                        // way to tell which account's pushes to stop.
+                        pushTokens.unregister()
+                        authViewModel.logout()
+                        mainViewModel.reset()
+                        navController.navigate(Screen.Login.route)
+                    }
                 },
                 // onDeleteAccount has already cleared the session by the time this runs.
                 onAccountDeleted = {
@@ -133,6 +170,17 @@ fun AppNavGraph(
         composable(Screen.EditAddress.route) {
             EditAddressScreen(
                 authViewModel = authViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Notifications.route) {
+            NotificationsScreen(
+                store = notificationStore,
+                onOpenOrder = { orderId ->
+                    historyViewModel.openOrder(orderId)
+                    navController.navigate(Screen.OrderDetail.createRoute(orderId))
+                },
                 onNavigateBack = { navController.popBackStack() }
             )
         }

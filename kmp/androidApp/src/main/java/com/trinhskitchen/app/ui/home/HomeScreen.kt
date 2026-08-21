@@ -26,6 +26,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -57,6 +59,7 @@ import com.trinhskitchen.app.ui.components.HorizontalProductCard
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Category
 import com.trinhsgroup.shared.model.AppEvent
+import com.trinhsgroup.shared.storage.NotificationStore
 import com.trinhsgroup.shared.viewmodel.MainViewModel
 import org.koin.compose.koinInject
 
@@ -70,12 +73,15 @@ fun HomeScreen(
     viewModel: MainViewModel,
     onNavigateToProductDetail: (Int) -> Unit,
     onOpenCart: () -> Unit,
-    onNavigateToCategory: (Int) -> Unit
+    onNavigateToCategory: (Int) -> Unit,
+    onNavigateToNotifications: () -> Unit
 ) {
     val isLoading by viewModel.showLoading.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val popularProducts by viewModel.popularProducts.collectAsState()
     val eventsRepository: EventsRepository = koinInject()
+    val notificationStore: NotificationStore = koinInject()
+    val notifications by notificationStore.notifications.collectAsState()
     val events by eventsRepository.events.collectAsState()
     var posterEvent by remember { mutableStateOf<AppEvent?>(null) }
     
@@ -100,11 +106,18 @@ fun HomeScreen(
                 )
             },
             actions = {
-                IconButton(onClick = { /* Navigate to notifications */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notifications"
-                    )
+                IconButton(onClick = onNavigateToNotifications) {
+                    BadgedBox(
+                        badge = {
+                            val unread = notifications.count { !it.isRead }
+                            if (unread > 0) Badge { Text(text = unread.toString()) }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notifications"
+                        )
+                    }
                 }
                 CartAction(viewModel = viewModel, onOpenCart = onOpenCart)
             },

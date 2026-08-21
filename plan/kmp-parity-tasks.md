@@ -115,10 +115,10 @@ Legend: ✅ matches · ⚠️ partial or stale · ❌ missing · 🗑 delete
 
 | iOS | KMP | Work |
 |---|---|---|
-| FCM register on login / unregister on logout, tied to JWT | ❌ dependency present, nothing wired | `FirebaseMessagingService` + both endpoints |
-| `NotificationStore`: persisted history, unread badge, `syncDeliveredNotifications()` | ⚠️ `NotificationsRepository` exists, unused | Wire it, add the bell + badge |
-| Tap → order detail, incl. cold launch via `pending_order_id` | ❌ | Port the flow |
-| Push toggle in Profile | ❌ | Add |
+| FCM register on login / unregister on logout, tied to JWT | ✅ `PushTokens` + `/fcm/register`\|`unregister` | none |
+| `NotificationStore`: persisted history, unread badge, `syncDeliveredNotifications()` | ✅ shared `NotificationStore`, bell badge, `syncTrayNotifications()` | none |
+| Tap → order detail, incl. cold launch via `pending_order_id` | ✅ intent extra held until the shell is up | none |
+| Push toggle in Profile | 🗑 the iOS toggle is `@State` only — decorative, wired to nothing | don't port |
 
 ### Profile
 
@@ -188,8 +188,8 @@ Without it the catalog calls get no credentials and the store returns 401.
 |---|---|---|
 | ⚠️ K-14 | YITH add-on groups replacing Firestore add-ons: models, validation (required/min/max), `yith_wapo` submit pairs | UI + service done; **`toProductOrders()` in `CheckoutScreen.kt:464` drops `addOnChoices`, so no `yith_wapo` ever reaches the server** |
 | ⚠️ K-15 | Special note per item (`_note`), rendered in cart and order screens | done but uncommitted (`ui/product/`, `ui/cart/`; `ui/orders/` already rendered it) |
-| ❌ K-16 | FCM: messaging service, register on login / unregister on logout, persisted `NotificationStore` equivalent, bell + unread badge, tap → order detail (incl. cold launch) | nothing wired: no manifest service, `NotificationsRepository` unused, `HomeScreen` bell is a no-op, `Screen.Notifications` unrouted |
-| ⚠️ K-17 | Profile: avatar upload/remove, redeem chips, My Vouchers, Edit Profile, Edit Address, push toggle, legal, support, version, delete account | done except **avatar upload/remove, push toggle, legal/support/version rows** |
+| ✅ K-16 | FCM: messaging service, register on login / unregister on logout, persisted `NotificationStore` equivalent, bell + unread badge, tap → order detail (incl. cold launch) | done 2026-08-21. `PushMessagingService` + `PushTokens` (androidApp/firebase), shared `NotificationStore` replaces `NotificationsRepository`, `NotificationsScreen`, `HistoryViewModel.openOrder(orderId)`. Gap: a push the system shows while the app is backgrounded reaches the history through `syncTrayNotifications()` without an order id, so it is not tappable — send `title`/`body` in the push's `data` block to close that |
+| ⚠️ K-17 | Profile: avatar upload/remove, redeem chips, My Vouchers, Edit Profile, Edit Address, push toggle, legal, support, version, delete account | done except **avatar upload/remove, legal/support/version rows**; the push toggle is not being ported (decorative on iOS) |
 | ⚠️ K-18 | Billing gate + token-expiry check before submit; Monday-closed gate in cart | token-expiry gate done but uncommitted; **Monday-closed gate missing** |
 
 ### P3 — shell and polish

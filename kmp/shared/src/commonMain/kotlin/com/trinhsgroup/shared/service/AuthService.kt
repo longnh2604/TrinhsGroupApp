@@ -285,6 +285,46 @@ class AuthService(
     }
 
     /**
+     * Binds this device's FCM token to the signed-in account, so the server knows where to
+     * send that account's order updates. Mirrors Swift's registerFCMTokenIfNeeded().
+     *
+     * A failure is logged and dropped: the customer cannot act on it, and the next login
+     * re-registers.
+     */
+    suspend fun registerPushToken(fcmToken: String) {
+        pushTokenRequest(WooCommerceEndpoint.FcmRegister, fcmToken, "register")
+    }
+
+    /**
+     * Unbinds this device before the session ends, so pushes for the account that just signed
+     * out stop arriving on this phone. Mirrors Swift's unregisterFCMToken().
+     */
+    suspend fun unregisterPushToken(fcmToken: String) {
+        pushTokenRequest(WooCommerceEndpoint.FcmUnregister, fcmToken, "unregister")
+    }
+
+    private suspend fun pushTokenRequest(
+        endpoint: WooCommerceEndpoint,
+        fcmToken: String,
+        what: String
+    ) {
+        if (fcmToken.isEmpty()) {
+            println("📱 FCM $what skipped — no token for this device")
+            return
+        }
+        try {
+            api.request<JsonElement>(
+                endpoint = endpoint,
+                method = HttpMethod.POST,
+                body = buildJsonObject { put("fcm_token", fcmToken) }
+            )
+            println("📱 FCM $what ok")
+        } catch (e: Exception) {
+            println("📱 FCM $what failed: ${e.message}")
+        }
+    }
+
+    /**
      * Clears the error state.
      */
     fun clearError() {

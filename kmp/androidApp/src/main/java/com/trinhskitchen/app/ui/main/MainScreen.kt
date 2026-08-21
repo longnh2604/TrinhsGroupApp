@@ -74,6 +74,7 @@ fun MainScreen(
     onNavigateToProductDetail: (Int) -> Unit,
     onNavigateToCheckout: () -> Unit,
     onNavigateToOrderDetail: (Int) -> Unit,
+    onNavigateToNotifications: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToEditAddress: () -> Unit,
     onNavigateToPastOrders: () -> Unit,
@@ -203,7 +204,8 @@ fun MainScreen(
                                 // Navigate to menu tab and select category
                                 selectedTabIndex = 1
                                 navController.navigate(Screen.Menu.route)
-                            }
+                            },
+                            onNavigateToNotifications = onNavigateToNotifications
                         )
                     }
                 
