@@ -18,7 +18,6 @@ The plugin adds these authenticated endpoints:
 
 The plugin accepts JPEG images, creates a WordPress Media Library attachment, and replaces WooCommerce's read-only `avatar_url` response value when a custom avatar exists. Replacing or deleting an avatar removes the previous attachment.
 
-
 ## Verification
 
 After installing the updated plugin and rebuilding the iOS app, upload an avatar in the iOS app. Confirm this request returns HTTP 200:

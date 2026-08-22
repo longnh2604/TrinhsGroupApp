@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Trinh App Avatar
- * Description: Lets the Trinhs Group iOS app manage customer avatars through the authenticated WooCommerce REST API.
+ * Description: Lets the Trinhs Group iOS app store Firebase-hosted customer avatars through the authenticated WooCommerce REST API.
  * Version: 1.0.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -42,7 +42,6 @@ function trinh_app_avatar_register_routes() {
 			),
 		)
 	);
-
 }
 
 /**
