@@ -19,9 +19,11 @@ import org.koin.android.ext.android.inject
  * Receives pushes and records them, so the bell screen has a history and the tap can open the
  * order the push is about. Mirrors what AppDelegate does on iOS.
  *
- * Only fires while the app is in the foreground: a push carrying a `notification` block is
- * shown by the system when the app is backgrounded, and never reaches here. [syncTrayNotifications]
- * picks those up for the history instead.
+ * Fires in every state, because `trinh-push-notify` 1.4.0 sends Android a data-only message
+ * (title and body in `data`, `priority: high`) and leaves the `notification` block off. With one
+ * present the FCM SDK would draw the tray notification itself and never call this, so the app
+ * would never see the order id — that is the whole reason for the split payload. iOS is told
+ * separately through `apns.payload.aps.alert` and behaves as it always did.
  */
 class PushMessagingService : FirebaseMessagingService() {
 
@@ -86,13 +88,15 @@ class PushMessagingService : FirebaseMessagingService() {
 }
 
 /**
- * Pulls the app's own pushes that are still in the system tray into the history, for the ones
- * the system showed while the app was backgrounded. Android's answer to iOS
- * `syncDeliveredNotifications()`.
+ * Pulls the app's own pushes that are still in the system tray into the history. Android's
+ * answer to iOS `syncDeliveredNotifications()`.
  *
- * ponytail: the tray keeps no custom payload, so these entries carry no order id and are not
- * tappable — the same rule iOS applies to entries stored before order ids existed. Send the
- * title and body in the push's `data` block if they need to be tappable too.
+ * A backstop rather than the main path since the server stopped sending a `notification` block:
+ * [PushMessagingService.onMessageReceived] now records every push, order id included. What is
+ * left for this to catch is a tray that outlived the store — an entry posted by the old payload,
+ * or by a server that starts sending `notification` again. The tray keeps no custom payload, so
+ * what it recovers has no order id and is not tappable; `upsert` prefers the id already stored,
+ * so this can never blank out a good entry.
  */
 fun syncTrayNotifications(context: Context, store: NotificationStore) {
     val manager = context.getSystemService(NotificationManager::class.java) ?: return
