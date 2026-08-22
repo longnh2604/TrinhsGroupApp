@@ -195,6 +195,22 @@ object DateTimeUtils {
 }
 
 /**
+ * Pickup slots still on offer today, as minutes from midnight.
+ *
+ * Mirrors PickupDateTimeView.swift: 30-minute blocks from 11:30 to the last start at 20:30,
+ * the 15:00 hour closed, and nothing before the next half-hour boundary — a slot starting
+ * exactly now is still offered, one that started a minute ago is not.
+ *
+ * @param nowMinutes current Sydney time as minutes from midnight
+ */
+fun availablePickupSlots(nowMinutes: Int): List<Int> {
+    val remainder = nowMinutes % 30
+    val cutoff = if (remainder == 0) nowMinutes else nowMinutes + (30 - remainder)
+    return (11 * 60 + 30..20 * 60 + 30 step 30)
+        .filter { it / 60 != 15 && it >= cutoff }
+}
+
+/**
  * Extension function for String to convert to Australia/Sydney datetime.
  * Mirrors Swift's String extension.
  */

@@ -157,10 +157,7 @@ fun HomeScreen(
 
                 // Categories section
                 if (categories.isNotEmpty()) {
-                    SectionHeader(
-                        title = "Categories",
-                        onSeeAllClick = { /* Navigate to all categories */ }
-                    )
+                    SectionHeader(title = "Categories")
                     
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
@@ -179,10 +176,7 @@ fun HomeScreen(
                 
                 // Popular products section (horizontal cards like iOS)
                 if (popularProducts.isNotEmpty()) {
-                    SectionHeader(
-                        title = "Popular",
-                        onSeeAllClick = { /* Navigate to all popular */ }
-                    )
+                    SectionHeader(title = "Popular")
                     
                     Column(
                         modifier = Modifier.padding(horizontal = 8.dp),
@@ -215,32 +209,13 @@ fun HomeScreen(
 }
 
 @Composable
-private fun SectionHeader(
-    title: String,
-    onSeeAllClick: (() -> Unit)? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        
-        if (onSeeAllClick != null) {
-            Text(
-                text = "See All",
-                style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.Primary,
-                modifier = Modifier.clickable(onClick = onSeeAllClick)
-            )
-        }
-    }
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    )
 }
 
 @Composable

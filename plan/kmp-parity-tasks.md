@@ -86,7 +86,7 @@ Legend: ✅ matches · ⚠️ partial or stale · ❌ missing · 🗑 delete
 | Order payload: no `customer_id`, no `set_paid`, no prices | ⚠️ sends all three | Rewrite `buildOrderJson`, re-pin `OrderCreationPayloadTest` |
 | 5% is a server gateway fee | 🗑 client-side `fee_lines` in `MainService.kt` | Delete |
 | Fee lines rendered from the server's own labels | ❌ | Render `quote.fees` |
-| Pickup date/time (`PickupDateTimeView`, server owns parsing) | ⚠️ own time-slot logic, today-only, hardcoded slots | Re-check against `PickupDateTimeView` |
+| Pickup date/time (`PickupDateTimeView`, server owns parsing) | ✅ same slots, today only | Rule moved to `DateTimeUtils.availablePickupSlots` 2026-08-22 and pinned; Android used to drop the slot starting exactly now |
 | Voucher picker from `/me/vouchers` | ⚠️ right UI, wrong endpoint (`?user_id=`) | Repoint |
 | Payment list excludes `woocommerce_payments_*` and `stripe_*` prefixes | ⚠️ only filters `enabled` | Add the prefix filter |
 | Stripe: create order → `/me/orders/{id}/payment-intent` → PaymentSheet → refresh points/vouchers → order received; Safari fallback on `paymentURL`; deep-link return | ❌ `StripePresenter` never called | Wire the whole flow |

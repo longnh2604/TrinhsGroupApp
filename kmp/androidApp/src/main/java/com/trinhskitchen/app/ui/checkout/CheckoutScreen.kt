@@ -70,6 +70,7 @@ import com.trinhsgroup.shared.util.PriceFormatting
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 import com.trinhsgroup.shared.viewmodel.MainViewModel
 import com.trinhsgroup.shared.viewmodel.PointsViewModel
+import com.trinhsgroup.shared.util.availablePickupSlots
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -865,34 +866,11 @@ data class TimeSlot(
         }
 }
 
-// Get available time slots for today (mirrors iOS logic)
+// Get available time slots for today; the rule itself lives in shared DateTimeUtils
 private fun getAvailableTimeSlotsForToday(): List<TimeSlot> {
-    val slots = mutableListOf<TimeSlot>()
-    val australiaTimeZone = TimeZone.getTimeZone("Australia/Sydney")
-    val calendar = Calendar.getInstance(australiaTimeZone)
-    val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-    val currentMinute = calendar.get(Calendar.MINUTE)
-    
-    // Generate from 11:30 up to 20:30
-    var hour = 11
-    var minute = 30
-    
-    while (hour < 21) {
-        // Skip 15:00-15:59 (closed period)
-        if (hour != 15) {
-            // Only add future time slots
-            if (hour > currentHour || (hour == currentHour && minute > currentMinute)) {
-                slots.add(TimeSlot(hour, minute))
-            }
-        }
-        minute += 30
-        if (minute >= 60) {
-            minute = 0
-            hour += 1
-        }
-    }
-    
-    return slots
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("Australia/Sydney"))
+    val nowMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
+    return availablePickupSlots(nowMinutes).map { TimeSlot(it / 60, it % 60) }
 }
 
 // Format today's date

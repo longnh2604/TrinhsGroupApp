@@ -58,4 +58,33 @@ class DateTimeUtilsTest {
         assertNotNull(result)
         assertTrue(result.contains("2024"))
     }
+
+    @Test
+    fun testPickupSlotsBeforeOpening() {
+        // Whole day on offer: 11:30 to 20:30 in halves, minus the closed 15:00 hour
+        val slots = availablePickupSlots(9 * 60)
+        assertEquals(11 * 60 + 30, slots.first())
+        assertEquals(20 * 60 + 30, slots.last())
+        assertEquals(17, slots.size)
+        assertTrue(slots.none { it / 60 == 15 })
+    }
+
+    @Test
+    fun testPickupSlotOnTheBoundaryIsStillOffered() {
+        // iOS keeps a slot starting exactly now; dropping it was the Android divergence
+        assertEquals(12 * 60, availablePickupSlots(12 * 60).first())
+        assertEquals(12 * 60 + 30, availablePickupSlots(12 * 60 + 1).first())
+    }
+
+    @Test
+    fun testPickupSlotsRoundUpToNextHalfHour() {
+        assertEquals(13 * 60, availablePickupSlots(12 * 60 + 31).first())
+        // 14:31 rounds to 15:00, which is closed, so the next opening is 16:00
+        assertEquals(16 * 60, availablePickupSlots(14 * 60 + 31).first())
+    }
+
+    @Test
+    fun testPickupSlotsAfterLastStart() {
+        assertTrue(availablePickupSlots(20 * 60 + 31).isEmpty())
+    }
 }
