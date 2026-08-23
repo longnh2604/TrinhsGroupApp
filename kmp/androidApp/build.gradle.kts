@@ -25,6 +25,18 @@ fun secret(name: String): String =
         ?: System.getenv(name)
         ?: ""
 
+/**
+ * Release signing material, kept out of source control alongside the keystore itself.
+ *
+ * Absent for anyone who has not been given the keystore, so the release signingConfig is
+ * only wired up when keystore.properties is present — otherwise the module still
+ * configures and debug builds still work.
+ */
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
 android {
     namespace = "com.trinhskitchen.app"
     compileSdk = 36
@@ -33,11 +45,28 @@ android {
         applicationId = "com.trinhskitchen.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.2"
 
         buildConfigField("String", "WOO_CONSUMER_KEY", "\"${secret("WOO_CONSUMER_KEY")}\"")
         buildConfigField("String", "WOO_CONSUMER_SECRET", "\"${secret("WOO_CONSUMER_SECRET")}\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            keystoreProperties.getProperty("storeFile")?.let { path ->
+                storeFile = file(path)
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
 
     buildFeatures {
