@@ -81,6 +81,7 @@
   <tr><td>FB-7</td><td>No regular performance monitoring</td><td>Telemetry</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span> (small)</td></tr>
   <tr><td>FB-8</td><td>No ingredient / allergen transparency</td><td>Catalog content + render</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span> (small)</td></tr>
   <tr><td>FB-9</td><td>Accessibility (VoiceOver/TalkBack, alt text, Dynamic Type)</td><td>Accessibility</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span></td></tr>
+  <tr><td>FB-10</td><td>Store rating prompt in the app — added on request, not in the report</td><td>Public rating</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span></td></tr>
 </table>
 
 <h2>2. Decisions needed from you before Sprint 1 starts</h2>
@@ -286,6 +287,31 @@
 <div class="verify"><b>Verify</b> — the full order flow completed end to end with VoiceOver on and
   the screen curtain enabled, plus at largest Dynamic Type with no clipped or unreachable controls.
   This is a manual QA gate, signed off before submission.</div>
+
+<h3>FB-10 — Store rating prompt <span class="pill p-ios">iOS 0.25d</span> <span class="pill p-and">Android 0.5d</span></h3>
+<p>
+  Not from the report — requested alongside FB-5. Both stores expose a native in-app rating
+  sheet, so nobody has to leave the app to rate it.
+</p>
+<ul>
+  <li><b>iOS:</b> <code>@Environment(\.requestReview)</code> in <code>OrderReceivedView</code>,
+      1.5s after the receipt appears. No dependency. StoreKit decides whether the sheet shows
+      and caps it at three times a year, so there is no counter in the app.</li>
+  <li><b>Android:</b> Play In-App Review (<code>com.google.android.play:review-ktx</code>) from
+      <code>OrderReceivedScreen</code> at the same moment. Play quotas it the same way and
+      reports nothing about the outcome.</li>
+  <li><b>Both:</b> a "Rate the App" row in Profile that opens the listing directly, because the
+      native prompt is quota-limited and often silently skipped.</li>
+</ul>
+<p><b>Policy constraint:</b> Play forbids asking about sentiment before launching the review
+  flow, so FB-5's feedback wheel and this prompt stay separate — no "are you happy?" gate in
+  front of either, and they are not chained in one session.</p>
+<p><b>Skipped:</b> counting orders before prompting, and any custom rating UI. The store APIs
+  already throttle, and a custom prompt cannot write a real review.</p>
+<p><b>Blocked on:</b> the numeric App Store id for the iOS Profile row
+  (<code>APP_STORE_ID</code> in <code>App/Config.swift</code>); the row hides itself while it is
+  empty. Testing the prompts needs a Play internal-testing track and a TestFlight or App Store
+  build — neither fires on a simulator or a debug install.</p>
 
 <h3>FB-1 and FB-4 — Store listing and screenshots <span class="pill p-store">non-engineering</span></h3>
 <p>

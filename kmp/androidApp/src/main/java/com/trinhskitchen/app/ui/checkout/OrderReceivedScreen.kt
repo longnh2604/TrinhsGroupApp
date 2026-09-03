@@ -1,5 +1,9 @@
 package com.trinhskitchen.app.ui.checkout
 
+import android.app.Activity
+import androidx.compose.runtime.LaunchedEffect
+import com.trinhskitchen.app.requestStoreReview
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +62,13 @@ fun OrderReceivedScreen(
 ) {
     val order by mainViewModel.receivedOrder.collectAsState()
     val presentation = OrderStatusPresentation.of(order.status)
+    val activity = LocalContext.current as? Activity
+
+    // A completed order is the one moment the app has earned an opinion, same trigger as iOS.
+    LaunchedEffect(Unit) {
+        delay(1500)
+        activity?.let { requestStoreReview(it) }
+    }
     val number = order.number.ifEmpty { (orderId ?: order.id).toString() }
     val placed = DateTimeUtils.toDisplayDate(order.dateCreated).takeIf { order.dateCreated.isNotEmpty() }
 

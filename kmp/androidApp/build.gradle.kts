@@ -45,7 +45,7 @@ android {
         applicationId = "com.trinhskitchen.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
+        versionCode = 6
         versionName = "1.0.2"
 
         buildConfigField("String", "WOO_CONSUMER_KEY", "\"${secret("WOO_CONSUMER_KEY")}\"")
@@ -65,7 +65,11 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // Only signed where the keystore is available; elsewhere the release build still
+            // runs and produces an unsigned bundle.
+            if (keystoreProperties.getProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -115,6 +119,9 @@ dependencies {
     implementation(libs.firebase.messaging)
     
     implementation(libs.lottie.compose)
+
+    // Play In-App Review, for the rating prompt after an order
+    implementation(libs.play.review)
 
     // Stripe
     implementation(libs.stripe.android)

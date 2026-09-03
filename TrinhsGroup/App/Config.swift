@@ -20,3 +20,7 @@ var COMPABILITY = "iOS 13 or above"
 var WEBSITE_LABEL = "Trinhsgroup"
 var WEBSITE_LINK = "https://trinhsgroup.au"
 var VERSION = "1.0.0"
+
+/// App Store numeric id, used only for the "Rate the app" deep link in Profile. Empty
+/// hides that row; the review prompt after an order works without it.
+let APP_STORE_ID = ""
