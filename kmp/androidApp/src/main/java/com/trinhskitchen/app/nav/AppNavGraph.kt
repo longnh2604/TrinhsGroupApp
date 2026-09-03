@@ -18,6 +18,7 @@ import com.trinhskitchen.app.ui.checkout.OrderReceivedScreen
 import com.trinhskitchen.app.firebase.PushTokens
 import com.trinhskitchen.app.ui.main.MainScreen
 import com.trinhskitchen.app.ui.notifications.NotificationsScreen
+import com.trinhskitchen.app.ui.onboard.OnboardingScreen
 import com.trinhskitchen.app.ui.orders.MyOrdersScreen
 import com.trinhskitchen.app.ui.orders.OrderDetailScreen
 import com.trinhskitchen.app.ui.orders.OrdersFilter
@@ -25,6 +26,7 @@ import com.trinhskitchen.app.ui.product.ProductDetailScreen
 import com.trinhskitchen.app.ui.profile.EditAddressScreen
 import com.trinhskitchen.app.ui.profile.EditProfileScreen
 import com.trinhskitchen.app.ui.profile.MyVouchersScreen
+import com.trinhsgroup.shared.storage.KeyValueStore
 import com.trinhsgroup.shared.storage.NotificationStore
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 import com.trinhsgroup.shared.viewmodel.HistoryViewModel
@@ -32,6 +34,9 @@ import com.trinhsgroup.shared.viewmodel.MainViewModel
 import com.trinhsgroup.shared.viewmodel.PointsViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+
+/** Matches the iOS `hasSeenOnboarding` AppStorage key. */
+private const val ONBOARDING_SEEN_KEY = "hasSeenOnboarding"
 
 /**
  * Main navigation graph for the app.
@@ -47,6 +52,7 @@ fun AppNavGraph(
     val historyViewModel: HistoryViewModel = koinInject()
     val pointsViewModel: PointsViewModel = koinInject()
     val notificationStore: NotificationStore = koinInject()
+    val keyValueStore: KeyValueStore = koinInject()
     val pushTokens: PushTokens = koinInject()
     val scope = rememberCoroutineScope()
 
@@ -74,8 +80,23 @@ fun AppNavGraph(
             SplashScreen(
                 authViewModel = authViewModel,
                 onNavigateToMain = {
-                    navController.navigate(Screen.Main.route) {
+                    // First launch gets the welcome carousel first, as iOS does.
+                    val next =
+                        if (keyValueStore.getBoolean(ONBOARDING_SEEN_KEY)) Screen.Main.route
+                        else Screen.Onboard.route
+                    navController.navigate(next) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Onboard.route) {
+            OnboardingScreen(
+                onFinished = {
+                    keyValueStore.putBoolean(ONBOARDING_SEEN_KEY, true)
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Onboard.route) { inclusive = true }
                     }
                 }
             )

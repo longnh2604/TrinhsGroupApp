@@ -222,6 +222,7 @@ struct OnboardingView: View {
                 timeChip("12:00 PM", selected: true)
                 timeChip("12:30 PM", selected: false)
             }
+            .frame(maxWidth: .infinity)
         }
         .padding(16)
         .background(card)
@@ -230,6 +231,10 @@ struct OnboardingView: View {
     private func timeChip(_ label: String, selected: Bool) -> some View {
         Text(label)
             .font(.system(size: 12, weight: .semibold))
+            // A time never wraps: "12:30 PM" would otherwise drop "PM" onto a second
+            // line and sit out of line with the other two chips.
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .foregroundColor(selected ? .white : Constants.AppColor.secondaryBlack)
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
