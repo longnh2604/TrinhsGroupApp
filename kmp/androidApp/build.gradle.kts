@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.services)
+    // FB-7. Crashlytics' plugin uploads the mapping file so release stack traces deobfuscate;
+    // the perf plugin bytecode-instruments the automatic app-start and network traces.
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.perf)
 }
 
 /**
@@ -117,7 +121,9 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
-    
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
+
     implementation(libs.lottie.compose)
 
     // Play In-App Review, for the rating prompt after an order

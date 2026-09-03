@@ -40,6 +40,12 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.security.crypto)
+            // FB-7, for AppTrace.android.kt. Only the Performance API is needed here —
+            // Crashlytics is applied in :androidApp, which is where crashes are reported
+            // from. platform() has to be reached through project.dependencies inside a KMP
+            // source set; the plain accessor is not in scope in this block.
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.perf)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
