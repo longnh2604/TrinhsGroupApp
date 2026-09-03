@@ -177,3 +177,23 @@
 "profile.deleteAccountConfirmMessage" = "This permanently deletes your account, order history, points and vouchers. This action cannot be undone.";
 "profile.deleteAccountErrorMessage" = "We couldn't delete your account. Please try again or contact us at info@trinhsgroup.com.au.";
 "profile.deleteAccountButton" = "Delete";
+
+/* Onboarding */
+"onboarding.skip" = "Skip";
+"onboarding.next" = "Next";
+"onboarding.getStarted" = "Get Started";
+"onboarding.menuTitle" = "The whole menu, in your pocket";
+"onboarding.menuBody" = "Browse by category — phở, bánh mì, rice and noodle dishes — with photos and today's prices.";
+"onboarding.addOnsTitle" = "Order it your way";
+"onboarding.addOnsBody" = "Pick sizes and extras on any dish. The price updates as you choose, so there are no surprises.";
+"onboarding.pickupTitle" = "Choose your pickup time";
+"onboarding.pickupBody" = "Order ahead for today, pick a time slot, pay in the app and skip the queue when you arrive.";
+"onboarding.rewardsTitle" = "Earn points, get vouchers";
+"onboarding.rewardsBody" = "Every order adds points. Turn them into vouchers and spend them at checkout on your next one.";
+
+/* Tab bar */
+"tab.home" = "Home";
+"tab.menu" = "Menu";
+"tab.orders" = "Orders";
+"tab.favorites" = "Favorites";
+"tab.profile" = "Profile";

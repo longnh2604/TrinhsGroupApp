@@ -70,10 +70,7 @@
 		FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */; };
 		FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */; };
 		FD5EC0020000000000000002 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = FD5EC0010000000000000001 /* Secrets.plist */; };
-		FD8EAEF52872C8C6004F9ED0 /* OnboardCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF42872C8C6004F9ED0 /* OnboardCardView.swift */; };
-		FD8EAEF72872C8EB004F9ED0 /* StartButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF62872C8EB004F9ED0 /* StartButtonView.swift */; };
 		FD8EAEF92872C8F9004F9ED0 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */; };
-		FD8EAEFC2872C93C004F9ED0 /* Onboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEFB2872C93C004F9ED0 /* Onboard.swift */; };
 		FD8EAEFE2872C977004F9ED0 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEFD2872C977004F9ED0 /* Config.swift */; };
 		FD8EAF012872CAC1004F9ED0 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF002872CAC1004F9ED0 /* AuthViewModel.swift */; };
 		FD8EAF032872CB50004F9ED0 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAF022872CB50004F9ED0 /* UserModel.swift */; };
@@ -203,10 +200,7 @@
 		FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		FD5EC0010000000000000001 /* Secrets.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
-		FD8EAEF42872C8C6004F9ED0 /* OnboardCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardCardView.swift; sourceTree = "<group>"; };
-		FD8EAEF62872C8EB004F9ED0 /* StartButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartButtonView.swift; sourceTree = "<group>"; };
 		FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		FD8EAEFB2872C93C004F9ED0 /* Onboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboard.swift; sourceTree = "<group>"; };
 		FD8EAEFD2872C977004F9ED0 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		FD8EAF002872CAC1004F9ED0 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		FD8EAF022872CB50004F9ED0 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
@@ -433,8 +427,6 @@
 		FD8EAEF12872C83D004F9ED0 /* Onboard */ = {
 			isa = PBXGroup;
 			children = (
-				FD8EAEF42872C8C6004F9ED0 /* OnboardCardView.swift */,
-				FD8EAEF62872C8EB004F9ED0 /* StartButtonView.swift */,
 				FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */,
 			);
 			path = Onboard;
@@ -484,7 +476,6 @@
 				FDAA00000000000000000D03 /* OrderQuoteModel.swift */,
 				2250732F2F48644A006506B2 /* PointsResponse.swift */,
 				22EC20B72DA51C200032C77B /* WooErrorResponse.swift */,
-				FD8EAEFB2872C93C004F9ED0 /* Onboard.swift */,
 				FD8EAF022872CB50004F9ED0 /* UserModel.swift */,
 				FDB69C982877F17C00878117 /* EventModel.swift */,
 				FD8EAF042872CBC9004F9ED0 /* BillingModel.swift */,
@@ -798,7 +789,6 @@
 				FD9A223A28759B37009FDD65 /* HistoryOrderDetailView.swift in Sources */,
 				FD8E6B9628812028007884C0 /* HistoryOrderAddressView.swift in Sources */,
 				FD9A221528752D20009FDD65 /* CategoryRowView.swift in Sources */,
-				FD8EAEFC2872C93C004F9ED0 /* Onboard.swift in Sources */,
 				FD8EAF0F2872CE98004F9ED0 /* LoginView.swift in Sources */,
 				FD8EAF142872D789004F9ED0 /* LoadingView.swift in Sources */,
 				D3E11ADFB8C28D2E360AA20E /* OrderDetailCard.swift in Sources */,
@@ -808,7 +798,6 @@
 				64CE6DD5FEE2643FF664DD4F /* OrderItemsCard.swift in Sources */,
 				FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */,
 				FD6733B6287428020007F354 /* WooImageModel.swift in Sources */,
-				FD8EAEF52872C8C6004F9ED0 /* OnboardCardView.swift in Sources */,
 				225073302F48644A006506B2 /* PointsResponse.swift in Sources */,
 				2F6079492D95051D00874FB5 /* WooCommerceOAuth.swift in Sources */,
 				FD8EAF222872E24A004F9ED0 /* AuthServices.swift in Sources */,
@@ -837,7 +826,6 @@
 				2250732C2F486387006506B2 /* PointsViewModel.swift in Sources */,
 				64C8D3FD2E3CA099006ECB89 /* ProductDetailsCard.swift in Sources */,
 				2250732E2F48639B006506B2 /* PointsServices.swift in Sources */,
-				FD8EAEF72872C8EB004F9ED0 /* StartButtonView.swift in Sources */,
 				2248AA732EAE346A00CEBFB1 /* FavoriteButton.swift in Sources */,
 				FD9A223428757353009FDD65 /* ZoneModel.swift in Sources */,
 				FD5364B5288A41FA0049E902 /* HistoryServices.swift in Sources */,

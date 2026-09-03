@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testers Community Feedback — Remediation Plan (iOS first, then KMP Android)</title>
+<style>
+  :root{
+    --ink:#1c1a17; --muted:#6b655c; --line:#e3ddd3; --bg:#fbf9f6; --card:#fff;
+    --ios:#2f6fd0; --wp:#8a5cd6; --and:#3f9142; --store:#c9761b; --qa:#b5343f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:40px 28px 80px}
+  header.top{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:28px}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:-.3px}
+  h2{font-size:20px;margin:44px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h3{font-size:16px;margin:26px 0 8px}
+  .sub{color:var(--muted);font-size:14px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;background:var(--card);font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f3efe8;font-weight:600;font-size:13px}
+  code{background:#f1ede6;padding:1px 5px;border-radius:3px;font-size:12.5px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .pill{display:inline-block;padding:1px 8px;border-radius:11px;font-size:11.5px;
+        font-weight:600;color:#fff;white-space:nowrap}
+  .p-ios{background:var(--ios)} .p-wp{background:var(--wp)} .p-and{background:var(--and)}
+  .p-store{background:var(--store)} .p-qa{background:var(--qa)} .p-none{background:#8c867c}
+  .card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ios);
+        padding:14px 16px;margin:14px 0;border-radius:3px}
+  .card.warn{border-left-color:var(--qa)}
+  .card.note{border-left-color:var(--store)}
+  .card h4{margin:0 0 6px;font-size:15px}
+  ul{margin:6px 0 6px 20px;padding:0} li{margin:3px 0}
+  .gantt td{padding:0;height:26px}
+  .gantt th{text-align:center;font-size:11.5px;padding:6px 3px;line-height:1.25}
+  .gantt td.lbl{padding:5px 9px;font-size:13px;white-space:nowrap}
+  .bar{height:100%;display:block}
+  .b-ios{background:var(--ios)} .b-wp{background:var(--wp)} .b-and{background:var(--and)}
+  .b-store{background:var(--store)} .b-qa{background:var(--qa)} .b-rev{background:#b9b2a6}
+  .legend{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .legend span{margin-right:14px}
+  .key{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+  .verify{background:#f6f8f4;border:1px dashed #c3cfb9;padding:9px 12px;margin:8px 0;font-size:13.5px}
+  .verify b{font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:#4d6b3f}
+  footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);
+         color:var(--muted);font-size:12.5px}
+  @media print{body{background:#fff} .wrap{padding:0} h2{page-break-after:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Testers Community Feedback — Remediation Plan</h1>
+  <p class="sub">
+    Source: <code>docs/trinhs_feedback.pdf</code> (7 pages, Testers Community, tested against the
+    Play build <code>com.trinhskitchen.app</code>) &middot;
+    Plan drafted 2026-09-03 &middot; Proposed start Mon 2026-09-07 &middot;
+    Sequence: <b>iOS native first, KMP Android after iOS is submitted</b> &middot;
+    Status: <b>for review — no code written yet</b>
+  </p>
+</header>
+
+<h2>1. What the report actually says</h2>
+<p>
+  No defects. The testers explicitly report zero crashes and zero functional bugs across devices
+  and SDK levels. Every one of the nine points is an <b>enhancement or a store-listing task</b>,
+  so nothing here justifies a hotfix — the app-side items batch cleanly into one iOS release and
+  one Android release.
+</p>
+<table>
+  <tr><th style="width:52px">ID</th><th>Report item</th><th style="width:150px">Nature</th><th style="width:118px">Needs app code?</th></tr>
+  <tr><td>FB-1</td><td>App Store Optimization — thin description, no keywords</td><td>Store listing copy</td><td><span class="pill p-none">No</span></td></tr>
+  <tr><td>FB-2</td><td>No dynamic walkthrough for new users</td><td>In-app onboarding</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span></td></tr>
+  <tr><td>FB-3</td><td>Limited login options (asks for Google / social sign-in)</td><td>Auth</td><td><span class="pill p-wp">WP</span> <span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span></td></tr>
+  <tr><td>FB-4</td><td>Play Store screenshots are generic, not feature-led</td><td>Store assets / design</td><td><span class="pill p-none">No</span></td></tr>
+  <tr><td>FB-5</td><td>No in-app user feedback mechanism</td><td>Feedback loop</td><td><span class="pill p-wp">WP</span> <span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span></td></tr>
+  <tr><td>FB-6</td><td>App-only specials not promoted inside the app</td><td>Merchandising</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span> (small)</td></tr>
+  <tr><td>FB-7</td><td>No regular performance monitoring</td><td>Telemetry</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span> (small)</td></tr>
+  <tr><td>FB-8</td><td>No ingredient / allergen transparency</td><td>Catalog content + render</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span> (small)</td></tr>
+  <tr><td>FB-9</td><td>Accessibility (VoiceOver/TalkBack, alt text, Dynamic Type)</td><td>Accessibility</td><td><span class="pill p-ios">iOS</span> <span class="pill p-and">Android</span></td></tr>
+</table>
+
+<h2>2. Decisions needed from you before Sprint 1 starts</h2>
+
+<div class="card warn">
+  <h4>D1 — Google Sign-in on iOS drags Sign in with Apple in with it (App Store Guideline 4.8)</h4>
+  <p>
+    Apple requires that an app offering a third-party or social login also offer an equivalent
+    privacy-preserving login. Shipping Google Sign-in alone on iOS is a rejection risk, and this
+    app was already rejected once (2026-08-18), so the review margin is thin.
+  </p>
+  <p><b>Recommendation:</b> ship <b>Sign in with Apple + Google Sign-in together</b> on iOS.
+     On Android, Google Sign-in alone is fine; Apple sign-in is not required there.</p>
+  <p><b>Alternative if you want a cheaper release:</b> defer FB-3 entirely to a later version and
+     ship Sprints 1 and 3 first. FB-3 is the single biggest item in this plan (~5.5 dev-days plus
+     server work); dropping it halves the schedule.</p>
+</div>
+
+<div class="card note">
+  <h4>D2 — Facebook Login: recommend declining</h4>
+  <p>
+    The report lists it as a "consider". It adds an SDK, a Meta app review, and a second privacy
+    disclosure for a login method that overlaps Google almost entirely. Cheapest correct answer is
+    Apple + Google, no Facebook. Say the word if you want it and it becomes a +2 dev-day item.
+  </p>
+</div>
+
+<div class="card warn">
+  <h4>D3 — The report describes features this app does not have</h4>
+  <p>
+    FB-2 and FB-4 recommend showcasing "live tracking" and "table reservations". The app has
+    neither: fulfilment is pickup date/time, and there is no reservation flow. Screenshots and
+    the walkthrough must show what actually exists (menu browsing, add-ons, pickup slot, order
+    status, vouchers/points) — inventing them would be false advertising and a store violation.
+  </p>
+  <p><b>Confirm:</b> we treat "live tracking" as the existing order-status progress card, and drop
+     "table reservations" from all copy. No reservation feature will be built under this plan.</p>
+</div>
+
+<div class="card">
+  <h4>D4 — Content owner for FB-1, FB-4, FB-8</h4>
+  <p>
+    Store description keywords, screenshot design, and per-dish ingredient/allergen text are not
+    engineering work; they are content that someone at Trinhs has to write and sign off. FB-8 in
+    particular is blocked until the kitchen supplies ingredient and allergen text per dish — the
+    app code is half a day, the content is the long pole. Nominate an owner and a date, or FB-8
+    slips out of this plan.
+  </p>
+</div>
+
+<h2>3. Approach per item, and what gets deliberately skipped</h2>
+
+<h3>FB-2 — New-user walkthrough <span class="pill p-ios">iOS 1.5d</span> <span class="pill p-and">Android 1d</span></h3>
+<p>
+  An onboarding carousel already exists in the tree and nothing navigates to it:
+  <code>TrinhsGroup/View/Onboard/OnboardingView.swift</code>,
+  <code>OnboardCardView.swift</code>, <code>StartButtonView.swift</code>, with slide data in
+  <code>App/Config.swift:15</code> and the <code>ONBOARD_ENABLED</code> flag at
+  <code>App/Config.swift:12</code>. <code>App/TrinhsGroupApp.swift</code> goes splash → MainView
+  and never touches it. The KMP side already has the matching
+  <code>shared/.../model/Onboard.kt</code>.
+</p>
+<ul>
+  <li>Gate it on a first-launch flag in <code>TrinhsGroupApp.swift</code>
+      (<code>@AppStorage</code>), shown once, with the existing skip/start button.</li>
+  <li>Rewrite the three slides to today's app: order pickup food, add-ons and options,
+      vouchers and points. The current copy still says "Use discount code" and
+      "bank transfer, payid", which the <code>trinh-app/v1</code> migration retired.</li>
+  <li>Needs 3 slide images from design (existing <code>onboard-1..3</code> assets are stale).</li>
+</ul>
+<p><b>Skipped:</b> interactive coach-mark tour overlaid on the live UI (tooltip framework, per-screen
+  anchors, tour state machine). Add when onboarding funnel data shows drop-off the carousel does not
+  fix.</p>
+<div class="verify"><b>Verify</b> — fresh install shows the carousel once; skip works; relaunch goes
+  straight to Home; existing users upgrading never see it.</div>
+
+<h3>FB-3 — Google + Apple sign-in <span class="pill p-wp">WP 1.5d</span> <span class="pill p-ios">iOS 3d</span> <span class="pill p-qa">QA 1d</span> <span class="pill p-and">Android 2d</span></h3>
+<p>
+  Today login is email/password only (<code>View/Authorization/LoginView.swift</code> →
+  <code>AuthViewModel.onAuthUser</code> → <code>AuthServices</code> → <code>jwt-auth/v1/token</code>).
+  There is no social route on the server: <code>wordpress-plugin/trinh-app-api.php</code> registers
+  <code>/me</code>, <code>/me/orders</code>, <code>/me/orders/preview</code>, cancel, history,
+  payment-intent, <code>/me/vouchers</code>, <code>/payment-methods</code>,
+  <code>/products/{id}/addons</code> and <code>/register</code> — nothing else.
+</p>
+<ul>
+  <li><b>Server (new):</b> one route, <code>POST /trinh-app/v1/auth/social</code>. Takes provider
+      (<code>apple</code>|<code>google</code>) plus the provider identity token. Verifies the token
+      signature and audience against the provider's published keys server-side, matches or creates
+      the WP customer by verified email, then returns the same JWT shape the app already consumes,
+      so <code>AuthViewModel</code> keeps its existing success path.</li>
+  <li><b>Trust boundary — no shortcuts here:</b> the identity token is verified on the server
+      (issuer, audience/client id, expiry, signature). The app never sends an email or a user id
+      the server trusts. Same rule the existing <code>/me</code> routes follow: identity comes from
+      the token, never from client input.</li>
+  <li><b>iOS:</b> Sign in with Apple via <code>AuthenticationServices</code> (no pod, needs the
+      capability added to the target and the entitlement in the App ID) and Google via
+      <code>GoogleSignIn</code>. Two buttons on <code>LoginView</code> and <code>SignupView</code>.</li>
+  <li><b>Account collision:</b> a Google/Apple email that already has a password account links to
+      that same WP user rather than creating a duplicate. Also handle Apple's private relay
+      addresses and the fact that Apple returns the name only on first authorisation.</li>
+</ul>
+<p><b>Skipped:</b> Facebook (D2); Firebase Auth as a middle layer — the app already has its own
+  JWT/Keychain path (<code>Utility/KeychainStore.swift</code>) and routing auth through Firebase
+  would mean two identity systems for one login.</p>
+<div class="verify"><b>Verify</b> — new Google user creates a WP customer and can place an order;
+  the same email logging in by password lands on the same account with the same order history;
+  Apple relay email works; token with a wrong audience is rejected with 401; declined Apple
+  authorisation leaves the app in a clean state.</div>
+
+<h3>FB-5 — In-app feedback <span class="pill p-wp">WP 0.5d</span> <span class="pill p-ios">iOS 0.5d</span> <span class="pill p-and">Android 0.5d</span></h3>
+<p>
+  This is nearly built already. <code>wordpress-plugin/trinhs-feedback-wheel/</code> is a post-order
+  3-question survey with a signed-token link (<code>Trinhs_FW_Token::sign</code>,
+  <code>Trinhs_FW_Config::feedback_url</code>) today delivered by email on order completion
+  (<code>includes/class-invite.php</code>).
+</p>
+<ul>
+  <li><b>Server:</b> add <code>GET /trinh-app/v1/me/feedback-link</code> — for the signed-in user,
+      mint the same signed URL for their most recent eligible order (or return empty when none).</li>
+  <li><b>iOS:</b> a row in <code>ProfileView</code> plus a CTA on the completed-order detail,
+      opening the URL in <code>SFSafariViewController</code>.</li>
+</ul>
+<p><b>Skipped:</b> a native in-app survey UI, and a second free-text feedback channel. The wheel is
+  the survey; duplicating it natively buys nothing and splits the responses across two stores.</p>
+<div class="verify"><b>Verify</b> — user with a completed order sees the row, opens the wheel already
+  identified, and the response lands in the existing WP admin table; user with no eligible order sees
+  no row; the link rejects tampering.</div>
+
+<h3>FB-6 — App-only specials <span class="pill p-ios">iOS 0.5d</span> <span class="pill p-and">Android 0.5d</span></h3>
+<p>
+  The channel exists: <code>View/Home/HomeView.swift:29</code> renders Firestore-driven event
+  banners (<code>EventBannerCard</code>, <code>EventPosterView</code>), Android mirrors it in
+  <code>ui/home/EventBannerCard.kt</code>. The gap is merchandising, not plumbing.
+</p>
+<ul>
+  <li>Use the existing <code>eyebrow</code> field for an "App exclusive" label and give it a
+      distinct badge style so app-only offers read differently from general events.</li>
+  <li>Pin app-only events to the front of the banner row.</li>
+</ul>
+<p><b>Skipped:</b> a separate promotions service, deep-link targets per banner, and a dedicated
+  specials tab. Add when there are more offers than the banner row can hold.</p>
+<div class="verify"><b>Verify</b> — a Firestore event flagged app-only shows the badge and sorts
+  first; existing events render exactly as before.</div>
+
+<h3>FB-7 — Performance monitoring <span class="pill p-ios">iOS 0.5d</span> <span class="pill p-and">Android 0.5d</span></h3>
+<p>
+  Firebase is already a dependency (<code>Podfile</code>: Core, Messaging, Firestore, Storage), so
+  this is a pod plus initialisation, not a new vendor.
+</p>
+<ul>
+  <li>Add Firebase Crashlytics and Performance Monitoring; upload dSYMs from the release build phase.</li>
+  <li>Instrument the four traces that matter: app start, menu load, order preview, order submit.</li>
+  <li>Add the privacy-manifest and store data-disclosure entries the new SDKs require —
+      the same disclosure step that caused the 2026-08-18 rejection.</li>
+</ul>
+<p><b>Skipped:</b> a third-party APM, custom metric dashboards, and alerting rules. Firebase's own
+  console covers "regularly test and optimize"; revisit if it proves blind to something real.</p>
+<div class="verify"><b>Verify</b> — a forced test crash appears in Crashlytics with symbols; the four
+  traces report in the console; release build size and cold-start time measured before and after.</div>
+
+<h3>FB-8 — Ingredient and allergen transparency <span class="pill p-ios">iOS 0.5d</span> <span class="pill p-and">Android 0.5d</span> <span class="pill p-store">content: blocking</span></h3>
+<p>
+  Product attributes already decode (<code>View/Model/ProductModel.swift:73</code>) and
+  <code>ItemDetailsView</code> already reads attributes by name. So the app change is to render
+  <code>Ingredients</code> and <code>Allergens</code> attributes as their own labelled section in
+  <code>View/Product/ProductDetailsCard.swift</code>, below the description at line 118.
+</p>
+<ul>
+  <li>Store side: add the two global attributes in WooCommerce and populate per dish. No schema
+      change, no new endpoint, no app release needed to update the text afterwards.</li>
+  <li>Absent attributes render nothing, so partial content rollout is safe.</li>
+</ul>
+<p><b>Skipped:</b> structured nutrition tables, dietary filter chips, and an allergen preference
+  profile. Add when the catalog actually carries complete data for every dish.</p>
+<p><b>Flag:</b> allergen text is a food-safety claim. It needs kitchen sign-off and a
+  "may contain traces" disclaimer, decided by Trinhs, not by us.</p>
+<div class="verify"><b>Verify</b> — a dish with both attributes shows both sections; a dish with
+  neither looks unchanged; long ingredient lists wrap and stay scrollable.</div>
+
+<h3>FB-9 — Accessibility <span class="pill p-ios">iOS 4d</span> <span class="pill p-and">Android 2.5d</span></h3>
+<p>
+  This is the most real of the nine and the least visible. The whole iOS target currently has
+  8 <code>accessibility*</code> usages across 3 files — effectively nothing. Icon-only buttons
+  (favourite, cart, quantity steppers, the raised centre Orders button) are unlabelled, so
+  VoiceOver announces them as bare buttons.
+</p>
+<ul>
+  <li>Scope the pass to the money path only: Home → Menu → item detail with add-ons → cart →
+      pickup slot → checkout → order received.</li>
+  <li>Labels and hints on every icon-only control; images get labels or are hidden from VoiceOver
+      as decorative (the report's "alternative text for images").</li>
+  <li>Dynamic Type: verify the flow at the largest accessibility text size and fix clipped fixed
+      heights — <code>LoginView</code>'s 55pt fields and the tab bar are known offenders.</li>
+  <li>Contrast check on the gradient buttons and grey secondary text against WCAG AA.</li>
+  <li>Respect Reduce Motion for the banner carousel and Lottie loaders.</li>
+</ul>
+<p><b>Skipped:</b> voice commands (the report asks for them; on iOS this is Voice Control and Siri's
+  job, not ours — correct accessibility labels are what make Voice Control work, so labelling
+  delivers the request), plus full VoiceOver coverage of the orphan screens
+  (<code>SettingView</code>, <code>ItemDetailsView</code>, <code>SaleView</code>,
+  <code>DiscountView</code>, <code>RewardsCenterView</code>) that nothing navigates to.</p>
+<div class="verify"><b>Verify</b> — the full order flow completed end to end with VoiceOver on and
+  the screen curtain enabled, plus at largest Dynamic Type with no clipped or unreachable controls.
+  This is a manual QA gate, signed off before submission.</div>
+
+<h3>FB-1 and FB-4 — Store listing and screenshots <span class="pill p-store">non-engineering</span></h3>
+<p>
+  Runs in parallel with Sprint 1 and blocks nothing in code. The report only assessed Play, but the
+  App Store listing has the same thin copy, so do both at once.
+</p>
+<ul>
+  <li>Rewrite the long description around real features, bulleted, with Vietnamese-cuisine and
+      pickup-ordering keywords. <code>APP_DESCRIPTION</code> in <code>App/Config.swift:28</code>
+      is the in-app about text — update it to match so the two do not contradict.</li>
+  <li>New feature-led screenshot set: 6 frames per store, from real app captures, sized for
+      current device classes (iPhone 6.9" and 6.5", plus Play phone and 7"/10" tablet).</li>
+  <li>Constrained by D3: only features that exist.</li>
+</ul>
+<div class="verify"><b>Verify</b> — both listings updated and live; screenshots pass store size
+  validation; nothing in the copy names a feature the build lacks.</div>
+
+<h2>4. Schedule</h2>
+<p class="sub">
+  Eight weeks, Mon 2026-09-07 → Fri 2026-10-30. Assumes one engineer on app code, part-time WP
+  work, design supplying onboarding art in week 1 and screenshots in weeks 1–2. Android starts the
+  day iOS is submitted, per your sequencing.
+</p>
+
+<table class="gantt">
+  <tr>
+    <th class="lbl" style="text-align:left;width:270px">Workstream</th>
+    <th>W1<br>Sep 7</th><th>W2<br>Sep 14</th><th>W3<br>Sep 21</th><th>W4<br>Sep 28</th>
+    <th>W5<br>Oct 5</th><th>W6<br>Oct 12</th><th>W7<br>Oct 19</th><th>W8<br>Oct 26</th>
+  </tr>
+  <tr><td class="lbl">FB-1 / FB-4 store copy + screenshots</td>
+    <td><span class="bar b-store"></span></td><td><span class="bar b-store"></span></td>
+    <td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">iOS Sprint 1 — FB-2, FB-6, FB-7, FB-8</td>
+    <td><span class="bar b-ios"></span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">WP — social auth route (FB-3)</td>
+    <td></td><td><span class="bar b-wp"></span></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">iOS Sprint 2 — FB-3 Apple + Google</td>
+    <td></td><td><span class="bar b-ios"></span></td><td><span class="bar b-ios"></span></td>
+    <td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">WP — feedback link route (FB-5)</td>
+    <td></td><td></td><td></td><td><span class="bar b-wp"></span></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">iOS Sprint 3 — FB-9 accessibility, FB-5</td>
+    <td></td><td></td><td></td><td><span class="bar b-ios"></span></td>
+    <td><span class="bar b-ios"></span></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">iOS QA + VoiceOver sign-off</td>
+    <td></td><td></td><td></td><td></td><td><span class="bar b-qa"></span></td><td></td><td></td><td></td></tr>
+  <tr><td class="lbl">iOS submit → App Review</td>
+    <td></td><td></td><td></td><td></td><td></td><td><span class="bar b-rev"></span></td><td></td><td></td></tr>
+  <tr><td class="lbl">Android parity — FB-2, FB-6, FB-7, FB-8</td>
+    <td></td><td></td><td></td><td></td><td></td><td><span class="bar b-and"></span></td><td></td><td></td></tr>
+  <tr><td class="lbl">Android parity — FB-3 Google, FB-5</td>
+    <td></td><td></td><td></td><td></td><td></td><td></td><td><span class="bar b-and"></span></td><td></td></tr>
+  <tr><td class="lbl">Android FB-9 + QA + Play submit</td>
+    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="bar b-and"></span></td></tr>
+</table>
+<p class="legend">
+  <span><i class="key b-ios"></i>iOS native</span>
+  <span><i class="key b-wp"></i>WordPress / server</span>
+  <span><i class="key b-and"></i>KMP Android</span>
+  <span><i class="key b-store"></i>Store / content</span>
+  <span><i class="key b-qa"></i>QA gate</span>
+  <span><i class="key b-rev"></i>App Review wait</span>
+</p>
+
+<h3>Milestones</h3>
+<table>
+  <tr><th style="width:110px">Date</th><th>Milestone</th><th>Exit condition</th></tr>
+  <tr><td>Fri 2026-09-04</td><td>Plan signed off, D1–D4 answered</td><td>You approve this document; Facebook and FB-3 scope settled</td></tr>
+  <tr><td>Fri 2026-09-11</td><td>iOS quick wins done</td><td>FB-2, FB-6, FB-7, FB-8 on a branch, verified on device</td></tr>
+  <tr><td>Fri 2026-09-18</td><td>Store listings live</td><td>New copy and screenshots published on both stores</td></tr>
+  <tr><td>Fri 2026-09-25</td><td>Social login working end to end</td><td>Apple and Google sign-in place a real order; collision case verified</td></tr>
+  <tr><td>Thu 2026-10-08</td><td>Accessibility gate</td><td>Order flow completed with VoiceOver + largest Dynamic Type</td></tr>
+  <tr><td>Fri 2026-10-09</td><td>iOS release candidate</td><td>Version bumped from <code>MARKETING_VERSION 1.0</code>, regression pass green</td></tr>
+  <tr><td>Mon 2026-10-12</td><td>iOS submitted</td><td>Build uploaded, privacy disclosures updated for the new SDKs</td></tr>
+  <tr><td>Fri 2026-10-30</td><td>Android parity submitted</td><td>All nine items at parity, <code>versionName</code> bumped from 1.0.2</td></tr>
+</table>
+
+<h3>Effort summary</h3>
+<table>
+  <tr><th>Track</th><th style="width:130px">Dev-days</th><th>Notes</th></tr>
+  <tr><td>iOS app code</td><td>9.5</td><td>FB-2 1.5, FB-3 3, FB-5 0.5, FB-6 0.5, FB-7 0.5, FB-8 0.5, FB-9 4 — minus 1 day of overlap in shared plumbing</td></tr>
+  <tr><td>WordPress / server</td><td>2.0</td><td>FB-3 route 1.5, FB-5 route 0.5</td></tr>
+  <tr><td>iOS QA and release</td><td>3.0</td><td>Includes the manual accessibility gate</td></tr>
+  <tr><td>KMP Android parity</td><td>7.5</td><td>Cheaper than iOS: server routes done, decisions made, no Apple sign-in</td></tr>
+  <tr><td>Design / content</td><td>—</td><td>3 onboarding slides, 12 screenshots, listing copy, ingredient text</td></tr>
+</table>
+
+<h2>5. Android parity notes (weeks 6–8)</h2>
+<p>
+  The KMP module is 120 Kotlin files with screens mirroring iOS one-to-one
+  (<code>ui/auth/LoginScreen.kt</code>, <code>ui/home/HomeScreen.kt</code>,
+  <code>ui/product/ProductDetailScreen.kt</code>, <code>ui/profile/</code>), plus shared
+  <code>AuthViewModel</code>, <code>AuthService</code> and <code>AuthTokenStore</code>. Parity work
+  is therefore mostly Compose UI, not architecture.
+</p>
+<ul>
+  <li>Anything that lands in <code>shared/commonMain</code> during the iOS sprints — new response
+      models for the social-auth and feedback-link routes — is written once and reused, so keep
+      those additions in <code>commonMain</code> rather than in the iOS-only Swift models.</li>
+  <li>FB-3 on Android is Credential Manager with Google ID, hitting the same
+      <code>/auth/social</code> route. No Apple sign-in.</li>
+  <li>FB-9 on Android is <code>contentDescription</code> on icon buttons, touch-target sizes, and a
+      TalkBack pass over the same order flow. Decorative images get <code>null</code>.</li>
+  <li>Build and verify on Android only; the KMP iOS target stays out of scope, matching the
+      existing project constraint.</li>
+</ul>
+
+<h2>6. Risks</h2>
+<table>
+  <tr><th style="width:210px">Risk</th><th style="width:80px">Impact</th><th>Mitigation</th></tr>
+  <tr><td>App Review rejects again — new SDKs, new login, privacy disclosures</td><td>High</td>
+      <td>Ship Apple sign-in with Google (D1); update the data-disclosure answers for Crashlytics and Performance in the same submission; keep a 1-week review buffer before any promised date</td></tr>
+  <tr><td>Ingredient content never arrives</td><td>Medium</td>
+      <td>Code renders only what exists, so FB-8 ships dark and lights up per dish as the kitchen fills attributes in — no release needed</td></tr>
+  <tr><td>Account collision on social login creates duplicate customers, splitting order history and points</td><td>High</td>
+      <td>Link by verified email on the server; explicit test case in the FB-3 verification list before release</td></tr>
+  <tr><td>Onboarding art slips</td><td>Low</td>
+      <td>Wire the carousel behind the flag and ship with refreshed copy on placeholder art; swap images later without code change</td></tr>
+  <tr><td>Accessibility pass expands into a redesign</td><td>Medium</td>
+      <td>Scope frozen to the order flow; contrast and layout fixes limited to controls that actually fail. Anything cosmetic gets logged, not fixed</td></tr>
+</table>
+
+<h2>7. Explicitly out of scope</h2>
+<ul>
+  <li>Table reservations and courier live tracking — features the app does not have and this plan does not add (D3).</li>
+  <li>Facebook login (D2), pending your call.</li>
+  <li>Nutrition tables, dietary filters, allergen profiles.</li>
+  <li>Any rework of the orphan screens still sitting in the tree.</li>
+  <li>The KMP iOS target.</li>
+</ul>
+
+<footer>
+  Draft for review — nothing implemented. Reply with the D1–D4 answers and any scope cuts, and
+  Sprint 1 starts against the approved version.
+  Source report: <code>docs/trinhs_feedback.pdf</code>. This plan: <code>docs/feedback-remediation-plan.html</code>.
+</footer>
+
+</div>
+</body>
+</html>

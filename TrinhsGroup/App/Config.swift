@@ -6,17 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
-
-/// ONBOARD HELPER SCREENS
-var ONBOARD_ENABLED = true
-
-///Onboard Data
-var ONBOARD_DATA: [Onboard] = [
-    Onboard(title: "Online Order", headline: "Online order easily", image: "onboard-1", gradientColors: [Color("ColorBlue"), Color("ColorBlue")]),
-    Onboard(title: "Discount", headline: "Use discount code", image: "onboard-2", gradientColors: [Color("ColorGreen"), Color("ColorGreen")]),
-    Onboard(title: "Payment Method", headline: "Multiple Payment method like bank transfer, payid", image: "onboard-3", gradientColors: [Color("ColorRed"), Color("ColorRed")])
-]
 
 let WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
 // CONSUMER_KEY / CONSUMER_SECRET_KEY used to live here as empty strings. Their only
