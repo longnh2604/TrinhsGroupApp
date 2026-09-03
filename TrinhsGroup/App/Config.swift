@@ -23,4 +23,4 @@ var VERSION = "1.0.0"
 
 /// App Store numeric id, used only for the "Rate the app" deep link in Profile. Empty
 /// hides that row; the review prompt after an order works without it.
-let APP_STORE_ID = ""
+let APP_STORE_ID = "6770763717"
