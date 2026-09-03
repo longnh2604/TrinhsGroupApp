@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.trinhskitchen.app.ui.components.FoodImage
 import com.trinhskitchen.app.ui.components.QuantityStepper
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.Product
@@ -179,13 +180,12 @@ private fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Product image
-            AsyncImage(
-                model = product.images.firstOrNull()?.src,
+            FoodImage(
+                url = product.images.firstOrNull()?.src,
                 contentDescription = product.name,
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(8.dp))
             )
             
             Spacer(modifier = Modifier.width(12.dp))
