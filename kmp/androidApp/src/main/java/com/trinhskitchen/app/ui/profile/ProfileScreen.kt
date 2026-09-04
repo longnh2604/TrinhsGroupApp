@@ -1,5 +1,6 @@
 package com.trinhskitchen.app.ui.profile
 
+import com.trinhskitchen.app.openPlayListing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
@@ -308,6 +310,15 @@ fun ProfileScreen(
                         icon = Icons.AutoMirrored.Filled.HelpOutline,
                         title = "Contact Support",
                         onClick = { context.openUrl(SUPPORT_URL) }
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                    ProfileMenuItem(
+                        icon = Icons.Default.StarRate,
+                        title = "Rate the App",
+                        subtitle = "Leave a review on Google Play",
+                        onClick = { context.openPlayListing() }
                     )
 
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

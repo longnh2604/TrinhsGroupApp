@@ -15,6 +15,11 @@ target 'TrinhsGroup' do
   pod 'Firebase/Messaging'
   pod 'Firebase/Firestore'
   pod 'Firebase/Storage'
+  # FB-7. Both auto-start from FirebaseApp.configure(), so neither needs setup code.
+  # Crashlytics needs the dSYM upload build phase; Performance needs nothing but the pod
+  # for its automatic _app_start / network traces, and Trace for the custom ones.
+  pod 'Firebase/Crashlytics'
+  pod 'Firebase/Performance'
   pod 'Stripe'
   pod 'StripePaymentSheet'
   pod 'lottie-ios'

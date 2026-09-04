@@ -92,3 +92,8 @@ iOSInjectionProject/
 # scripts/rotate-woo-key.sh and still contains the previous secret.
 TrinhsGroup/Secrets.plist
 TrinhsGroup/Secrets.plist.bak
+
+# Release signing material — never commit
+*.keystore
+*.jks
+keystore.properties

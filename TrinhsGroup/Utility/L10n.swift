@@ -174,6 +174,28 @@ enum L10n {
         static let noPaymentMethods = "checkout.noPaymentMethods"
     }
     
+    enum Tab {
+        static let home = "tab.home"
+        static let menu = "tab.menu"
+        static let orders = "tab.orders"
+        static let favorites = "tab.favorites"
+        static let profile = "tab.profile"
+    }
+    
+    enum Onboarding {
+        static let skip = "onboarding.skip"
+        static let next = "onboarding.next"
+        static let getStarted = "onboarding.getStarted"
+        static let menuTitle = "onboarding.menuTitle"
+        static let menuBody = "onboarding.menuBody"
+        static let addOnsTitle = "onboarding.addOnsTitle"
+        static let addOnsBody = "onboarding.addOnsBody"
+        static let pickupTitle = "onboarding.pickupTitle"
+        static let pickupBody = "onboarding.pickupBody"
+        static let rewardsTitle = "onboarding.rewardsTitle"
+        static let rewardsBody = "onboarding.rewardsBody"
+    }
+    
     enum Setting {
         static let title = "setting.title"
     }

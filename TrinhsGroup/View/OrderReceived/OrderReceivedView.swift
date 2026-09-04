@@ -5,10 +5,12 @@
 //  Created by long on 11/07/2022.
 //
 
+import StoreKit
 import SwiftUI
 
 struct OrderReceivedView: View {
     @EnvironmentObject var mainViewModel: MainViewModel
+    @Environment(\.requestReview) private var requestReview
     
     fileprivate func NavigationBarView() -> some View {
         return HStack {
@@ -53,6 +55,18 @@ struct OrderReceivedView: View {
                     .padding(.bottom, 24)
                 }
             }
+        }
+        .onAppear(perform: askForReview)
+    }
+
+    /// A completed order is the one moment the app has earned an opinion. StoreKit decides
+    /// whether the sheet actually appears and caps it at three times a year, so there is no
+    /// counter here — and per Play's equivalent rule on Android, no "are you happy?" question
+    /// in front of it either.
+    private func askForReview() {
+        // Let the receipt settle first, so the sheet does not land mid-transition.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            requestReview()
         }
     }
 }

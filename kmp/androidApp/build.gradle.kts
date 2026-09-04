@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.services)
+    // FB-7. Crashlytics' plugin uploads the mapping file so release stack traces deobfuscate;
+    // the perf plugin bytecode-instruments the automatic app-start and network traces.
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.perf)
 }
 
 /**
@@ -45,7 +49,7 @@ android {
         applicationId = "com.trinhskitchen.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
+        versionCode = 6
         versionName = "1.0.2"
 
         buildConfigField("String", "WOO_CONSUMER_KEY", "\"${secret("WOO_CONSUMER_KEY")}\"")
@@ -65,7 +69,11 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // Only signed where the keystore is available; elsewhere the release build still
+            // runs and produces an unsigned bundle.
+            if (keystoreProperties.getProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -113,8 +121,13 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
-    
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
+
     implementation(libs.lottie.compose)
+
+    // Play In-App Review, for the rating prompt after an order
+    implementation(libs.play.review)
 
     // Stripe
     implementation(libs.stripe.android)

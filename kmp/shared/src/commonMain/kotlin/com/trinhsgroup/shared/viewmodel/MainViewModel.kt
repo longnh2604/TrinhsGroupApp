@@ -13,6 +13,8 @@ import com.trinhsgroup.shared.model.ShipMethod
 import com.trinhsgroup.shared.model.Slider
 import com.trinhsgroup.shared.model.User
 import com.trinhsgroup.shared.model.Zone
+import com.trinhsgroup.shared.monitoring.AppTrace
+import com.trinhsgroup.shared.monitoring.TraceName
 import com.trinhsgroup.shared.service.MainService
 import com.trinhsgroup.shared.storage.FavoritesRepository
 import kotlinx.coroutines.CoroutineScope
@@ -364,7 +366,12 @@ class MainViewModel(
 
     fun onFetchSelectedCategoryProducts(categoryId: Int) {
         scope.launch {
+            // FB-7. Spans exactly the time MenuScreen shows its spinner, so the trace is the
+            // wait the customer sees rather than the request alone. The service clears
+            // `error` on entry, so reading it afterwards reports this call, not an older one.
+            val trace = AppTrace(TraceName.MENU_LOAD)
             service.fetchSelectedCategoryProducts(categoryId = categoryId)
+            trace.stop(success = service.error.value.isEmpty())
         }
     }
 
@@ -397,13 +404,16 @@ class MainViewModel(
         completion: (OrderQuote?) -> Unit
     ) {
         scope.launch {
-            completion(
-                service.fetchOrderQuote(
-                    paymentMethod = _selectedPayment.value?.id ?: "",
-                    productOrders = productOrders,
-                    couponCode = couponCode
-                )
+            // FB-7. The basket total is priced server-side, so this sits between the customer
+            // changing the order and the price updating — a wait worth watching.
+            val trace = AppTrace(TraceName.ORDER_PREVIEW)
+            val quote = service.fetchOrderQuote(
+                paymentMethod = _selectedPayment.value?.id ?: "",
+                productOrders = productOrders,
+                couponCode = couponCode
             )
+            trace.stop(success = quote != null)
+            completion(quote)
         }
     }
 
@@ -437,6 +447,9 @@ class MainViewModel(
         // The discount is computed server-side from catalog prices, so it cannot be
         // inflated by a tampered request.
         scope.launch {
+            // FB-7. Started here rather than at the top of the method so the early return on
+            // a missing payment method cannot leave a trace running forever.
+            val trace = AppTrace(TraceName.ORDER_SUBMIT)
             val result = service.onCreateOrder(
                 user = user,
                 paymentMethod = payment.id,
@@ -447,6 +460,7 @@ class MainViewModel(
                 pickupDateTime = pickupDateTime,
                 couponCode = couponCode
             )
+            trace.stop(success = result.first != null)
             completion(result.first, result.second)
         }
     }

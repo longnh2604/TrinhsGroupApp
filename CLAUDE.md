@@ -83,9 +83,16 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 >   collection.
 > - **Tabs.** Home, Menu, Orders (raised centre button), Favorites, Profile. Cart is an overlay.
 >
-> `SettingView`, `ItemDetailsView`, `SaleView`, `DiscountView`, `ImageSliderView`,
-> `OnboardingView` and `RewardsCenterView` are orphans kept in the tree — nothing navigates
-> to them.
+> `SettingView`, `ItemDetailsView`, `SaleView`, `DiscountView`, `ImageSliderView`
+> and `RewardsCenterView` are orphans kept in the tree — nothing navigates to them.
+> `OnboardingView` is live again as of 2026-09-03: first launch shows it before `MainView`.
+>
+> **Not in the Xcode target.** `View/Profile/ProfileComponents.swift` and
+> `View/Profile/RewardsCenterView.swift` are on disk but absent from
+> `project.pbxproj`, so they are never compiled. Anything they declare that also exists
+> in `ProfileView.swift` — `ProfileDesign`, `VoucherItem`, `NavigationTile`,
+> `CardPressStyle`, the `Bundle` extension — is a dead copy. Edit the one in
+> `ProfileView.swift`; a change to the dead copy compiles clean and does nothing.
 
 ## System Overview
 

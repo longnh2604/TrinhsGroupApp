@@ -97,6 +97,9 @@ class MainServices: MainServicesProtocol {
     
     func fetchSelectedCategoryProducts(id: Int) {
         self.isCategoryProductsLoading = true
+        // FB-7. Spans exactly the time MenuView shows its spinner, so the trace is the wait
+        // the customer sees rather than the request alone.
+        let trace = AppTrace(AppTrace.Name.menuLoad)
         api.request(endpoint: .fetchProductsCategory(categoryID: id), method: .GET) { (result: Result<[Product], Error>) in
             DispatchQueue.main.async {
                 switch result {
@@ -108,6 +111,10 @@ class MainServices: MainServicesProtocol {
                     self.error = error.localizedDescription
                 }
                 self.isCategoryProductsLoading = false
+                // From `result`, not `self.error` — that property keeps the last error the
+                // service ever saw, so a success after any earlier failure would be tagged
+                // as a failure.
+                trace.stop(success: (try? result.get()) != nil)
             }
         }
     }
@@ -180,12 +187,17 @@ class MainServices: MainServicesProtocol {
             json["coupon_code"] = couponCode
         }
 
+        // FB-7. The basket total is priced server-side, so this sits between the customer
+        // changing the order and the price updating — a wait worth watching.
+        let trace = AppTrace(AppTrace.Name.orderPreview)
         api.request(endpoint: .orderQuote, method: .POST, body: json) { (result: Result<OrderQuote, Error>) in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let quote):
+                    trace.stop(success: true)
                     completion(.success(quote))
                 case .failure(let error):
+                    trace.stop(success: false)
                     completion(.failure(error))
                 }
             }
@@ -257,15 +269,20 @@ class MainServices: MainServicesProtocol {
             json["coupon_code"] = couponCode
         }
 
+        // FB-7. Started here rather than at the top of the method so the early return on a
+        // missing billing email cannot leave a trace running forever.
+        let trace = AppTrace(AppTrace.Name.orderSubmit)
         api.request(endpoint: .myOrders, method: .POST, body: json) { (result: Result<Order, Error>) in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
                 case .success(let order):
                     self.order = order
+                    trace.stop(success: true)
                     completion(order.id, order.paymentURL)
                 case .failure(let error):
                     self.error = error.localizedDescription
+                    trace.stop(success: false)
                     completion(nil, nil)
                 }
             }

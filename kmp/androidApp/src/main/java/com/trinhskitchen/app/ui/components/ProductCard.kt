@@ -67,16 +67,13 @@ fun ProductCard(
         Column {
             // Image with favorite button
             Box {
-                AsyncImage(
-                    model = product.images.firstOrNull()?.src,
+                FoodImage(
+                    url = product.images.firstOrNull()?.src,
                     contentDescription = product.name,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(140.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(R.drawable.ic_noimage),
-                    placeholder = painterResource(R.drawable.ic_noimage)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 )
                 
                 // Favorite button
@@ -202,15 +199,12 @@ fun HorizontalProductCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Product image (80x80 like iOS)
-            AsyncImage(
-                model = product.images.firstOrNull()?.src,
+            FoodImage(
+                url = product.images.firstOrNull()?.src,
                 contentDescription = product.name,
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop,
-                error = painterResource(R.drawable.ic_noimage),
-                placeholder = painterResource(R.drawable.ic_noimage)
+                    .clip(RoundedCornerShape(10.dp))
             )
             
             Spacer(modifier = Modifier.width(12.dp))

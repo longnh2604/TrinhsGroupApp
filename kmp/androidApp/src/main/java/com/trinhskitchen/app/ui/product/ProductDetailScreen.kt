@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.trinhskitchen.app.ui.components.FoodImage
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.model.AddOnGroup
 import com.trinhsgroup.shared.model.AddOnSelection
@@ -167,11 +168,10 @@ fun ProductDetailScreen(
                                 .fillMaxWidth()
                                 .aspectRatio(4f / 3f)
                         ) { page ->
-                            AsyncImage(
-                                model = product.images[page].src,
+                            FoodImage(
+                                url = product.images[page].src,
                                 contentDescription = product.name,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                         

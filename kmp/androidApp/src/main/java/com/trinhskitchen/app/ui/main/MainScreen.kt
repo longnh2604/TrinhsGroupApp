@@ -3,6 +3,7 @@ package com.trinhskitchen.app.ui.main
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
@@ -33,7 +34,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -267,28 +271,45 @@ fun MainScreen(
 
         // Orders sits in a raised circle over the bar, as iOS draws it. Outside the Scaffold's
         // bottomBar because a NavigationBar is a Surface and clips anything lifted above it.
-        Surface(
-            onClick = {
-                if (RAISED_TAB in ACCOUNT_TABS && !isLogin) {
-                    pendingTabIndex = RAISED_TAB
-                    onRequireLogin()
-                } else {
-                    selectTab(RAISED_TAB)
-                }
-            },
-            shape = CircleShape,
-            color = AppColors.Primary,
-            shadowElevation = 6.dp,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 52.dp)
-                .size(56.dp)
+                // Lines the caption up with the four NavigationBar labels beside it.
+                .padding(bottom = 37.dp)
         ) {
-            Icon(
-                imageVector = Icons.Filled.ReceiptLong,
-                contentDescription = navItems[RAISED_TAB].title,
-                tint = Color.White,
-                modifier = Modifier.padding(15.dp)
+            Surface(
+                onClick = {
+                    if (RAISED_TAB in ACCOUNT_TABS && !isLogin) {
+                        pendingTabIndex = RAISED_TAB
+                        onRequireLogin()
+                    } else {
+                        selectTab(RAISED_TAB)
+                    }
+                },
+                shape = CircleShape,
+                color = AppColors.Primary,
+                shadowElevation = 6.dp,
+                modifier = Modifier.size(56.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ReceiptLong,
+                    contentDescription = navItems[RAISED_TAB].title,
+                    tint = Color.White,
+                    modifier = Modifier.padding(15.dp)
+                )
+            }
+
+            // The other four tabs caption their icons, so this one does too. Drawn here
+            // rather than as the slot's NavigationBarItem label, which the circle covers.
+            Text(
+                text = navItems[RAISED_TAB].title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (selectedTabIndex == RAISED_TAB) AppColors.TabSelected else AppColors.TabUnselected,
+                modifier = Modifier
+                    // The circle above already announces the destination.
+                    .clearAndSetSemantics { }
             )
         }
 

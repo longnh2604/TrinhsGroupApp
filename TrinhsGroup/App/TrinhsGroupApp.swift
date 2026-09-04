@@ -16,11 +16,14 @@ struct TrinhsGroupApp: App {
     @StateObject var firestoreManager = FirestoreManager()
     @State private var isActive = false
     @State private var showTokenExpiredAlert = false
+    @AppStorage(OnboardingView.seenKey) private var hasSeenOnboarding = false
     
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if isActive {
+                if isActive && !hasSeenOnboarding {
+                    OnboardingView()
+                } else if isActive {
                     // The catalog is public, so the app opens on it signed in or not
                     // (App Store Guideline 5.1.1). MainView raises the sign-in sheet for
                     // the account-only parts.

@@ -148,6 +148,7 @@ struct ProfileDesign {
         static let voucher = "ticket.fill"
         static let checkmark = "checkmark.circle.fill"
         static let clock = "clock.fill"
+        static let rate = "star.bubble.fill"
         static let xmark = "xmark.circle.fill"
     }
 }
@@ -771,6 +772,18 @@ struct ProfileView: View {
                 title: "Contact Support",
                 action: { openContactSupport() }
             )
+
+            if !APP_STORE_ID.isEmpty {
+                Divider().padding(.leading, 48)
+
+                ProfileRowItem(
+                    icon: ProfileDesign.Icons.rate,
+                    iconColor: .orange,
+                    title: "Rate the App",
+                    subtitle: "Leave a review on the App Store",
+                    action: { openAppStoreReview() }
+                )
+            }
         }
         .profileCard()
     }
@@ -1053,6 +1066,13 @@ struct ProfileView: View {
         mainViewModel.showLoginPrompt = true
     }
     
+    /// The prompt shown after an order is capped by StoreKit, so this row gives anyone who
+    /// wants to review a way in. Apple does not allow the prompt itself behind a button.
+    private func openAppStoreReview() {
+        guard let url = URL(string: "https://apps.apple.com/app/id\(APP_STORE_ID)?action=write-review") else { return }
+        UIApplication.shared.open(url)
+    }
+
     private func openContactSupport() {
         guard let url = URL(string: "https://www.facebook.com/Vietnamesecuisine.8890/") else { return }
         UIApplication.shared.open(url)

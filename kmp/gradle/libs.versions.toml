@@ -15,10 +15,13 @@ navigation-compose = "2.8.4"
 coil = "3.0.4"
 material-icons = "1.7.6"
 firebase-bom = "33.7.0"
+play-review = "2.0.2"
 stripe = "21.2.0"
 lottie = "6.6.0"
 security-crypto = "1.1.0-alpha06"
 google-services = "4.4.2"
+firebase-crashlytics-plugin = "3.0.2"
+firebase-perf-plugin = "1.4.2"
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
@@ -57,9 +60,13 @@ coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = 
 
 # Firebase
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+play-review = { module = "com.google.android.play:review-ktx", version.ref = "play-review" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
+# FB-7. Versions come from the BOM above, like the rest of Firebase.
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
+firebase-perf = { module = "com.google.firebase:firebase-perf-ktx" }
 
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 
@@ -75,3 +82,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebase-perf-plugin" }
