@@ -29,6 +29,8 @@
 		64FC0B852EDFD8F000768BF8 /* OptimizedKFImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FC0B842EDFD8F000768BF8 /* OptimizedKFImage.swift */; };
 		D3E11ADFB8C28D2E360AA20E /* OrderDetailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C3C605C37466939A0E1B7F /* OrderDetailCard.swift */; };
 		F5AD91C0DB3042398B88C5B8 /* PickupDateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */; };
+		FB70DE0000000000000000A2 /* PerformanceTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB70DE0000000000000000A1 /* PerformanceTrace.swift */; };
+		FB70DE0000000000000000C2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FB70DE0000000000000000C1 /* PrivacyInfo.xcprivacy */; };
 		FD460EFC28696F0C004523FC /* TrinhsGroupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */; };
 		FD460F0028696F0E004523FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD460EFF28696F0E004523FC /* Assets.xcassets */; };
 		FD460F0328696F0E004523FC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD460F0228696F0E004523FC /* Preview Assets.xcassets */; };
@@ -46,7 +48,6 @@
 		FD6733A2287423A40007F354 /* EmptyNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A1287423A40007F354 /* EmptyNotificationView.swift */; };
 		FD6733A4287423E30007F354 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A3287423E30007F354 /* NotificationModel.swift */; };
 		FD6733A6287424F40007F354 /* NotificationItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A5287424F40007F354 /* NotificationItemView.swift */; };
-		FB70DE0000000000000000A2 /* PerformanceTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB70DE0000000000000000A1 /* PerformanceTrace.swift */; };
 		FD6733A8287425470007F354 /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A7287425470007F354 /* UserDefaultsManager.swift */; };
 		FD6733AA287425700007F354 /* ProductModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733A9287425700007F354 /* ProductModel.swift */; };
 		FD6733AC2874266A0007F354 /* ImageSliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6733AB2874266A0007F354 /* ImageSliderView.swift */; };
@@ -64,7 +65,6 @@
 		FD8E6B9628812028007884C0 /* HistoryOrderAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9528812028007884C0 /* HistoryOrderAddressView.swift */; };
 		FD8E6B9C288159D6007884C0 /* CheckBoxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */; };
 		FD8EAEEE2872A8A7004F9ED0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */; };
-		FB70DE0000000000000000C2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FB70DE0000000000000000C1 /* PrivacyInfo.xcprivacy */; };
 		FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */; };
 		FD8EAEF92872C8F9004F9ED0 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */; };
 		FD8EAEFE2872C977004F9ED0 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EAEFD2872C977004F9ED0 /* Config.swift */; };
@@ -159,6 +159,8 @@
 		B291CFC664BC238B40015E90 /* Pods-TrinhsGroup.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.debug.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.debug.xcconfig"; sourceTree = "<group>"; };
 		E86527E79F0777951863B7A2 /* Pods-TrinhsGroup.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrinhsGroup.release.xcconfig"; path = "Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup.release.xcconfig"; sourceTree = "<group>"; };
 		F5AD91BFDB3042398B88C5B8 /* PickupDateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupDateTimeView.swift; sourceTree = "<group>"; };
+		FB70DE0000000000000000A1 /* PerformanceTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTrace.swift; sourceTree = "<group>"; };
+		FB70DE0000000000000000C1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FD2ACD4E289D1493000C0A6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD460EF828696F0C004523FC /* TrinhsGroup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrinhsGroup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD460EFB28696F0C004523FC /* TrinhsGroupApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinhsGroupApp.swift; sourceTree = "<group>"; };
@@ -178,7 +180,6 @@
 		FD6733A1287423A40007F354 /* EmptyNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyNotificationView.swift; sourceTree = "<group>"; };
 		FD6733A3287423E30007F354 /* NotificationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		FD6733A5287424F40007F354 /* NotificationItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationItemView.swift; sourceTree = "<group>"; };
-		FB70DE0000000000000000A1 /* PerformanceTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTrace.swift; sourceTree = "<group>"; };
 		FD6733A7287425470007F354 /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
 		FD6733A9287425700007F354 /* ProductModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductModel.swift; sourceTree = "<group>"; };
 		FD6733AB2874266A0007F354 /* ImageSliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSliderView.swift; sourceTree = "<group>"; };
@@ -196,7 +197,6 @@
 		FD8E6B9528812028007884C0 /* HistoryOrderAddressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryOrderAddressView.swift; sourceTree = "<group>"; };
 		FD8E6B9B288159D6007884C0 /* CheckBoxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckBoxView.swift; sourceTree = "<group>"; };
 		FD8EAEED2872A8A7004F9ED0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		FB70DE0000000000000000C1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FD8EAEEF2872ACC7004F9ED0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		FD8EAEF82872C8F9004F9ED0 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		FD8EAEFD2872C977004F9ED0 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -753,9 +753,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TrinhsGroup/Pods-TrinhsGroup-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1038,7 +1042,7 @@
 				CODE_SIGN_ENTITLEMENTS = TrinhsGroup/TrinhsGroup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
 				DEVELOPMENT_TEAM = 8YLSK83HY4;
 				ENABLE_PREVIEWS = YES;
@@ -1078,7 +1082,7 @@
 				CODE_SIGN_ENTITLEMENTS = TrinhsGroup/TrinhsGroup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"TrinhsGroup/Preview Content\"";
 				DEVELOPMENT_TEAM = 8YLSK83HY4;
 				ENABLE_PREVIEWS = YES;
