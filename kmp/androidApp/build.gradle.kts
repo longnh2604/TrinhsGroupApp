@@ -49,8 +49,9 @@ android {
         applicationId = "com.trinhskitchen.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.1"
+        // 7 is the code already on Play, so this upload is 8.
+        versionCode = 8
+        versionName = "1.2"
 
         buildConfigField("String", "WOO_CONSUMER_KEY", "\"${secret("WOO_CONSUMER_KEY")}\"")
         buildConfigField("String", "WOO_CONSUMER_SECRET", "\"${secret("WOO_CONSUMER_SECRET")}\"")
