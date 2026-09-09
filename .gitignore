@@ -18,6 +18,7 @@ xcuserdata/
 
 ## App packaging
 *.ipa
+*.aab
 *.dSYM.zip
 *.dSYM
 
