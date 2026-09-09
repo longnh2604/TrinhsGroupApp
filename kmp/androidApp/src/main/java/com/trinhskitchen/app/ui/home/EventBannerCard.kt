@@ -83,6 +83,22 @@ fun EventBannerCard(
             ) {
                 // Each line is skipped when its field is blank, so a half-filled document
                 // reads as a smaller card rather than one with holes in it.
+                if (event.appOnly) {
+                    // Filled pill, not the eyebrow's plain small caps: an app-only offer has
+                    // to read differently from a general event at a glance.
+                    Text(
+                        text = AppEvent.APP_ONLY_BADGE.uppercase(),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.1.sp,
+                        color = PosterCream,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .background(PosterRed, RoundedCornerShape(percent = 50))
+                            .padding(horizontal = 7.dp, vertical = 3.dp)
+                    )
+                }
+
                 if (event.eyebrow.isNotEmpty()) {
                     Text(
                         text = event.eyebrow,

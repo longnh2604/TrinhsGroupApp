@@ -333,6 +333,42 @@ fun ProductDetailScreen(
                     }
                 }
                 
+                // Ingredients and allergens, whichever the kitchen has filled in (FB-8).
+                // Mirrors iOS DishFactsSection.
+                if (product.dishFacts.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .background(AppColors.Background)
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .padding(16.dp)
+                    ) {
+                        product.dishFacts.forEachIndexed { index, attribute ->
+                            if (index > 0) Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = attribute.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = AppColors.TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = HtmlDecoder.decode(attribute.options.joinToString(", ")),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = AppColors.TextSecondary,
+                                lineHeight = 22.sp
+                            )
+                        }
+                    }
+                }
+
                 // Add-on groups from YITH (mirrors iOS AddOnGroupsView)
                 if (addOnGroups.isNotEmpty()) {
                     Box(

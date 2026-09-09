@@ -31,7 +31,9 @@ class EventsRepository {
                 _events.value = (snapshot?.documents ?: emptyList())
                     .map { AppEvent.fromMap(it.data.orEmpty()) }
                     .filter { it.active }
-                    .sortedBy { it.id }
+                    // App-only offers first, so the carousel opens on an offer the customer
+                    // cannot get on the website.
+                    .sortedWith(AppEvent.inBannerOrder)
             }
     }
 }

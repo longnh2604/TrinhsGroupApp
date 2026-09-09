@@ -227,9 +227,36 @@ class ProductTest {
     fun testWithQuantity() {
         val product = Product(id = 1, name = "Test", price = 10.0, quantity = 1)
         val updated = product.withQuantity(5)
-        
+
         assertEquals(1, product.quantity, "Original should be unchanged")
         assertEquals(5, updated.quantity, "New product should have updated quantity")
         assertEquals(50.0, updated.totalPrice)
+    }
+
+    @Test
+    fun testDishFacts() {
+        val product = Product(
+            id = 1,
+            name = "Pho",
+            attributes = listOf(
+                Attribute(1, "Size", listOf("Large")),
+                Attribute(2, "Allergens", listOf("Peanuts", "Soy")),
+                Attribute(3, "Ingredients", listOf("Rice noodles", "Beef"))
+            )
+        )
+
+        assertEquals(
+            listOf("Ingredients", "Allergens"),
+            product.dishFacts.map { it.name },
+            "Labels keep the app's order, not the product's"
+        )
+
+        val emptyOptions = Product(
+            id = 2,
+            name = "Banh mi",
+            attributes = listOf(Attribute(1, "Ingredients", emptyList()))
+        )
+        assertTrue(emptyOptions.dishFacts.isEmpty(), "An attribute with no options renders nothing")
+        assertTrue(Product(id = 3, name = "Che").dishFacts.isEmpty())
     }
 }

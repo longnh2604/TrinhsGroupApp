@@ -59,6 +59,18 @@ data class Product(
         get() = price + addOnUnitPrice
 
     /**
+     * Ingredients and allergens, as the kitchen fills them in on the WooCommerce product.
+     * The label order is fixed here rather than taken from the product, so two dishes never
+     * label the same two boxes in a different order, and a dish with neither yields nothing —
+     * the section lights up per dish as the text arrives, with no release.
+     * Mirrors iOS ProductDetailsCard.dishFacts.
+     */
+    val dishFacts: List<Attribute>
+        get() = listOf("ingredients", "allergens").mapNotNull { name ->
+            attributes.firstOrNull { it.name.lowercase() == name && it.options.isNotEmpty() }
+        }
+
+    /**
      * Calculates the total price based on price and quantity.
      * Mirrors Swift's totalPrice computed property.
      */
