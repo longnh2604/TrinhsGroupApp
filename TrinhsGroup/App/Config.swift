@@ -14,7 +14,9 @@ let WOOCOMMERCE_URL = "https://trinhsgroup.com.au"
 
 ///Settings
 var APP_NAME = "Trinhsgroup App"
-var APP_DESCRIPTION = "Trinhsgroup App is the mobile app order for Trinhsgroup.com.au website"
+/// In-app about text. Kept in step with the store listings so the two never contradict:
+/// only features the app actually has — pickup ordering, no delivery or reservations.
+var APP_DESCRIPTION = "Order Trinh's Vietnamese favourites for pickup. Browse the full menu, make a dish yours with add-ons and notes, choose your pickup day and time, follow your order status, and earn points towards vouchers."
 var DEVELOPER = "Trinhsgroup"
 var COMPABILITY = "iOS 13 or above"
 var WEBSITE_LABEL = "Trinhsgroup"

@@ -26,13 +26,24 @@ struct AppEvent: Identifiable {
     /// Off takes the event out of the carousel without deleting the document. Absent
     /// counts as on, so documents written before this field existed still show.
     var active: Bool
+    /// Offer only the app has. Gets its own badge and sorts ahead of the general events,
+    /// so an app-only special is the first card a customer sees. Absent counts as off.
+    var appOnly: Bool
 
     /// The wording is part of the artwork, so VoiceOver has nothing to read off the card
     /// without this.
     var accessibilityLabel: String {
-        [eyebrow, title, subtitle, detail]
+        [appOnly ? AppEvent.appOnlyBadge : "", eyebrow, title, subtitle, detail]
             .filter { !$0.isEmpty }
             .joined(separator: ". ")
+    }
+
+    /// One spelling, used by the badge and by VoiceOver.
+    static let appOnlyBadge = "App exclusive"
+
+    /// Carousel order: app-only offers first, id order within each half.
+    static func inBannerOrder(_ lhs: AppEvent, _ rhs: AppEvent) -> Bool {
+        (lhs.appOnly ? 0 : 1, lhs.id) < (rhs.appOnly ? 0 : 1, rhs.id)
     }
 
     init(_ dic: [String: Any]) {
@@ -47,5 +58,6 @@ struct AppEvent: Identifiable {
         self.detail = dic["detail"] as? String ?? ""
         self.posterURL = dic["posterURL"] as? String ?? ""
         self.active = dic["active"] as? Bool ?? true
+        self.appOnly = dic["appOnly"] as? Bool ?? false
     }
 }

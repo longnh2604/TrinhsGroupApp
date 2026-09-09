@@ -144,6 +144,19 @@ struct EventBannerCard: View {
             VStack(alignment: .leading, spacing: 6) {
                 // Each line is skipped when its field is blank, so a half-filled document
                 // reads as a smaller card rather than one with holes in it.
+                if event.appOnly {
+                    // Filled pill, not the eyebrow's plain small caps: an app-only offer has
+                    // to read differently from a general event at a glance.
+                    Text(AppEvent.appOnlyBadge.uppercased())
+                        .font(.custom(Constants.AppFont.boldFont, size: 9))
+                        .kerning(1.1)
+                        .foregroundColor(posterCream)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(posterRed)
+                        .clipShape(Capsule())
+                }
+
                 if !event.eyebrow.isEmpty {
                     Text(event.eyebrow)
                         .font(.custom(Constants.AppFont.boldFont, size: 9))

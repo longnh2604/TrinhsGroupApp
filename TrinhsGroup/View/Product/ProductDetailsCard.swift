@@ -37,6 +37,18 @@ struct ProductDetailsCard: View {
         addOnSelection.choices(in: addOnGroups)
     }
 
+    /// Ingredients and allergens, as the kitchen fills them in on the WooCommerce product.
+    /// The order is fixed here rather than taken from the product, so two dishes never
+    /// label the same two boxes in a different order, and a dish with neither renders
+    /// nothing at all — the sections light up per dish as the text arrives.
+    private var dishFacts: [Attribute] {
+        ["ingredients", "allergens"].compactMap { name in
+            product.attributes.first {
+                $0.name.lowercased() == name && !$0.options.isEmpty
+            }
+        }
+    }
+
     /// Live total: catalog price plus the chosen add-ons, using YITH's own prices. Indicative —
     /// the amount charged comes from the server, and the checkout screen quotes it.
     private var currentTotal: Double {
@@ -146,6 +158,25 @@ struct ProductDetailsCard: View {
                 Spacer()
             }
             .padding(.top, 2)
+        }
+    }
+
+    // MARK: Ingredients and allergens
+    fileprivate func DishFactsSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Keyed by name: custom (non-global) WooCommerce attributes all arrive with id 0.
+            ForEach(dishFacts, id: \.name) { attribute in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(attribute.name)
+                        .font(.custom(Constants.AppFont.boldFont, size: 15))
+                        .foregroundColor(Constants.AppColor.primaryBlack)
+
+                    Text(attribute.options.joined(separator: ", ").decodingHTMLEntities())
+                        .font(.custom(Constants.AppFont.regularFont, size: 14))
+                        .foregroundColor(.gray)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
     }
 
@@ -339,6 +370,10 @@ struct ProductDetailsCard: View {
                             // Content sheet overlapping the image
                             VStack(alignment: .leading, spacing: 20) {
                                 TitlePriceSection()
+
+                                if !dishFacts.isEmpty {
+                                    DishFactsSection()
+                                }
 
                                 if !addOnGroups.isEmpty || !addOnError.isEmpty {
                                     AddOnsSection()

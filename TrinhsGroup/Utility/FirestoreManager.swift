@@ -30,7 +30,9 @@ class FirestoreManager: ObservableObject {
                 self.events = documents
                     .map { AppEvent($0.data()) }
                     .filter { $0.active }
-                    .sorted { $0.id < $1.id }
+                    // App-only offers first, so the carousel opens on a special the
+                    // customer cannot get anywhere else.
+                    .sorted(by: AppEvent.inBannerOrder)
             }
     }
     
