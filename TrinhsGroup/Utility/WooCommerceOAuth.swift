@@ -72,11 +72,11 @@ enum WooCommerceEndpoint {
             return "\(appAPIURL)/register"
 
         case .fetchCategories:
-            return "\(commonURL)/products/categories"
+            return "\(commonURL)/products/categories?per_page=100"
         case .fetchPopularProducts:
             return "\(commonURL)/products?orderby=popularity&order=desc&per_page=10"
         case .fetchProductsCategory(let id):
-            return "\(commonURL)/products?category=\(id)"
+            return "\(commonURL)/products?category=\(id)&per_page=100"
         case .productAddOns(let productID):
             return "\(appAPIURL)/products/\(productID)/addons"
 

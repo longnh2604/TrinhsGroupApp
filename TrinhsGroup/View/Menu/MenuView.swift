@@ -15,7 +15,7 @@ struct MenuView: View {
     
     private func filteredProducts() -> [Product] {
         if searchText.isEmpty {
-            return mainViewModel.categoryProducts.filter { $0.categories.first?.id == selectedCategory.id }
+            return mainViewModel.categoryProducts.filter { $0.categories.contains { $0.id == selectedCategory.id } }
         } else {
             return mainViewModel.products.filter {
                 $0.name.lowercased().contains(searchText.lowercased())

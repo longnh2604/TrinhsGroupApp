@@ -128,18 +128,19 @@ struct LogInView: View {
                     EmptyView()
                 }
             }
-            .overlay(alignment: .topLeading) {
+            .overlay(alignment: .topTrailing) {
                 // Guests are shown this as a sheet over the menu, so there has to be a way back.
+                // Top-right and 44pt, Apple's minimum hit target; at 36pt it was easy to miss.
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.gray)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
                         .background(Color.white)
                         .clipShape(Circle())
                         .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: 1)
                 }
-                .padding(.leading, 20)
+                .padding(.trailing, 20)
                 .padding(.top, 12)
             }
             .navigationBarTitle(Text(L10n.Common.emptyString.localizedKey), displayMode: .inline)
