@@ -80,9 +80,9 @@ sealed class WooCommerceEndpoint {
         is ForgotPassword -> "/wp-login.php?action=lostpassword"
         is Register -> "$APP_API_URL/register"
 
-        is FetchCategories -> "$COMMON_URL/products/categories"
+        is FetchCategories -> "$COMMON_URL/products/categories?per_page=100"
         is FetchPopularProducts -> "$COMMON_URL/products?orderby=popularity&order=desc&per_page=10"
-        is FetchProductsCategory -> "$COMMON_URL/products?category=$categoryId"
+        is FetchProductsCategory -> "$COMMON_URL/products?category=$categoryId&per_page=100"
         is ProductAddOns -> "$APP_API_URL/products/$productId/addons"
 
         is Me -> "$APP_API_URL/me"

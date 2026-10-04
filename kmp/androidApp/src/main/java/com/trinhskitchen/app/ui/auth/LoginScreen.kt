@@ -1,6 +1,9 @@
 package com.trinhskitchen.app.ui.auth
 
 import androidx.compose.foundation.Image
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -101,9 +104,29 @@ fun LoginScreen(
     Scaffold(
         topBar = {
             // Guests reach this from the catalog, so there has to be a way back to it.
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = onClose) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+            // Below the status bar (it used to sit on the clock), top-right, and a full 48dp
+            // circle so it is easy to hit.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Surface(
+                    onClick = onClose,
+                    shape = CircleShape,
+                    color = Color.White,
+                    shadowElevation = 3.dp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = AppColors.TextSecondary,
+                        modifier = Modifier.padding(12.dp)
+                    )
                 }
             }
         },

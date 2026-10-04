@@ -28,7 +28,7 @@ class WooCommerceEndpointTest {
 
     @Test
     fun testFetchCategoriesEndpoint() {
-        assertEquals("/wp-json/wc/v3/products/categories", WooCommerceEndpoint.FetchCategories.urlPath())
+        assertEquals("/wp-json/wc/v3/products/categories?per_page=100", WooCommerceEndpoint.FetchCategories.urlPath())
     }
 
     @Test
@@ -41,8 +41,8 @@ class WooCommerceEndpointTest {
 
     @Test
     fun testFetchProductsCategoryEndpoint() {
-        assertEquals("/wp-json/wc/v3/products?category=5", WooCommerceEndpoint.FetchProductsCategory(5).urlPath())
-        assertEquals("/wp-json/wc/v3/products?category=42", WooCommerceEndpoint.FetchProductsCategory(42).urlPath())
+        assertEquals("/wp-json/wc/v3/products?category=5&per_page=100", WooCommerceEndpoint.FetchProductsCategory(5).urlPath())
+        assertEquals("/wp-json/wc/v3/products?category=42&per_page=100", WooCommerceEndpoint.FetchProductsCategory(42).urlPath())
     }
 
     @Test

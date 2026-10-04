@@ -4,6 +4,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.tappableElement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
@@ -163,11 +167,22 @@ fun MainScreen(
         }
     }
 
+    // Gesture navigation: sink 40% of the way into the bottom inset, as iOS does, so the labels
+    // sit just above the handle. 3-button navigation: the inset holds the buttons, keep clear.
+    val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val buttonNav = WindowInsets.tappableElement.asPaddingValues().calculateBottomPadding() > 0.dp
+    val barInset = if (buttonNav) navBarInset else navBarInset * 0.6f
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
+            // Each tab's AppTopBar already pads for the status bar; letting the Scaffold do it
+            // too left a status-bar-high blank strip above every title. The bottom still clears
+            // the tab bar — Scaffold pads content by the bar's own height.
+            contentWindowInsets = WindowInsets(0),
             bottomBar = {
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    windowInsets = WindowInsets(bottom = barInset)
                 ) {
                     navItems.forEachIndexed { index, item ->
                         NavigationBarItem(
@@ -214,9 +229,13 @@ fun MainScreen(
                             onNavigateToProductDetail = onNavigateToProductDetail,
                             onOpenCart = { showCart = true },
                             onNavigateToCategory = { categoryId ->
-                                // Navigate to menu tab and select category
-                                selectedTabIndex = 1
-                                navController.navigate(Screen.Menu.route)
+                                // As iOS: pick the tapped category, then switch tabs exactly as the
+                                // Menu tab does. A bare navigate() pushed Menu on top of Home, and
+                                // the Home tab's saveState/restoreState then brought Menu back.
+                                mainViewModel.categories.value
+                                    .firstOrNull { it.id == categoryId }
+                                    ?.let { mainViewModel.setSelectedCategory(it) }
+                                selectTab(1)
                             },
                             onNavigateToNotifications = onNavigateToNotifications
                         )
@@ -276,7 +295,7 @@ fun MainScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 // Lines the caption up with the four NavigationBar labels beside it.
-                .padding(bottom = 37.dp)
+                .padding(bottom = barInset + 13.dp)
         ) {
             Surface(
                 onClick = {
