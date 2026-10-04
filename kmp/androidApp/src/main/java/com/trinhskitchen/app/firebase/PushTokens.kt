@@ -53,7 +53,10 @@ class PushTokens(
 
     private suspend fun deviceToken(): String = suspendCancellableCoroutine { continuation ->
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            continuation.resume(task.result?.takeIf { task.isSuccessful } ?: "")
+            // Success first: `result` throws on a failed task (e.g. TOO_MANY_REGISTRATIONS), and
+            // this listener runs on the main thread, so reading it unchecked crashed the app.
+            if (!task.isSuccessful) println("📱 FCM token unavailable: ${task.exception?.message}")
+            continuation.resume(if (task.isSuccessful) task.result.orEmpty() else "")
         }
     }
 }
