@@ -68,4 +68,35 @@ class HtmlDecoderTest {
     fun testStringExtension() {
         assertEquals("Tom & Jerry", "Tom &amp; Jerry".decodingHTMLEntities())
     }
+
+    @Test
+    fun testBoldSegmentsFromWordPressError() {
+        assertEquals(
+            listOf(
+                HtmlDecoder.Segment("Error:", bold = true),
+                HtmlDecoder.Segment(" Unknown username.", bold = false)
+            ),
+            HtmlDecoder.boldSegments("<strong>Error:</strong> Unknown username.")
+        )
+    }
+
+    @Test
+    fun testBoldSegmentsDropsOtherTags() {
+        assertEquals(
+            listOf(
+                HtmlDecoder.Segment("See ", bold = false),
+                HtmlDecoder.Segment("here", bold = true),
+                HtmlDecoder.Segment(" & retry", bold = false)
+            ),
+            HtmlDecoder.boldSegments("See <a href=\"x\"><b>here</b></a> &amp; retry")
+        )
+    }
+
+    @Test
+    fun testBoldSegmentsPlainText() {
+        assertEquals(
+            listOf(HtmlDecoder.Segment("Please fill all data", bold = false)),
+            HtmlDecoder.boldSegments("Please fill all data")
+        )
+    }
 }

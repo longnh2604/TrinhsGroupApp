@@ -194,6 +194,11 @@ class AuthViewModel(
             _message.value = "Please fill all data"
             return
         }
+        // The keyboard's Done action calls this directly, bypassing the disabled button.
+        if (!isPasswordValid(_password.value)) {
+            _message.value = PASSWORD_TOO_SHORT_MESSAGE
+            return
+        }
         scope.launch {
             service.createUser(
                 username = _username.value,
@@ -415,5 +420,24 @@ class AuthViewModel(
     companion object {
         private const val KEY_IS_LOGIN = "isLogin"
         private const val KEY_USER_EMAIL = "userEmail"
+
+        /** Matches the server's minimum in trinh_app_register_customer. */
+        const val MIN_PASSWORD_LENGTH = 8
+        const val PASSWORD_TOO_SHORT_MESSAGE = "Password must be at least 8 characters"
+
+        /** Same pattern as iOS SignupView.isEmailValid. */
+        private val EMAIL_REGEX = Regex("[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
+
+        fun isPasswordValid(password: String): Boolean = password.length >= MIN_PASSWORD_LENGTH
+
+        fun isEmailValid(email: String): Boolean = EMAIL_REGEX.matches(email)
+
+        /** Mirrors iOS LoginView.isFormValid, which gates the Login button. */
+        fun isLoginFormValid(email: String, password: String): Boolean =
+            email.isNotEmpty() && password.isNotEmpty()
+
+        /** Mirrors iOS SignupView.isFormValid, which gates the Sign Up button. */
+        fun isSignupFormValid(username: String, email: String, password: String): Boolean =
+            username.isNotEmpty() && isEmailValid(email) && isPasswordValid(password)
     }
 }

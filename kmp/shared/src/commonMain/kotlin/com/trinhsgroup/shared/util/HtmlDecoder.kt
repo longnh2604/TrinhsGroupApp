@@ -71,6 +71,36 @@ object HtmlDecoder {
         return finalResult
     }
 
+    /** One run of text from [boldSegments], with whether it sat inside <strong> or <b>. */
+    data class Segment(val text: String, val bold: Boolean)
+
+    private val TAG_REGEX = Regex("<(/?)([a-zA-Z0-9]+)[^>]*>")
+
+    /**
+     * WordPress errors arrive as HTML, e.g. "<strong>Error:</strong> Unknown username".
+     * Splits [input] into runs so <strong>/<b> can be shown bold; every other tag is dropped.
+     * Mirrors iOS CustomAlertView.styledMessage.
+     */
+    fun boldSegments(input: String): List<Segment> {
+        val segments = mutableListOf<Segment>()
+        var bold = false
+        var position = 0
+        fun appendRun(end: Int) {
+            val text = decode(input.substring(position, end))
+            if (text.isNotEmpty()) segments.add(Segment(text, bold))
+        }
+        for (match in TAG_REGEX.findAll(input)) {
+            appendRun(match.range.first)
+            val name = match.groupValues[2].lowercase()
+            if (name == "strong" || name == "b") {
+                bold = match.groupValues[1].isEmpty()
+            }
+            position = match.range.last + 1
+        }
+        appendRun(input.length)
+        return segments
+    }
+
     /**
      * Decodes a single HTML entity reference.
      */

@@ -35,7 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -61,6 +60,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import com.trinhskitchen.app.R
+import com.trinhskitchen.app.ui.components.HtmlSnackbarHost
+import com.trinhskitchen.app.ui.components.showToast
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 
@@ -96,7 +97,7 @@ fun LoginScreen(
     // Show error message
     LaunchedEffect(message) {
         if (message.isNotEmpty()) {
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showToast(message)
             viewModel.clearMessage()
         }
     }
@@ -130,7 +131,7 @@ fun LoginScreen(
                 }
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { HtmlSnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -245,7 +246,7 @@ fun LoginScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary),
-                enabled = !isLoading
+                enabled = !isLoading && AuthViewModel.isLoginFormValid(email, password)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

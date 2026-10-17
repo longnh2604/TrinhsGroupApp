@@ -29,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -52,6 +51,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.trinhskitchen.app.ui.components.HtmlSnackbarHost
+import com.trinhskitchen.app.ui.components.showToast
 import com.trinhskitchen.app.ui.theme.AppColors
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 
@@ -88,13 +89,13 @@ fun SignupScreen(
     // Show error message
     LaunchedEffect(message) {
         if (message.isNotEmpty()) {
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showToast(message)
             viewModel.clearMessage()
         }
     }
     
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { HtmlSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Create Account") },
@@ -218,7 +219,18 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-            
+
+            if (password.isNotEmpty() && !AuthViewModel.isPasswordValid(password)) {
+                Text(
+                    text = AuthViewModel.PASSWORD_TOO_SHORT_MESSAGE,
+                    color = AppColors.Error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, top = 4.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
             
             // Signup button
@@ -229,7 +241,7 @@ fun SignupScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary),
-                enabled = !isLoading
+                enabled = !isLoading && AuthViewModel.isSignupFormValid(username, email, password)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
