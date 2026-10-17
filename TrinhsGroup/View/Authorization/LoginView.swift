@@ -72,12 +72,17 @@ struct LogInView: View {
                 .foregroundColor(.white)
                 .frame(height: 55)
                 .frame(minWidth: 0, maxWidth: .infinity)
-                .background(LinearGradient(gradient: Gradient(colors: [Color.init(hex: "cb2d3e"), Color.init(hex: "ef473a")]), startPoint: .leading, endPoint: .trailing))
+                .background(LinearGradient(gradient: Gradient(colors: isFormValid ? [Color.init(hex: "cb2d3e"), Color.init(hex: "ef473a")] : [Color.gray, Color.gray]), startPoint: .leading, endPoint: .trailing))
                 .cornerRadius(25)
         }
         .padding([.leading, .trailing], 20)
         .padding(.top, 40)
         .padding(.bottom, 20)
+        .disabled(!isFormValid)
+    }
+
+    var isFormValid: Bool {
+        return !authViewModel.email.isEmpty && !authViewModel.password.isEmpty
     }
     
     fileprivate func ForgetPasswordButton() -> some View {
@@ -127,6 +132,12 @@ struct LogInView: View {
                 NavigationLink(destination: SignupView().environmentObject(authViewModel), isActive: $isShowSignUp) {
                     EmptyView()
                 }
+            }
+            .task(id: authViewModel.message) {
+                // Restarts on every new message, so each toast gets its own full duration.
+                guard !authViewModel.message.isEmpty else { return }
+                try? await Task.sleep(nanoseconds: TOAST_DURATION_NANOSECONDS)
+                if !Task.isCancelled { authViewModel.message = "" }
             }
             .overlay(alignment: .topTrailing) {
                 // Guests are shown this as a sheet over the menu, so there has to be a way back.

@@ -17,7 +17,7 @@ struct CustomAlertView: View {
                 Color.clear.ignoresSafeArea()
                 
                 VStack {
-                    Text(message)
+                    styledMessage
                         .foregroundColor(Color.gray)
                         .multilineTextAlignment(.center)
                 }
@@ -29,5 +29,31 @@ struct CustomAlertView: View {
                 
             }
         }
+    }
+
+    /// WordPress errors arrive as HTML, e.g. "<strong>Error:</strong> Unknown username".
+    /// Renders <strong>/<b> as bold and drops every other tag instead of showing raw markup.
+    private var styledMessage: Text {
+        let pieces = message.components(separatedBy: "<")
+        var result = Text(pieces[0].decodingHTMLEntities())
+        var isBold = false
+        for piece in pieces.dropFirst() {
+            guard let close = piece.firstIndex(of: ">") else {
+                result = result + run("<" + piece, bold: isBold)
+                continue
+            }
+            let tag = piece[..<close].lowercased()
+            let name = tag.drop(while: { $0 == "/" }).split(separator: " ").first.map(String.init) ?? ""
+            if name == "strong" || name == "b" {
+                isBold = !tag.hasPrefix("/")
+            }
+            result = result + run(String(piece[piece.index(after: close)...]), bold: isBold)
+        }
+        return result
+    }
+
+    private func run(_ text: String, bold: Bool) -> Text {
+        let run = Text(text.decodingHTMLEntities())
+        return bold ? run.bold() : run
     }
 }

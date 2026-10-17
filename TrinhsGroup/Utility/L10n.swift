@@ -36,6 +36,7 @@ enum L10n {
         static let send = "auth.send"
         static let enterEmailPrompt = "auth.enterEmailPrompt"
         static let invalidEmail = "auth.invalidEmail"
+        static let passwordTooShort = "auth.passwordTooShort"
     }
     
     enum OrderReceived {

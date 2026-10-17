@@ -141,6 +141,10 @@ struct WooCommerceAPI {
     /// JWT-backed route is called without a signed-in session.
     private func applyAuthorization(to request: inout URLRequest, for endpoint: WooCommerceEndpoint) -> Error? {
         guard endpoint.requiresJWT else {
+            // Only wc/v3 understands the consumer key. On any other route WordPress core
+            // reads Basic auth as an application password and rejects the request with
+            // 401 "Unknown username" before the route's own callback runs.
+            guard endpoint.urlPath().hasPrefix(commonURL) else { return nil }
             let loginString = "\(consumerKey):\(consumerSecret)"
             if let loginData = loginString.data(using: .utf8) {
                 request.setValue("Basic \(loginData.base64EncodedString())", forHTTPHeaderField: "Authorization")

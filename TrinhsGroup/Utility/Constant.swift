@@ -8,6 +8,8 @@
 import SwiftUI
 
 let ALERT_MESSAGE_DURATION: Double      =   3.0
+/// How long a login/signup toast stays up before it clears itself.
+let TOAST_DURATION_NANOSECONDS: UInt64  =   5_000_000_000
 
 // COLOR
 let colorBackground: Color = Color("ColorBackground")

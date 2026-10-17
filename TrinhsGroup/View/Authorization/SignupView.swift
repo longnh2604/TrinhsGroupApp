@@ -131,10 +131,15 @@ struct SignupView: View {
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: authViewModel.email)
     }
     
+    /// Matches the server's minimum in trinh_app_register_customer.
+    var isPasswordValid: Bool {
+        return authViewModel.password.count >= 8
+    }
+
     var isFormValid: Bool {
         return !authViewModel.username.isEmpty &&
                isEmailValid &&
-               !authViewModel.password.isEmpty
+               isPasswordValid
     }
     
     var body: some View {
@@ -149,6 +154,13 @@ struct SignupView: View {
                         .padding(.top, 30)
                     EmailTextField()
                     PasswordTextField()
+                    if !isPasswordValid && !authViewModel.password.isEmpty {
+                        Text(L10n.Auth.passwordTooShort.localizedKey)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.leading, 30)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     SignUpButton()
                     Spacer()
                 }
@@ -161,6 +173,17 @@ struct SignupView: View {
                 if authViewModel.isCreatedUser {
                     CustomAlertView(message: L10n.Auth.accountCreated.localized)
                 }
+            }
+            .task(id: authViewModel.message) {
+                // Restarts on every new message, so each toast gets its own full duration.
+                guard !authViewModel.message.isEmpty else { return }
+                try? await Task.sleep(nanoseconds: TOAST_DURATION_NANOSECONDS)
+                if !Task.isCancelled { authViewModel.message = "" }
+            }
+            .task(id: authViewModel.isCreatedUser) {
+                guard authViewModel.isCreatedUser else { return }
+                try? await Task.sleep(nanoseconds: TOAST_DURATION_NANOSECONDS)
+                if !Task.isCancelled { authViewModel.isCreatedUser = false }
             }
         }
         .navigationBarHidden(true)
