@@ -50,8 +50,8 @@ android {
         minSdk = 24
         targetSdk = 36
         // 8 is the code already on Play (1.2), so this upload is 9.
-        versionCode = 9
-        versionName = "1.3"
+        versionCode = 10
+        versionName = "1.4"
 
         buildConfigField("String", "WOO_CONSUMER_KEY", "\"${secret("WOO_CONSUMER_KEY")}\"")
         buildConfigField("String", "WOO_CONSUMER_SECRET", "\"${secret("WOO_CONSUMER_SECRET")}\"")
