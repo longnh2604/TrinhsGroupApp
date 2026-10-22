@@ -29,4 +29,12 @@ struct Billing: Codable  {
         }
         return true
     }
+
+    /// What an order needs: a number the kitchen can ring back to confirm it, and an address.
+    /// Country isn't asked (the store is Australia only), and name and email come from the account.
+    func isReadyToOrder() -> Bool {
+        [phone, address_1, city, postcode, state].allSatisfy {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
 }

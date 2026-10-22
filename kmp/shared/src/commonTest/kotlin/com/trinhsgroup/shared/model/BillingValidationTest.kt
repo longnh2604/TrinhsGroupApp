@@ -204,4 +204,27 @@ class BillingValidationTest {
         
         assertFalse(billing.checkFilledData())
     }
+
+    @Test
+    fun `phone and address are enough to order`() {
+        val billing = Billing(
+            address1 = "1 John St", city = "Cabramatta", postcode = "2166", state = "NSW",
+            phone = "0412345678"
+        )
+        assertTrue(billing.isReadyToOrder())
+    }
+
+    @Test
+    fun `missing phone or any address field cannot order`() {
+        val ready = Billing(
+            address1 = "1 John St", city = "Cabramatta", postcode = "2166", state = "NSW",
+            phone = "0412345678"
+        )
+        assertFalse(ready.copy(phone = "   ").isReadyToOrder())
+        assertFalse(ready.copy(address1 = "").isReadyToOrder())
+        assertFalse(ready.copy(city = "").isReadyToOrder())
+        assertFalse(ready.copy(postcode = "").isReadyToOrder())
+        assertFalse(ready.copy(state = "").isReadyToOrder())
+        assertFalse(Billing().isReadyToOrder())
+    }
 }

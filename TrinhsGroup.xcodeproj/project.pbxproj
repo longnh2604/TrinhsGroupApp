@@ -129,6 +129,7 @@
 		FDB69C972877E3A900878117 /* FirestoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB69C962877E3A900878117 /* FirestoreManager.swift */; };
 		FDB69C992877F17D00878117 /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB69C982877F17C00878117 /* EventModel.swift */; };
 		FDC6A91C289A12B9002C4970 /* cookLoading.json in Resources */ = {isa = PBXBuildFile; fileRef = FDC6A91B289A12B9002C4970 /* cookLoading.json */; };
+		A1D0C0DE2A00000000000002 /* au_localities.json in Resources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2A00000000000001 /* au_localities.json */; };
 		FDC6A920289A2107002C4970 /* LottieLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDC6A91F289A2107002C4970 /* LottieLoadingView.swift */; };
 		VSEL000001000001000002 /* VoucherSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VSEL000001000001000001 /* VoucherSelectionView.swift */; };
 /* End PBXBuildFile section */
@@ -261,6 +262,7 @@
 		FDB69C962877E3A900878117 /* FirestoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreManager.swift; sourceTree = "<group>"; };
 		FDB69C982877F17C00878117 /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
 		FDC6A91B289A12B9002C4970 /* cookLoading.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = cookLoading.json; sourceTree = "<group>"; };
+		A1D0C0DE2A00000000000001 /* au_localities.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = au_localities.json; sourceTree = "<group>"; };
 		FDC6A91F289A2107002C4970 /* LottieLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieLoadingView.swift; sourceTree = "<group>"; };
 		VSEL000001000001000001 /* VoucherSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoucherSelectionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -639,6 +641,7 @@
 				FDAA000000000000000C0007 /* Order_refunded.json */,
 				FDAA000000000000000C0009 /* Order_failed.json */,
 				FDC6A91B289A12B9002C4970 /* cookLoading.json */,
+				A1D0C0DE2A00000000000001 /* au_localities.json */,
 				8D091C610FDD96FE742BB202 /* en.lproj */,
 			);
 			path = Resources;
@@ -714,6 +717,7 @@
 				2270CF212FAB9163008C2D18 /* Localizable.strings in Resources */,
 				FD460F0028696F0E004523FC /* Assets.xcassets in Resources */,
 				FDC6A91C289A12B9002C4970 /* cookLoading.json in Resources */,
+				A1D0C0DE2A00000000000002 /* au_localities.json in Resources */,
 				FD8EAEF02872ACC7004F9ED0 /* GoogleService-Info.plist in Resources */,
 				FD5EC0020000000000000002 /* Secrets.plist in Resources */,
 				FB70DE0000000000000000C2 /* PrivacyInfo.xcprivacy in Resources */,

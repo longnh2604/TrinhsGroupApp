@@ -34,7 +34,6 @@ sealed class Screen(val route: String) {
     // Profile tab destinations
     data object Profile : Screen("profile")
     data object EditProfile : Screen("edit_profile")
-    data object EditAddress : Screen("edit_address")
     data object MyOrders : Screen("my_orders")
     data object OrderDetail : Screen("order_detail/{orderId}") {
         fun createRoute(orderId: Int) = "order_detail/$orderId"

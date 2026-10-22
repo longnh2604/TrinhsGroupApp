@@ -19,6 +19,7 @@ struct CheckOutView: View {
     @State private var selectedVoucher: VoucherResponse? = nil
     @State private var showVoucherPicker: Bool = false
     @State private var orderError: String? = nil
+    @State private var showDetailsRequired: Bool = false
     /// The server's price for this basket. Nil until it answers, or when it could not be asked.
     @State private var quote: OrderQuote? = nil
 
@@ -91,6 +92,12 @@ struct CheckOutView: View {
                 return
             }
             guard authViewModel.checkUserUpdatedBillInfo() else { return }
+            // The kitchen rings every order back to confirm it isn't a scam, so an order
+            // without a number to call, or an address, is not placed.
+            guard authViewModel.user.billing.isReadyToOrder() else {
+                showDetailsRequired = true
+                return
+            }
             guard let pickupDateTime = selectedPickupDateTime else { return }
 
             if mainViewModel.selectedPayment?.id == "stripe" {
@@ -335,6 +342,15 @@ struct CheckOutView: View {
             }
             .onChange(of: selectedVoucher?.code) { _ in
                 refreshQuote()
+            }
+            .alert("Contact details required", isPresented: $showDetailsRequired) {
+                Button("Cancel", role: .cancel) {}
+                // MainView closes checkout, keeping the cart, and opens Edit Profile.
+                Button("Update Details") {
+                    mainViewModel.presentedType = .editUserInfo
+                }
+            } message: {
+                Text("We call to confirm every order. Please add your phone number and address before placing an order.")
             }
             // Present Safari for the checkout
             .sheet(isPresented: $showSafari, onDismiss: {

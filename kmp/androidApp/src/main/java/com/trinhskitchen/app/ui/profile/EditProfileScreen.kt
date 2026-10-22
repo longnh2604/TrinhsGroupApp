@@ -2,7 +2,9 @@ package com.trinhskitchen.app.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +38,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import com.trinhskitchen.app.ui.theme.AppColors
-import com.trinhsgroup.shared.model.Billing
+import com.trinhsgroup.shared.model.AuAddress
 import com.trinhsgroup.shared.viewmodel.AuthViewModel
 
 /**
@@ -55,6 +59,13 @@ fun EditProfileScreen(
     var firstName by remember(user.id) { mutableStateOf(user.firstName) }
     var lastName by remember(user.id) { mutableStateOf(user.lastName) }
     var phone by remember(user.id) { mutableStateOf(user.billing.phone) }
+    var address1 by remember(user.id) { mutableStateOf(user.billing.address1) }
+    var state by remember(user.id) { mutableStateOf(AuAddress.stateCode(user.billing.state)) }
+    var city by remember(user.id) { mutableStateOf(user.billing.city) }
+    var postcode by remember(user.id) { mutableStateOf(user.billing.postcode) }
+    var showStates by remember { mutableStateOf(false) }
+    var showSuburbs by remember { mutableStateOf(false) }
+    val localities = rememberAuLocalities()
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
@@ -62,7 +73,11 @@ fun EditProfileScreen(
     LaunchedEffect(Unit) { authViewModel.clearUpdatedUser() }
 
     LaunchedEffect(isUpdated) {
-        if (isUpdated) onNavigateBack()
+        if (isUpdated) {
+            // Consumed here, so the next visit doesn't open on a stale "saved" and close at once.
+            authViewModel.clearUpdatedUser()
+            onNavigateBack()
+        }
     }
 
     val passwordError = when {
@@ -131,6 +146,58 @@ fun EditProfileScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // The kitchen rings every order back and checkout needs an address, so both live
+            // here. Australia only, so the country isn't asked; the suburb fills the postcode.
+            Text("Billing Address", fontWeight = FontWeight.Bold, color = AppColors.TextPrimary)
+            OutlinedTextField(
+                value = address1,
+                onValueChange = { address1 = it },
+                label = { Text("Street address") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                PickerField(
+                    value = if (state.isEmpty()) "" else AuAddress.stateName(state),
+                    label = "State",
+                    onClick = { showStates = true }
+                )
+                DropdownMenu(expanded = showStates, onDismissRequest = { showStates = false }) {
+                    AuAddress.states.forEach { (code, name) ->
+                        DropdownMenuItem(
+                            text = { Text(name) },
+                            onClick = {
+                                showStates = false
+                                // A suburb picked for another state no longer applies.
+                                if (code != state) {
+                                    city = ""
+                                    postcode = ""
+                                }
+                                state = code
+                            }
+                        )
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PickerField(
+                    value = city,
+                    label = "City / Suburb",
+                    enabled = state.isNotEmpty() && localities != null,
+                    onClick = { showSuburbs = true },
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = postcode,
+                    onValueChange = { input -> postcode = input.filter { it.isDigit() }.take(4) },
+                    label = { Text("Postcode") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             OutlinedTextField(
                 value = newPassword,
                 onValueChange = { newPassword = it },
@@ -162,7 +229,14 @@ fun EditProfileScreen(
                         user.copy(
                             firstName = firstName,
                             lastName = lastName,
-                            billing = user.billing.withPhone(phone)
+                            billing = user.billing.copy(
+                                phone = phone,
+                                address1 = address1,
+                                state = state,
+                                city = city,
+                                postcode = postcode,
+                                country = AuAddress.COUNTRY
+                            )
                         )
                     )
                 },
@@ -174,18 +248,18 @@ fun EditProfileScreen(
             }
         }
     }
-}
 
-/** Billing is not a data class, so a one-field change is spelled out. */
-private fun Billing.withPhone(phone: String) = Billing(
-    firstName = firstName,
-    lastName = lastName,
-    country = country,
-    address1 = address1,
-    city = city,
-    postcode = postcode,
-    state = state,
-    email = email,
-    phone = phone,
-    company = company
-)
+    val suburbs = localities
+    if (showSuburbs && suburbs != null) {
+        SuburbPickerDialog(
+            localities = suburbs,
+            state = state,
+            onSelect = { picked ->
+                showSuburbs = false
+                city = picked.name
+                postcode = picked.postcode
+            },
+            onDismiss = { showSuburbs = false }
+        )
+    }
+}

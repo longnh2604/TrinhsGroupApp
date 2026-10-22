@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -89,7 +91,8 @@ fun CheckoutScreen(
     pointsViewModel: PointsViewModel,
     onNavigateBack: () -> Unit,
     onOrderSuccess: (Int) -> Unit,
-    onSessionExpired: () -> Unit
+    onSessionExpired: () -> Unit,
+    onNavigateToEditProfile: () -> Unit
 ) {
     val payments by mainViewModel.payments.collectAsState()
     val selectedPayment by mainViewModel.selectedPayment.collectAsState()
@@ -111,6 +114,7 @@ fun CheckoutScreen(
     
     // Error state
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showDetailsRequired by remember { mutableStateOf(false) }
 
     // The server's price for this basket. Null until it answers, or if it could not be asked.
     var quote by remember { mutableStateOf<OrderQuote?>(null) }
@@ -329,10 +333,10 @@ fun CheckoutScreen(
                         return@Button
                     }
 
-                    // An order the kitchen cannot ring back is worse than one not placed, and
-                    // the server rejects it anyway.
-                    if (!currentUser.billing.checkFilledData()) {
-                        errorMessage = "Please complete your billing details before ordering"
+                    // The kitchen rings every order back to confirm it isn't a scam, so an
+                    // order without a number to call, or an address, is not placed.
+                    if (!currentUser.billing.isReadyToOrder()) {
+                        showDetailsRequired = true
                         return@Button
                     }
                     
@@ -441,6 +445,32 @@ fun CheckoutScreen(
             )
         }
         
+        if (showDetailsRequired) {
+            AlertDialog(
+                onDismissRequest = { showDetailsRequired = false },
+                title = { Text("Contact details required") },
+                text = {
+                    Text(
+                        "We call to confirm every order. Please add your phone number and " +
+                            "address before placing an order."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDetailsRequired = false
+                        onNavigateToEditProfile()
+                    }) {
+                        Text("Update Details", color = AppColors.Primary)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDetailsRequired = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
         // Loading overlay
         if (showLoading) {
             Box(

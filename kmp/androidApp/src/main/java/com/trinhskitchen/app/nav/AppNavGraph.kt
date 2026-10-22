@@ -23,7 +23,6 @@ import com.trinhskitchen.app.ui.orders.MyOrdersScreen
 import com.trinhskitchen.app.ui.orders.OrderDetailScreen
 import com.trinhskitchen.app.ui.orders.OrdersFilter
 import com.trinhskitchen.app.ui.product.ProductDetailScreen
-import com.trinhskitchen.app.ui.profile.EditAddressScreen
 import com.trinhskitchen.app.ui.profile.EditProfileScreen
 import com.trinhskitchen.app.ui.profile.MyVouchersScreen
 import com.trinhsgroup.shared.storage.KeyValueStore
@@ -157,7 +156,6 @@ fun AppNavGraph(
                     navController.navigate(Screen.Notifications.route)
                 },
                 onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
-                onNavigateToEditAddress = { navController.navigate(Screen.EditAddress.route) },
                 onNavigateToPastOrders = { navController.navigate(Screen.MyOrders.route) },
                 onNavigateToVouchers = { navController.navigate(Screen.MyVouchers.route) },
                 onLogout = {
@@ -183,13 +181,6 @@ fun AppNavGraph(
         
         composable(Screen.EditProfile.route) {
             EditProfileScreen(
-                authViewModel = authViewModel,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.EditAddress.route) {
-            EditAddressScreen(
                 authViewModel = authViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
@@ -235,7 +226,9 @@ fun AppNavGraph(
                         popUpTo(Screen.Main.route) { inclusive = false }
                     }
                 },
-                onSessionExpired = { navController.navigate(Screen.Login.route) }
+                onSessionExpired = { navController.navigate(Screen.Login.route) },
+                // Saving pops back here, cart and all.
+                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) }
             )
         }
         

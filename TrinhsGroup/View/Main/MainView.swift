@@ -84,6 +84,16 @@ struct MainView: View {
             // Also reset order detail overlay when switching tabs
             historyViewModel.showHistoryOrderDetail = false
         }
+        .onChange(of: mainViewModel.presentedType) { type in
+            // Checkout asks for this when the customer has no phone number or address on file.
+            guard type == .editUserInfo else { return }
+            mainViewModel.presentedType = .none
+            selectedTab = 4
+            // Profile's NavigationView has to be on screen before it can push Edit Profile.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                authViewModel.showEditProfile = true
+            }
+        }
         .onChange(of: mainViewModel.categoryToNavigate) { category in
             // Navigate to Menu tab (index 1) when category is selected from HomeView
             if category != nil {

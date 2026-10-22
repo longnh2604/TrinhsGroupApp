@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.AlertDialog
@@ -84,7 +83,6 @@ fun ProfileScreen(
     mainViewModel: MainViewModel,
     onNavigateToOrderDetail: (Int) -> Unit,
     onNavigateToEditProfile: () -> Unit,
-    onNavigateToEditAddress: () -> Unit,
     onNavigateToPastOrders: () -> Unit,
     onNavigateToVouchers: () -> Unit,
     onNavigateToFavorites: () -> Unit,
@@ -254,14 +252,6 @@ fun ProfileScreen(
                         icon = Icons.Default.Person,
                         title = "Edit Profile",
                         onClick = onNavigateToEditProfile
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    
-                    ProfileMenuItem(
-                        icon = Icons.Default.LocationOn,
-                        title = "Edit Address",
-                        onClick = onNavigateToEditAddress
                     )
                     
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

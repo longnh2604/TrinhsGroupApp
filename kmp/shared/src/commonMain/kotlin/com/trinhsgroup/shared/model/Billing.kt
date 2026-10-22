@@ -24,6 +24,13 @@ data class Billing(
         return true
     }
 
+    /**
+     * What an order needs: a number the kitchen can ring back to confirm it, and an address.
+     * Country isn't asked (the store is Australia only), and name and email come from the account.
+     */
+    fun isReadyToOrder(): Boolean =
+        listOf(phone, address1, city, postcode, state).all { it.isNotBlank() }
+
     companion object {
         val Empty = Billing()
     }
