@@ -219,8 +219,8 @@ class MainServices: MainServicesProtocol {
 
         let lineItems = lineItemsPayload(from: productOrders)
 
-        // The pickup date/time used to be split apart here into the CodeRockz plugin's
-        // _pi_delivery_* meta keys. The server now derives those from the raw
+        // The pickup date/time used to be split apart here into pickup meta keys. The server
+        // now derives the CodeRockz plugin's delivery_type / pickup_date / pickup_time from the raw
         // `pickup_datetime` string (see trinh_app_pickup_meta in trinh-app-api), so this
         // parsing had become dead — the two locals were assigned and never read.
 

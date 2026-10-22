@@ -974,7 +974,14 @@ function trinh_app_gateway_is_enabled(string $gateway_id): bool {
 }
 
 /**
- * Pickup date/time meta, matching the keys the CodeRockz delivery plugin reads.
+ * Pickup date/time meta, in the keys and formats the CodeRockz "Delivery & Pickup Date Time"
+ * plugin (woo-delivery) writes at the website checkout. It turns them into the "Pickup Date"
+ * and "Pickup Time" rows of the order totals (woocommerce_get_order_item_totals), which is
+ * how the time reaches the new-order email, the thank-you page and the admin order screen.
+ *
+ * The apps send one wall-clock time in the store's zone ("2026-10-22 12:00:00"). CodeRockz
+ * wants a slot ("12:00 - 12:30", 24h), so the slot is the chosen time plus the app's 30-minute
+ * slot spacing.
  */
 function trinh_app_pickup_meta(array $incoming): array {
     $pickup = sanitize_text_field($incoming['pickup_datetime'] ?? '');
@@ -991,11 +998,14 @@ function trinh_app_pickup_meta(array $incoming): array {
 
     $meta = [['key' => 'pickup_datetime', 'value' => $pickup]];
 
-    $timestamp = strtotime($pickup);
-    if ($timestamp) {
-        $meta[] = ['key' => '_pi_delivery_date', 'value' => wp_date('Y-m-d', $timestamp)];
-        $meta[] = ['key' => '_pi_delivery_time', 'value' => wp_date('H:i', $timestamp)];
-        $meta[] = ['key' => '_pi_delivery_type', 'value' => 'pickup'];
+    // Read in the site's zone. strtotime() would read it as UTC (WordPress pins PHP's default
+    // zone to UTC) and shift the time by the UTC offset once formatted for the site.
+    $start = date_create_immutable_from_format('Y-m-d H:i:s', $pickup, wp_timezone());
+    if ($start) {
+        $end = $start->modify('+30 minutes');
+        $meta[] = ['key' => 'delivery_type', 'value' => 'pickup'];
+        $meta[] = ['key' => 'pickup_date', 'value' => $start->format('Y-m-d')];
+        $meta[] = ['key' => 'pickup_time', 'value' => $start->format('H:i') . ' - ' . $end->format('H:i')];
     }
 
     return $meta;
