@@ -75,6 +75,14 @@ android {
             if (keystoreProperties.getProperty("storeFile") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            // R8: Play flags an unobfuscated app ("DEX code optimization is below our
+            // threshold"). Crashlytics uploads the mapping file, so stack traces still read.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
